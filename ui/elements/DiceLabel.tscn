@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/elements/DiceLabel.gd" id="1_abcde"]
+
+[node name="DiceLabel" type="Label"]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "?"
+horizontal_alignment = 1
+vertical_alignment = 1
+script = ExtResource("1_abcde")

@@ -1,0 +1,110 @@
+[gd_scene load_steps=19 format=3 uid="uid://cbh8cvxaj6yvc"]
+
+[ext_resource type="Script" uid="uid://b3s3wyvdmcgqw" path="res://characters/player/archer/Archer.gd" id="1_archer_script"]
+[ext_resource type="Texture2D" uid="uid://bslntg0lx4uxu" path="res://assets/sprites/characters/archer/Atk01/Attack_1.png" id="2_ldxec"]
+[ext_resource type="Texture2D" uid="uid://dxqcmppcwfec0" path="res://assets/sprites/characters/archer/Atk01/Attack_2.png" id="3_pl7j3"]
+[ext_resource type="Texture2D" uid="uid://bs1v6mjrx63ra" path="res://assets/sprites/characters/archer/Atk01/Attack_3.png" id="4_adpc4"]
+[ext_resource type="Texture2D" uid="uid://c4cmdh0jhc3r7" path="res://assets/sprites/characters/archer/Atk01/Attack_4.png" id="5_fe5d0"]
+[ext_resource type="Texture2D" uid="uid://cuseab2ygah7q" path="res://assets/sprites/characters/archer/Atk01/Attack_5.png" id="6_t1gk3"]
+[ext_resource type="Texture2D" uid="uid://c3eadg41766xd" path="res://assets/sprites/characters/archer/Atk01/Attack_6.png" id="7_eeati"]
+[ext_resource type="Texture2D" uid="uid://qgh3wct0ey8l" path="res://assets/sprites/characters/archer/Atk01/Attack_7.png" id="8_wuj8q"]
+[ext_resource type="Texture2D" uid="uid://duym4qjijfjag" path="res://assets/sprites/characters/archer/Atk01/Attack_8.png" id="9_cb82t"]
+[ext_resource type="Texture2D" uid="uid://dhm26h8ya2sux" path="res://assets/sprites/characters/archer/Atk01/Attack_9.png" id="10_qkfd3"]
+[ext_resource type="Texture2D" uid="uid://b0o1jjfrytm5c" path="res://assets/sprites/characters/archer/Idle/Idle_1.png" id="11_63nrf"]
+[ext_resource type="Texture2D" uid="uid://csm2xacl3j3vp" path="res://assets/sprites/characters/archer/Idle/Idle_2.png" id="12_ju7k2"]
+[ext_resource type="Texture2D" uid="uid://cvsihs5p81wwj" path="res://assets/sprites/characters/archer/Idle/Idle_3.png" id="13_8xpf7"]
+[ext_resource type="Texture2D" uid="uid://by5b1lxsjhje8" path="res://assets/sprites/characters/archer/Idle/Idle_4.png" id="14_ka5xd"]
+[ext_resource type="Texture2D" uid="uid://boh4t8tu5e6yk" path="res://assets/sprites/characters/archer/Idle/Idle_5.png" id="15_7r774"]
+[ext_resource type="Texture2D" uid="uid://cggcgv4fg1qu4" path="res://assets/sprites/characters/archer/Idle/Idle_6.png" id="16_nunbo"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0rwas"]
+size = Vector2(50, 50)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_archer_placeholder"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_ldxec")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_pl7j3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_adpc4")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_fe5d0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_t1gk3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_eeati")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_wuj8q")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_cb82t")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_qkfd3")
+}],
+"loop": false,
+"name": &"Attack01",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("11_63nrf")
+}, {
+"duration": 1.0,
+"texture": ExtResource("12_ju7k2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("13_8xpf7")
+}, {
+"duration": 1.0,
+"texture": ExtResource("14_ka5xd")
+}, {
+"duration": 1.0,
+"texture": ExtResource("15_7r774")
+}, {
+"duration": 1.0,
+"texture": ExtResource("16_nunbo")
+}],
+"loop": true,
+"name": &"Idle",
+"speed": 5.0
+}]
+
+[node name="Archer" type="CharacterBody2D"]
+input_pickable = true
+script = ExtResource("1_archer_script")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_0rwas")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(43, -16)
+sprite_frames = SubResource("SpriteFrames_archer_placeholder")
+animation = &"Attack01"
+autoplay = "Attack01"
+
+[node name="ProgressBar" type="ProgressBar" parent="."]
+offset_left = -32.0
+offset_top = -45.0
+offset_right = 32.0
+offset_bottom = -18.0
+show_percentage = false
+
+[node name="Label" type="Label" parent="."]
+offset_left = -17.0
+offset_top = 3.0
+offset_right = 47.0
+offset_bottom = 26.0
+text = "100"
+horizontal_alignment = 1
+
+[node name="AttackTimer" type="Timer" parent="."]
+wait_time = 0.3

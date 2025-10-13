@@ -1,0 +1,35 @@
+[gd_scene load_steps=3 format=3 uid="uid://bujnofxyh5kmq"]
+
+[ext_resource type="Script" path="res://characters/enemy/EnemyCharacter.gd" id="1_2v10u"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_4j8lt"]
+size = Vector2(32, 32)
+
+[node name="Enemy" type="CharacterBody2D"]
+input_pickable = true
+script = ExtResource("1_2v10u")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_4j8lt")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+offset_left = -16.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 16.0
+color = Color(0.952524, 0.138725, 0.400091, 1)
+
+[node name="ProgressBar" type="ProgressBar" parent="."]
+offset_left = -32.0
+offset_top = -45.0
+offset_right = 32.0
+offset_bottom = -18.0
+show_percentage = false
+
+[node name="Label" type="Label" parent="."]
+offset_left = -17.0
+offset_top = 20.0
+offset_right = 47.0
+offset_bottom = 43.0
+text = "50"
+horizontal_alignment = 1

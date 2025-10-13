@@ -1,0 +1,18 @@
+[gd_resource type="SpriteFrames" load_steps=3 format=3 uid="uid://cfl270md064jr"]
+
+[ext_resource type="Texture2D" uid="uid://b0mnqlp8naej0" path="res://Character/novice/Fx/Atk01_Fx/Fx_slash1_1.png" id="1_fx_slash1_1"]
+[ext_resource type="Texture2D" uid="uid://bbub84crrv60n" path="res://Character/novice/Fx/Atk01_Fx/Fx_slash1_2.png" id="2_fx_slash1_2"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_fx_slash1_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_fx_slash1_2")
+}],
+"loop": false,
+"name": &"Attack01_Fx",
+"speed": 10.0
+}]
