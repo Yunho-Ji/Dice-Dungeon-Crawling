@@ -1,6 +1,6 @@
 [gd_scene load_steps=15 format=3 uid="uid://bd8mbroqs0yvb"]
 
-[ext_resource type="Script" uid="uid://bwr4baf2xy4wy" path="res://characters/player/novice/Novice.gd" id="1_novice_script"]
+[ext_resource type="Script" uid="uid://dgpnoglm5k5h0" path="res://characters/player/novice/Novice.gd" id="1_novice_script"]
 [ext_resource type="Texture2D" uid="uid://bmll4foryqxq5" path="res://assets/sprites/characters/novice/Atk01/attack1_1.png" id="2_fu622"]
 [ext_resource type="Texture2D" uid="uid://cfbh8v8r4xgo0" path="res://assets/sprites/characters/novice/Atk01/attack1_2.png" id="3_jw5nh"]
 [ext_resource type="Texture2D" uid="uid://c1eyc3eomooju" path="res://assets/sprites/characters/novice/Atk01/attack1_3.png" id="4_us0xy"]
@@ -72,7 +72,7 @@ shape = SubResource("RectangleShape2D_0rwas")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -16)
 sprite_frames = SubResource("SpriteFrames_fe2e5")
-animation = &"Idle"
+animation = &"Attack01"
 
 [node name="ProgressBar" type="ProgressBar" parent="."]
 offset_left = -32.0

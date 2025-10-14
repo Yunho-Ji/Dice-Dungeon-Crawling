@@ -15,13 +15,8 @@ func _ready():
 	battle_manager.name = "BattleManager"
 	add_child(battle_manager)
 
-	var dice_manager = DiceManager.new()
-	dice_manager.name = "DiceManager"
-	add_child(dice_manager)
-
 	# 2. 각 매니저에 스크립트 연결 (동적으로 스크립트 로드)
 	battle_manager.set_script(load("res://core/BattleManager.gd"))
-	dice_manager.set_script(load("res://core/DiceManager.gd"))
 
 	# 3. 매니저 간 참조 설정
 	# UIManager 노드를 Main 씬에서 직접 참조
@@ -30,12 +25,12 @@ func _ready():
 	battle_manager.game_manager = global_game_manager_instance # BattleManager refers to the autoloaded GameManager
 
 	# 게임 시작 로직 호출 (GameManager에서 시작)
-	call_deferred("start_game_deferred", global_game_manager_instance, battle_manager, dice_manager, ui_manager_node)
+	call_deferred("start_game_deferred", global_game_manager_instance, battle_manager, ui_manager_node)
 
 	print("--- Main.gd: 게임 초기화 완료 ---\n")
 
 
-func start_game_deferred(game_manager_instance: GameManager, battle_mgr: Node, dice_mgr: DiceManager, ui_mgr: UIManager):
+func start_game_deferred(game_manager_instance: GameManager, battle_mgr: Node, ui_mgr: UIManager):
 	var player_node = null
 	var enemy_node = null
 
@@ -63,6 +58,13 @@ func start_game_deferred(game_manager_instance: GameManager, battle_mgr: Node, d
 	assert(player_node != null, "Player 노드를 찾을 수 없습니다! (인스턴스화 실패)")
 	assert(enemy_node != null, "Enemy 노드를 찾을 수 없습니다! (자식 순회)")
 	game_manager_instance.initialize_game_scene(player_node, enemy_node, battle_mgr, dice_mgr, ui_mgr)
+
+	# Retrieve and print selected dungeon ID
+	var selected_dungeon_id = game_manager_instance.selected_dungeon_id
+	if selected_dungeon_id != 0: # 0 is default, meaning no dungeon selected yet
+		print("--- Main.gd: 선택된 던전 ID:", selected_dungeon_id, " ---")
+
+	
 
 	print("--- Main.gd: 게임 시작 지연 호출 완료 ---\n")
 

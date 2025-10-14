@@ -2,6 +2,15 @@ class_name UIManager
 extends CanvasLayer
 signal start_game_button_pressed
 
+enum SecondaryButtonAction {
+	NONE,
+	LOOT_OFFER_DECLINE,
+	GAMBLE_DECLINE,
+	GAMBLE_RESULT_CONTINUE,
+	DEFEAT_RETRY,
+	NEXT_BATTLE,
+}
+
 var game_manager: Node
 var player_node: Character
 
@@ -23,6 +32,7 @@ var player_node: Character
 @onready var secondary_choice_button = $UIRoot/NextBattleButton # "다음 전투", "그냥 둔다", "안전하게 간다", "계속", "재도전" 등
 
 var status_popup_instance: Control
+var _current_status_character: Character # 현재 스탯 팝업이 표시 중인 캐릭터
 var dice_label_scene = preload("res://ui/elements/DiceLabel.tscn") # 동적 생성을 위해 주사위 라벨 씬을 미리 로드
 
 func _ready():
@@ -70,6 +80,7 @@ func show_loot_offer(dice_sides: int):
 	secondary_choice_button.text = "그냥 둔다"
 	secondary_choice_button.visible = true
 	secondary_choice_button.disabled = false
+	secondary_choice_button.set_meta("action_type", SecondaryButtonAction.LOOT_OFFER_DECLINE)
 
 # 2. 갬블 제안 (YES/NO)
 func show_gamble_prompt(message: String):
@@ -84,6 +95,7 @@ func show_gamble_prompt(message: String):
 	secondary_choice_button.text = "안전하게 간다"
 	secondary_choice_button.visible = true
 	secondary_choice_button.disabled = false
+	secondary_choice_button.set_meta("action_type", SecondaryButtonAction.GAMBLE_DECLINE)
 
 # 3. 갬블 결과 (Continue)
 func show_gamble_result(success: bool, dice_sides: int):
@@ -97,6 +109,7 @@ func show_gamble_result(success: bool, dice_sides: int):
 	secondary_choice_button.text = "계속"
 	secondary_choice_button.visible = true
 	secondary_choice_button.disabled = false
+	secondary_choice_button.set_meta("action_type", SecondaryButtonAction.GAMBLE_RESULT_CONTINUE)
 
 # 4. 패배 화면 (Retry)
 func show_defeat_screen():
@@ -107,6 +120,7 @@ func show_defeat_screen():
 	secondary_choice_button.text = "재도전"
 	secondary_choice_button.visible = true
 	secondary_choice_button.disabled = false
+	secondary_choice_button.set_meta("action_type", SecondaryButtonAction.DEFEAT_RETRY)
 
 # 5. 일반 승리 (Next Battle)
 func show_next_battle_phase(button_text: String):
@@ -115,6 +129,7 @@ func show_next_battle_phase(button_text: String):
 	secondary_choice_button.text = button_text
 	secondary_choice_button.visible = true
 	secondary_choice_button.disabled = false
+	secondary_choice_button.set_meta("action_type", SecondaryButtonAction.NEXT_BATTLE)
 
 # 6. 주사위 굴림 단계
 func show_roll_dice_phase():
@@ -153,16 +168,16 @@ func _on_secondary_choice_button_pressed():
 	primary_choice_button.disabled = true
 	secondary_choice_button.disabled = true
 
-	match secondary_choice_button.text:
-		"그냥 둔다":
+	match secondary_choice_button.get_meta("action_type"):
+		SecondaryButtonAction.LOOT_OFFER_DECLINE:
 			game_manager.handle_loot_offer_decline()
-		"안전하게 간다":
+		SecondaryButtonAction.GAMBLE_DECLINE:
 			game_manager.handle_gamble_decline()
-		"계속":
+		SecondaryButtonAction.GAMBLE_RESULT_CONTINUE:
 			game_manager.handle_gamble_result_continue()
-		"재도전":
+		SecondaryButtonAction.DEFEAT_RETRY:
 			game_manager.handle_retry()
-		"다음 전투":
+		SecondaryButtonAction.NEXT_BATTLE:
 			game_manager.handle_next_battle()
 
 # --- 기타 UI 업데이트 함수 --- #
@@ -250,14 +265,46 @@ func update_player_stats_ui(p_node: Character):
 		var slot = stat_slots[stat_name]
 		if slot.has_node("Value"):
 			var value_label = slot.get_node("Value")
-			value_label.text = str(p_node.get(stat_name))
+			var stat_value = 0
+			match stat_name:
+				"attack_power": stat_value = p_node.get_attack_power()
+				"max_hp": stat_value = p_node.get_max_hp()
+				"defense": stat_value = p_node.get_defense()
+				"attack_speed": stat_value = p_node.get_attack_speed()
+				"recovery_power": stat_value = p_node.get_recovery_power()
+				"max_mp": stat_value = p_node.get_max_mp()
+				"current_mp": stat_value = p_node.get_current_mp()
+				"luck": stat_value = p_node.get_luck()
+				"resistance": stat_value = p_node.get_resistance()
+				_:
+					stat_value = 0 # Fallback
+
+			value_label.text = str(stat_value)
 
 func show_status_popup(character: Character):
+	print("UIManager: show_status_popup 호출됨. 캐릭터:", character.name)
+
+	# 팝업 인스턴스가 유효하지 않으면 새로 생성
 	if not is_instance_valid(status_popup_instance):
 		var status_popup_scene = load("res://ui/StatusPopup.tscn")
 		status_popup_instance = status_popup_scene.instantiate()
 		add_child(status_popup_instance)
+	
+	# 현재 표시 중인 캐릭터와 클릭된 캐릭터가 같으면 팝업을 토글
+	if _current_status_character == character:
+		if status_popup_instance.visible:
+			hide_status_popup() # 팝업이 보이면 숨김
+		else:
+			status_popup_instance.show() # 팝업이 숨겨져 있으면 보임
+			status_popup_instance.show_stats(character) # 스탯 업데이트
+		_current_status_character = null if not status_popup_instance.visible else character
+		return
+	
+	# 다른 캐릭터를 클릭했거나 팝업이 처음 열리는 경우
 	status_popup_instance.show_stats(character)
+	_current_status_character = character # 현재 표시 중인 캐릭터 업데이트
+	status_popup_instance.show() # 팝업을 명시적으로 보이게 함
+
 	var screen_size = get_viewport().get_visible_rect().size
 	var character_screen_pos = character.global_position
 	var popup_width = status_popup_instance.size.x
@@ -273,3 +320,4 @@ func show_status_popup(character: Character):
 func hide_status_popup():
 	if is_instance_valid(status_popup_instance):
 		status_popup_instance.hide()
+		_current_status_character = null # 팝업 숨김 시 현재 캐릭터 정보 초기화

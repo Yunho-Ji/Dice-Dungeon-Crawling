@@ -1,19 +1,42 @@
-[gd_resource type="SpriteFrames" load_steps=0 format=3 uid="uid://8djlxmd6pc4r"]
+[gd_resource type="SpriteFrames" load_steps=12 format=3 uid="uid://8djlxmd6pc4r"]
 
-[ext_resource type="Texture2D" path="res://Character/novice/Idle/Idle1.png" id="1_idle1"]
-[ext_resource type="Texture2D" path="res://Character/novice/Idle/Idle2.png" id="2_idle2"]
-[ext_resource type="Texture2D" path="res://Character/novice/Idle/Idle3.png" id="3_idle3"]
-[ext_resource type="Texture2D" path="res://Character/novice/Idle/Idle4.png" id="4_idle4"]
-[ext_resource type="Texture2D" path="res://Character/novice/Idle/Idle5.png" id="5_idle5"]
-
-[ext_resource type="Texture2D" path="res://Character/novice/Atk01/attack1_1.png" id="6_atk1_1"]
-[ext_resource type="Texture2D" path="res://Character/novice/Atk01/attack1_2.png" id="7_atk1_2"]
-[ext_resource type="Texture2D" path="res://Character/novice/Atk01/attack1_3.png" id="8_atk1_3"]
-[ext_resource type="Texture2D" path="res://Character/novice/Atk01/attack1_4.png" id="9_atk1_4"]
-[ext_resource type="Texture2D" path="res://Character/novice/Atk01/attack1_5.png" id="10_atk1_5"]
+[ext_resource type="Texture2D" uid="uid://c16a3ihpq681b" path="res://assets/sprites/characters/novice/Idle/idle1.png" id="1_idle1"]
+[ext_resource type="Texture2D" uid="uid://bn8fo8fe7yoxg" path="res://assets/sprites/characters/novice/Idle/idle2.png" id="2_idle2"]
+[ext_resource type="Texture2D" uid="uid://d217g34pxll2f" path="res://assets/sprites/characters/novice/Idle/idle3.png" id="3_idle3"]
+[ext_resource type="Texture2D" uid="uid://r3u8iawcbeuc" path="res://assets/sprites/characters/novice/Idle/idle4.png" id="4_idle4"]
+[ext_resource type="Texture2D" uid="uid://bea8ccsx4linp" path="res://assets/sprites/characters/novice/Idle/idle5.png" id="5_idle5"]
+[ext_resource type="Texture2D" uid="uid://c1gk3vhcv1xrh" path="res://assets/sprites/characters/novice/Atk01/attack1_6.png" id="6_2we13"]
+[ext_resource type="Texture2D" uid="uid://bmll4foryqxq5" path="res://assets/sprites/characters/novice/Atk01/attack1_1.png" id="6_atk1_1"]
+[ext_resource type="Texture2D" uid="uid://cfbh8v8r4xgo0" path="res://assets/sprites/characters/novice/Atk01/attack1_2.png" id="7_atk1_2"]
+[ext_resource type="Texture2D" uid="uid://c1eyc3eomooju" path="res://assets/sprites/characters/novice/Atk01/attack1_3.png" id="8_atk1_3"]
+[ext_resource type="Texture2D" uid="uid://qhf72w60okqy" path="res://assets/sprites/characters/novice/Atk01/attack1_4.png" id="9_atk1_4"]
+[ext_resource type="Texture2D" uid="uid://puewlnmwru0w" path="res://assets/sprites/characters/novice/Atk01/attack1_5.png" id="10_atk1_5"]
 
 [resource]
 animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("6_atk1_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_atk1_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_atk1_3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_atk1_4")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_atk1_5")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_2we13")
+}],
+"loop": false,
+"name": &"Attack01",
+"speed": 10.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": ExtResource("1_idle1")
@@ -33,24 +56,4 @@ animations = [{
 "loop": true,
 "name": &"Idle",
 "speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": ExtResource("6_atk1_1")
-}, {
-"duration": 1.0,
-"texture": ExtResource("7_atk1_2")
-}, {
-"duration": 1.0,
-"texture": ExtResource("8_atk1_3")
-}, {
-"duration": 1.0,
-"texture": ExtResource("9_atk1_4")
-}, {
-"duration": 1.0,
-"texture": ExtResource("10_atk1_5")
-}],
-"loop": false,
-"name": &"Attack01",
-"speed": 10.0
 }]

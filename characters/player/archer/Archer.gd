@@ -4,7 +4,7 @@ extends Player
 
 var Atk01_Fx_Scene = preload("res://characters/player/archer/Fx/archer_atk_01_fx.tscn")
 
-const IMPACT_FRAME = 4
+const IMPACT_FRAME = 6
 
 func _ready():
 	if animated_sprite_2d:
@@ -26,16 +26,23 @@ func attack(target_node: CharacterBody2D):
 		printerr("Archer: ERROR - animated_sprite_2d is not valid when attacking!")
 
 func _on_frame_changed():
+
 	# "Attack01" 애니메이션의 특정 프레임에서 한 번만 데미지와 FX를 적용
 	if animated_sprite_2d.animation == "Attack01" and animated_sprite_2d.frame == IMPACT_FRAME and not _attack_committed:
 		_attack_committed = true
 
 		if not is_in_battle: return
 
-		# FX 인스턴스화 및 추가
+		# FX 인스턴스화 및 추가s
 		var fx_instance = Atk01_Fx_Scene.instantiate()
 		get_parent().add_child(fx_instance)
-		fx_instance.global_position = global_position
+		var fx_spawn_point = $Atk01FxSpawnPoint # 씬 트리에 추가한 Marker2D노드의 경로에 맞게 수정
+		if fx_spawn_point:
+			fx_instance.global_position = fx_spawn_point.global_position
+		else:
+			# Marker2D를 찾지 못했을 경우 기본 위치 사용 (디버깅용)
+			fx_instance.global_position = global_position
+			printerr("Archer: Atk01FxSpawnPoint Marker2D를 찾을 수 없습니다!")
 
 		# 데미지 적용
 		if is_instance_valid(target):

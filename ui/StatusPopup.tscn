@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://b1y2x3c4d5e6"]
 
-[ext_resource type="Script" uid="uid://cv6yirs7ltp1k" path="res://ui/StatusPopup.gd" id="1_abcde"]
+[ext_resource type="Script" uid="uid://bwb5slxfbasqg" path="res://ui/StatusPopup.gd" id="1_abcde"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
 bg_color = Color(0, 0, 0, 0.7)
@@ -43,5 +43,6 @@ text = "X"
 layout_mode = 2
 
 [node name="StatsGrid" type="GridContainer" parent="MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(200, 150)
 layout_mode = 2
 columns = 2

@@ -27,22 +27,15 @@ func attack(_target_node: CharacterBody2D):
 	pass
 
 func apply_dice_rolls(dice_rolls: Array):
-	attack_power += dice_rolls[0] # 가장 높은 값
-	max_hp += dice_rolls[1]       # 두 번째 높은 값
-	current_hp = min(current_hp + dice_rolls[1], max_hp) # 현재 체력은 최대 체력을 초과하지 않도록 증가
-	defense += dice_rolls[2]      # 세 번째 높은 값
-	attack_speed += dice_rolls[3] # 네 번째 높은 값 (공격속도는 높을수록 빠름)
+	set_attack_power(get_attack_power() + dice_rolls[0]) # 가장 높은 값
+	set_max_hp(get_max_hp() + dice_rolls[1])       # 두 번째 높은 값
+	set_current_hp(min(get_current_hp() + dice_rolls[1], get_max_hp())) # 현재 체력은 최대 체력을 초과하지 않도록 증가
+	set_defense(get_defense() + dice_rolls[2])      # 세 번째 높은 값
+	set_attack_speed(get_attack_speed() + dice_rolls[3]) # 네 번째 높은 값 (공격속도는 높을수록 빠름)
 
-	print("플레이어 스탯 업데이트됨: HP:", current_hp, ", 공격:", attack_power, ", 방어:", defense, ", 속도:", attack_speed, ", 회복:", recovery_power)
+	print("플레이어 스탯 업데이트됨: HP:", get_current_hp(), ", 공격:", get_attack_power(), ", 방어:", get_defense(), ", 속도:", get_attack_speed(), ", 회복:", get_recovery_power())
 
-func _input_event(_viewport: Viewport, event: InputEvent, _shape_idx: int):
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		print("Player 클릭 감지!")
-		if ui_manager:
-			print("UIManager 유효함. 팝업 표시 요청.")
-			ui_manager.show_status_popup(self)
-		else:
-			printerr("오류: UIManager 참조가 Player에서 null입니다!")
+
 
 func _on_animation_finished():
 	# 이 함수는 하위 클래스에서 오버라이드하여 애니메이션 종료 후 로직을 처리합니다.
@@ -59,3 +52,25 @@ func set_ui_manager(manager):
 	print("Player에 UIManager 설정됨")
 	if ui_manager == null:
 			printerr("경고: Player에 설정된 UIManager가 null입니다.")
+
+# Stat Getters/Setters (override Character's virtual methods)
+func get_max_hp() -> int: return GameManager.player_max_hp
+func set_max_hp(value: int): GameManager.player_max_hp = value
+func get_current_hp() -> int: return GameManager.player_current_hp
+func set_current_hp(value: int): GameManager.player_current_hp = value
+func get_attack_power() -> int: return GameManager.player_attack_power
+func set_attack_power(value: int): GameManager.player_attack_power = value
+func get_defense() -> int: return GameManager.player_defense
+func set_defense(value: int): GameManager.player_defense = value
+func get_attack_speed() -> float: return GameManager.player_attack_speed
+func set_attack_speed(value: float): GameManager.player_attack_speed = value
+func get_recovery_power() -> int: return GameManager.player_recovery_power
+func set_recovery_power(value: int): GameManager.player_recovery_power = value
+func get_max_mp() -> int: return GameManager.player_max_mp
+func set_max_mp(value: int): GameManager.player_max_mp = value
+func get_current_mp() -> int: return GameManager.player_current_mp
+func set_current_mp(value: int): GameManager.player_current_mp = value
+func get_luck() -> int: return GameManager.player_luck
+func set_luck(value: int): GameManager.player_luck = value
+func get_resistance() -> int: return GameManager.player_resistance
+func set_resistance(value: int): GameManager.player_resistance = value

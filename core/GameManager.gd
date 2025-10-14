@@ -14,7 +14,8 @@ enum GamePhase {
 	CAMP,
 	LOOT_OFFER,
 	LOOT_GAMBLE_PROMPT,
-	LOOT_RESOLUTION
+	LOOT_RESOLUTION,
+	TOWN
 }
 
 var current_game_phase: GamePhase
@@ -29,9 +30,22 @@ const BOSS_BATTLE_COUNT = 8
 var battle_manager: Node
 var player_node: Character
 var enemy_node: Character
-var dice_manager: DiceManager
+
 var ui_manager: UIManager
 var is_developer_mode: bool = false # 개발자 모드 토글
+var selected_dungeon_id: int = 0 # 선택된 던전 ID
+
+# Player Stats (moved from Character/Player.gd for persistence)
+var player_max_hp: int = 100
+var player_current_hp: int = 100
+var player_attack_power: int = 10
+var player_defense: int = 0
+var player_attack_speed: float = 100.0
+var player_recovery_power: int = 0
+var player_max_mp: int = 0
+var player_current_mp: int = 0
+var player_luck: int = 0
+var player_resistance: int = 0
 
 var current_battle_count: int = 0
 var current_stage: int = 1
@@ -44,22 +58,34 @@ func _start_game_internal():
 
 	# 초기 주사위 풀 설정
 	for i in range(4):
-		dice_manager.add_dice_to_pool(6)
+		get_node("/root/DiceManager").add_dice_to_pool(6)
+
+	# 초기 플레이어 스탯 설정 (GameManager에서 관리)
+	player_max_hp = 100
+	player_current_hp = player_max_hp
+	player_attack_power = 10
+	player_defense = 0
+	player_attack_speed = 100.0
+	player_recovery_power = 0
+	player_max_mp = 0
+	player_current_mp = player_max_mp
+	player_luck = 0
+	player_resistance = 0
 
 	# 첫 전투 준비
 	_start_dice_roll_phase()
 
-func initialize_game_scene(player: Character, enemy: Character, battle_mgr: Node, dice_mgr: DiceManager, ui_mgr: UIManager):
+func initialize_game_scene(player: Character, enemy: Character, battle_mgr: Node, ui_mgr: UIManager):
 	player_node = player
 	enemy_node = enemy
 	battle_manager = battle_mgr
-	dice_manager = dice_mgr
 	ui_manager = ui_mgr
 
 	if ui_manager and ui_manager is UIManager:
 		ui_manager.game_manager = self
 		ui_manager.player_node = player_node
 		player_node.ui_manager = ui_manager
+		enemy_node.ui_manager = ui_manager # Enemy의 ui_manager 설정 추가
 		ui_manager.update_player_stats_ui(player_node)
 	else:
 		printerr("GameManager: UIManager 노드를 찾을 수 없거나 UIManager 타입이 아닙니다!")
@@ -70,7 +96,7 @@ func initialize_game_scene(player: Character, enemy: Character, battle_mgr: Node
 # --- 주사위 굴림 및 전투 시작 핸들러 ---
 
 func handle_roll_dice():
-	var dice_rolls = dice_manager.roll_player_dice()
+	var dice_rolls = get_node("/root/DiceManager").roll_player_dice()
 	if ui_manager:
 		ui_manager.update_dice_labels(dice_rolls)
 	dice_rolled_for_this_round = true
@@ -97,13 +123,15 @@ func handle_battle_end(win: bool):
 		if current_battle_count > BOSS_BATTLE_COUNT:
 			current_battle_count = 0
 			current_stage += 1
+			go_to_town(true) # Go to town after completing a stage
+			return # Exit early after going to town
 
-		player_node.current_hp = min(player_node.max_hp, player_node.current_hp + player_node.recovery_power)
+		player_current_hp = min(player_max_hp, player_current_hp + player_recovery_power)
 		player_node.update_hp_label()
 
 		if current_battle_count == 4 or current_battle_count == 7:
 			current_game_phase = GamePhase.LOOT_OFFER
-			_current_loot_dice_sides = dice_manager.generate_new_dice_type(current_battle_count)
+			_current_loot_dice_sides = get_node("/root/DiceManager").generate_new_dice_type(current_battle_count)
 			if _current_loot_dice_sides > 0:
 				if ui_manager:
 					ui_manager.show_loot_offer(_current_loot_dice_sides)
@@ -128,7 +156,7 @@ func handle_loot_offer_decline():
 	_start_dice_roll_phase()
 
 func handle_loot_offer_accept():
-	_replaced_die_sides = dice_manager.replace_lowest_dice(_current_loot_dice_sides)
+	_replaced_die_sides = get_node("/root/DiceManager").replace_lowest_dice(_current_loot_dice_sides)
 	
 	current_game_phase = GamePhase.LOOT_GAMBLE_PROMPT
 	if ui_manager:
@@ -152,9 +180,9 @@ func handle_gamble_accept():
 		print("GameManager: 개발자 모드 활성화 - 갬블 성공률 100%.")
 	
 	if success:
-		dice_manager.add_dice_to_pool(_current_loot_dice_sides)
+		get_node("/root/DiceManager").add_dice_to_pool(_current_loot_dice_sides)
 	else:
-		dice_manager.revert_last_replacement(_current_loot_dice_sides, _replaced_die_sides)
+		get_node("/root/DiceManager").revert_last_replacement(_current_loot_dice_sides, _replaced_die_sides)
 		
 	current_game_phase = GamePhase.LOOT_RESOLUTION
 	if ui_manager:
@@ -199,11 +227,31 @@ func handle_retry():
 	print("GameManager: 재도전. 상태를 초기화하고 씬을 다시 로드합니다.")
 	current_stage = 1
 	current_battle_count = 0
-	if dice_manager and dice_manager.player_dice_pool:
-		dice_manager.player_dice_pool.clear()
+	if get_node("/root/DiceManager").player_dice_pool:
+		get_node("/root/DiceManager").player_dice_pool.clear()
 	get_tree().reload_current_scene()
 
 func start_game_with_character(char_type: String):
 	selected_player_type = char_type
-	get_tree().change_scene_to_file("res://levels/Main.tscn")
+	go_to_town()
 	emit_signal("game_started")
+
+func go_to_town(from_dungeon_return: bool = false):
+	current_game_phase = GamePhase.TOWN
+	if from_dungeon_return:
+		# Access TownManager as a singleton
+		get_node("/root/TownManager").set_time_by_minutes(get_node("/root/TownManager").RETURN_TIME_MINUTES)
+	get_tree().change_scene_to_file("res://ui/Town.tscn")
+
+func go_to_map():
+	current_game_phase = GamePhase.CHARACTER_SELECT # Reusing CHARACTER_SELECT for map phase for now, or add a new MAP phase
+	get_tree().change_scene_to_file("res://ui/Map.tscn")
+
+func start_dungeon(dungeon_id: int):
+	selected_dungeon_id = dungeon_id # Store the selected dungeon ID
+	current_stage = dungeon_id # Set current_stage based on selected dungeon
+	current_battle_count = 0 # Reset battle count for new dungeon
+	# For now, just transition to Main.tscn.
+	# Later, use dungeon_id to configure Main.tscn (e.g., enemy types, level layout).
+	current_game_phase = GamePhase.PREPARE # Or a new DUNGEON_EXPLORATION phase
+	get_tree().change_scene_to_file("res://levels/Main.tscn")

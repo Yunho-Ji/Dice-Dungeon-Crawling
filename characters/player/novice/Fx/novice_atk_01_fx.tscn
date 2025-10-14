@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://c0qdjjmdxgiqr"]
 
-[ext_resource type="Script" uid="uid://b3wptpvui28vn" path="res://characters/player/novice/Fx/novice_atk_01_fx.gd" id="1_fx_script"]
+[ext_resource type="Script" uid="uid://c80i5x42xns5h" path="res://characters/player/novice/Fx/novice_atk_01_fx.gd" id="1_fx_script"]
 [ext_resource type="SpriteFrames" uid="uid://cfl270md064jr" path="res://characters/player/novice/Fx/novice_atk_01_fx_sprite_frames.tres" id="2_fx_sprite_frames"]
 
 [node name="Atk01_Fx" type="AnimatedSprite2D"]

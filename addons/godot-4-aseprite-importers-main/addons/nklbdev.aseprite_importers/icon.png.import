@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://u4ba2vo8qtao"
-path="res://.godot/imported/Attack_6.png-ab94a5c913facb4e9576fbb9d1002873.ctex"
+uid="uid://bbww6j66bavar"
+path="res://.godot/imported/icon.png-5b0c1a5dc379eed6ce4781ef82de942b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://characters/player/archer/Fx/Atk01_Fx/Attack_6.png"
-dest_files=["res://.godot/imported/Attack_6.png-ab94a5c913facb4e9576fbb9d1002873.ctex"]
+source_file="res://addons/godot-4-aseprite-importers-main/addons/nklbdev.aseprite_importers/icon.png"
+dest_files=["res://.godot/imported/icon.png-5b0c1a5dc379eed6ce4781ef82de942b.ctex"]
 
 [params]
 

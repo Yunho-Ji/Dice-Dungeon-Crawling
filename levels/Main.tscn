@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://fauknsa3k37i"]
+[gd_scene load_steps=7 format=3 uid="uid://fauknsa3k37i"]
 
-[ext_resource type="Script" uid="uid://bninvs0aln14p" path="res://levels/Main.gd" id="1_cm0pq"]
+[ext_resource type="Script" uid="uid://c74nrfoj7d6oe" path="res://levels/Main.gd" id="1_cm0pq"]
 [ext_resource type="PackedScene" uid="uid://bujnofxyh5kmq" path="res://characters/enemy/Enemy.tscn" id="3_fos0i"]
-[ext_resource type="Script" path="res://core/UIManager.gd" id="4_cm0pq"]
-[ext_resource type="Script" path="res://ui/elements/StatSlot.gd" id="5_fos0i"]
-[ext_resource type="Script" path="res://ui/elements/DiceLabel.gd" id="6_3dxm6"]
+[ext_resource type="Script" uid="uid://dv2al5gu4e1mu" path="res://core/UIManager.gd" id="4_cm0pq"]
+[ext_resource type="Script" uid="uid://dejiah187gy2c" path="res://ui/elements/StatSlot.gd" id="5_fos0i"]
+[ext_resource type="Script" uid="uid://fc3pepa33f6r" path="res://ui/elements/DiceLabel.gd" id="6_3dxm6"]
+[ext_resource type="PackedScene" uid="uid://b1y2x3c4d5e6" path="res://ui/StatusPopup.tscn" id="6_3vw7n"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_cm0pq")
@@ -25,6 +26,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 1
 
 [node name="StartCombatButton" type="Button" parent="UIManager/UIRoot"]
 visible = false
@@ -349,3 +351,10 @@ offset_right = 60.0
 offset_bottom = 90.0
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="StatusPopup" parent="UIManager" instance=ExtResource("6_3vw7n")]
+visible = false
+offset_left = 366.0
+offset_top = 78.0
+offset_right = 666.0
+offset_bottom = 278.0

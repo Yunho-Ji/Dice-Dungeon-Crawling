@@ -1,9 +1,11 @@
 [gd_scene load_steps=3 format=3 uid="uid://b87kffpx5da86"]
 
-[ext_resource type="SpriteFrames" path="res://characters/player/archer/Fx/Archer_Atk01_Fx_SpriteFrames.tres" id="1_jib0n"]
-[ext_resource type="Script" path="res://characters/player/archer/Fx/archer_atk_01_fx.gd" id="2_m4ntv"]
+[ext_resource type="SpriteFrames" uid="uid://chb64065b2par" path="res://characters/player/archer/Fx/Archer_Atk01_Fx_SpriteFrames.tres" id="1_jib0n"]
+[ext_resource type="Script" uid="uid://b00pgrrq0s4jp" path="res://characters/player/archer/Fx/archer_atk_01_fx.gd" id="2_m4ntv"]
 
 [node name="Archer_Atk01_Fx" type="AnimatedSprite2D"]
 sprite_frames = ExtResource("1_jib0n")
 animation = &"Attack01_Fx"
+frame = 2
+frame_progress = 1.0
 script = ExtResource("2_m4ntv")
