@@ -62,7 +62,7 @@ func set_time_by_minutes(minutes: int):
 	check_dungeon_penalties()
 
 func get_current_time_string() -> String:
-	var hours = current_time_minutes / 60
+	var hours = int(current_time_minutes / 60.0)
 	var minutes = current_time_minutes % 60
 	var am_pm = "AM"
 	if hours >= 12:

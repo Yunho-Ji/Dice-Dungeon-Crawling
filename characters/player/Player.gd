@@ -52,25 +52,3 @@ func set_ui_manager(manager):
 	print("Player에 UIManager 설정됨")
 	if ui_manager == null:
 			printerr("경고: Player에 설정된 UIManager가 null입니다.")
-
-# Stat Getters/Setters (override Character's virtual methods)
-func get_max_hp() -> int: return GameManager.player_max_hp
-func set_max_hp(value: int): GameManager.player_max_hp = value
-func get_current_hp() -> int: return GameManager.player_current_hp
-func set_current_hp(value: int): GameManager.player_current_hp = value
-func get_attack_power() -> int: return GameManager.player_attack_power
-func set_attack_power(value: int): GameManager.player_attack_power = value
-func get_defense() -> int: return GameManager.player_defense
-func set_defense(value: int): GameManager.player_defense = value
-func get_attack_speed() -> float: return GameManager.player_attack_speed
-func set_attack_speed(value: float): GameManager.player_attack_speed = value
-func get_recovery_power() -> int: return GameManager.player_recovery_power
-func set_recovery_power(value: int): GameManager.player_recovery_power = value
-func get_max_mp() -> int: return GameManager.player_max_mp
-func set_max_mp(value: int): GameManager.player_max_mp = value
-func get_current_mp() -> int: return GameManager.player_current_mp
-func set_current_mp(value: int): GameManager.player_current_mp = value
-func get_luck() -> int: return GameManager.player_luck
-func set_luck(value: int): GameManager.player_luck = value
-func get_resistance() -> int: return GameManager.player_resistance
-func set_resistance(value: int): GameManager.player_resistance = value

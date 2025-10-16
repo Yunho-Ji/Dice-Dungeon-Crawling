@@ -1,0 +1,65 @@
+[gd_scene load_steps=2 format=3 uid="uid://b56sttf5fvs7m"]
+
+[ext_resource type="Script" uid="uid://dvxtwu6tmwq87" path="res://ui/screens/BattleHUD.gd" id="1_z7a2w"]
+
+[node name="BattleHUD" type="CanvasLayer"]
+script = ExtResource("1_z7a2w")
+
+[node name="BattleControls" type="HBoxContainer" parent="."]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -40.0
+offset_right = 200.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="AttackButton" type="Button" parent="BattleControls"]
+layout_mode = 2
+text = "공격"
+
+[node name="DefenseButton" type="Button" parent="BattleControls"]
+layout_mode = 2
+text = "방어"
+
+[node name="DodgeButton" type="Button" parent="BattleControls"]
+layout_mode = 2
+text = "회피"
+
+[node name="Skill1Button" type="Button" parent="BattleControls"]
+layout_mode = 2
+text = "스킬1"
+
+[node name="Skill2Button" type="Button" parent="BattleControls"]
+layout_mode = 2
+text = "스킬2"
+
+[node name="InventoryButton" type="Button" parent="."]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -88.0
+offset_top = -40.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "가방"
+
+[node name="DestinyDesignButton" type="Button" parent="."]
+offset_left = 984.0
+offset_top = 613.0
+offset_right = 1056.0
+offset_bottom = 644.0
+text = "운명설계"
+
+[node name="NextBattleButton" type="Button" parent="."]
+visible = false
+offset_left = 900.0
+offset_top = 612.0
+offset_right = 972.0
+offset_bottom = 643.0
+text = "다음전투"

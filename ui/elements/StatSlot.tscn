@@ -1,0 +1,37 @@
+[gd_scene load_steps=2 format=3 uid="uid://bkhqyu5d2a1c7"]
+
+[ext_resource type="Script" path="res://ui/elements/StatSlot.gd" id="1_ss_gd"]
+
+[node name="StatSlot" type="Panel" custom_minimum_size="Vector2(80, 80)"]
+script = ExtResource("1_ss_gd")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="StatNameLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "스탯 이름"
+horizontal_alignment = 1
+
+[node name="AssignedValueLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+text = "-"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CurrentValueLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "(10)"
+horizontal_alignment = 1

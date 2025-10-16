@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/screens/AdvantageLabel.gd" id="1_adv_label_script"]
+
+[node name="AdvantageLabel" type="Label"]
+script = ExtResource("1_adv_label_script")
+text = "- 어드밴티지"

@@ -14,7 +14,8 @@ func _ready():
 	print("--- BattleManager.gd: 초기화 완료 ---\n")
 
 # 전투 시작 함수 (GameManager에서 호출)
-func start_battle(p: Character, e: Character):
+func start_battle(p: Character, e: Character, gm: Node):
+	game_manager = gm
 	player_node = p
 	enemy_node = e
 	is_battle_active = true

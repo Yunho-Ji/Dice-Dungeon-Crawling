@@ -18,6 +18,7 @@ offset_top = -16.0
 offset_right = 16.0
 offset_bottom = 16.0
 color = Color(0.952524, 0.138725, 0.400091, 1)
+mouse_filter = 1
 
 [node name="ProgressBar" type="ProgressBar" parent="."]
 offset_left = -32.0

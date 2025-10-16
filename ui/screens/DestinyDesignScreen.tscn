@@ -1,0 +1,61 @@
+[gd_scene load_steps=2 format=3 uid="uid://rgdcm18nf3jm"]
+
+[ext_resource type="Script" uid="uid://nwpqwmr7dti6" path="res://ui/screens/DestinyDesignScreen.gd" id="1_script"]
+
+[node name="DestinyDesignScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 0.68
+
+[node name="PanelA" type="PanelContainer" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.25
+
+[node name="StatSlotsContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/PanelA"]
+layout_mode = 2
+
+[node name="PanelB" type="PanelContainer" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.75
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/PanelB"]
+layout_mode = 2
+
+[node name="DiceResultsContainer" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/PanelB/VBoxContainer"]
+layout_mode = 2
+
+[node name="RollDiceButton" type="Button" parent="VBoxContainer/HBoxContainer/PanelB/VBoxContainer"]
+layout_mode = 2
+text = "주사위 굴리기"
+
+[node name="PanelC" type="PanelContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 0.32
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/PanelC"]
+layout_mode = 2
+alignment = 1
+
+[node name="CloseButton" type="Button" parent="VBoxContainer/PanelC/HBoxContainer"]
+layout_mode = 2
+text = "닫기"

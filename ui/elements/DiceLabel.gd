@@ -9,13 +9,18 @@ func _ready():
 	original_position = position
 
 func _get_drag_data(_at_position: Vector2):
-	if is_used: return null # 사용된 주사위는 드래그 불가
-
-	var preview = duplicate() # 드래그 프리뷰 생성
-	preview.modulate = Color(1, 1, 1, 0.7) # 투명도 조절
+	# 드래그 미리보기용 라벨을 만듭니다.
+	var preview = Label.new()
+	preview.text = text
+	preview.modulate = Color(1, 1, 1, 0.7) # 반투명하게
 	set_drag_preview(preview)
 
-	var data = {"type": "dice", "value": dice_value, "original_label": self}
+	# 드래그할 데이터를 딕셔너리로 묶습니다.
+	var data = {
+		"type": "dice",
+		"value": dice_value,
+		"source_label": self
+	}
 	return data
 
 func _can_drop_data(_at_position: Vector2, _data: Variant) -> bool:
