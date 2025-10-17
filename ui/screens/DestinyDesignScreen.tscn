@@ -30,8 +30,9 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 size_flags_stretch_ratio = 0.25
 
-[node name="StatSlotsContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/PanelA"]
+[node name="StatSlotsContainer" type="GridContainer" parent="VBoxContainer/HBoxContainer/PanelA"]
 layout_mode = 2
+columns = 2
 
 [node name="PanelB" type="PanelContainer" parent="VBoxContainer/HBoxContainer"]
 layout_mode = 2
