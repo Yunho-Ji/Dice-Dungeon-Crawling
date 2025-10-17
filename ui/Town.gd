@@ -6,6 +6,7 @@ var town_manager # TownManager 싱글톤 인스턴스를 저장할 변수
 @onready var location_buttons = $LocationButtons
 @onready var closing_message_label = $ClosingMessageLabel
 @onready var start_expedition_button = $StartExpeditionButton
+@onready var scene_manager: SceneManager = get_node("/root/SceneManager")
 
 func _ready():
 	# 싱글톤 인스턴스를 가져옵니다.
@@ -58,4 +59,4 @@ func _on_town_closing_time_reached():
 
 func _on_start_expedition_button_pressed():
 	print("원정 시작 버튼 클릭: 지도로 이동")
-	get_node("/root/GameManager").go_to_map()
+	scene_manager.go_to_map()

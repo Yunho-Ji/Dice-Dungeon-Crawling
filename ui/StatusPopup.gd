@@ -45,21 +45,21 @@ func show_stats(character: Character):
 		# 각 스탯에 맞는 getter 함수를 직접 호출하여 값을 가져옵니다.
 		match stat_key:
 			"hp":
-				value_text = "%s/%s" % [character.get_current_hp(), character.get_max_hp()]
+				value_text = "%s/%s" % [character.get_stat("current_hp"), character.get_stat("max_hp")]
 			"mp":
-				value_text = "%s/%s" % [character.get_current_mp(), character.get_max_mp()]
+				value_text = "%s/%s" % [character.get_stat("current_mp"), character.get_stat("max_mp")]
 			"attack_power":
-				value_text = str(character.get_attack_power())
+				value_text = str(character.get_stat("attack_power"))
 			"defense":
-				value_text = str(character.get_defense())
+				value_text = str(character.get_stat("defense"))
 			"attack_speed":
-				value_text = str(character.get_attack_speed())
+				value_text = str(character.get_stat("attack_speed"))
 			"recovery_power":
-				value_text = str(character.get_recovery_power())
+				value_text = str(character.get_stat("recovery_power"))
 			"luck":
-				value_text = str(character.get_luck())
+				value_text = str(character.get_stat("luck"))
 			"resistance":
-				value_text = str(character.get_resistance())
+				value_text = str(character.get_stat("resistance"))
 
 		var label = Label.new()
 		label.text = "%s: %s" % [stat_name, value_text]

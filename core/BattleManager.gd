@@ -29,9 +29,9 @@ func start_battle(p: Character, e: Character, gm: Node):
 # _process 함수는 전투가 진행 중일 때만 활성화됩니다.
 func _process(_delta: float):
 	# 게임 종료 조건 확인
-	if player_node.current_hp <= 0:
+	if player_node.get_stat("current_hp") <= 0:
 		_handle_battle_end(false) # 패배
-	elif enemy_node.current_hp <= 0:
+	elif enemy_node.get_stat("current_hp") <= 0:
 		_handle_battle_end(true) # 승리
 
 # 전투 종료 처리 함수 (GameManager에 결과 전달)

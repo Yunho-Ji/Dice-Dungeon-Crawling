@@ -14,7 +14,7 @@ func _ready():
 	position = initial_position # 초기 위치 설정
 
 func _process(delta: float):
-	if target == null or not is_instance_valid(target) or target.current_hp <= 0:
+	if target == null or not is_instance_valid(target) or target.get_stat("current_hp") <= 0:
 		action_gauge_bar.value = 0
 		action_gauge = 0.0
 		return
@@ -27,13 +27,13 @@ func attack(_target_node: CharacterBody2D):
 	pass
 
 func apply_dice_rolls(dice_rolls: Array):
-	set_attack_power(get_attack_power() + dice_rolls[0]) # 가장 높은 값
-	set_max_hp(get_max_hp() + dice_rolls[1])       # 두 번째 높은 값
-	set_current_hp(min(get_current_hp() + dice_rolls[1], get_max_hp())) # 현재 체력은 최대 체력을 초과하지 않도록 증가
-	set_defense(get_defense() + dice_rolls[2])      # 세 번째 높은 값
-	set_attack_speed(get_attack_speed() + dice_rolls[3]) # 네 번째 높은 값 (공격속도는 높을수록 빠름)
+	apply_stat("attack_power", dice_rolls[0]) # 가장 높은 값
+	apply_stat("max_hp", dice_rolls[1])       # 두 번째 높은 값
+	# current_hp is already handled in apply_stat when max_hp increases
+	apply_stat("defense", dice_rolls[2])      # 세 번째 높은 값
+	apply_stat("attack_speed", dice_rolls[3]) # 네 번째 높은 값 (공격속도는 높을수록 빠름)
 
-	print("플레이어 스탯 업데이트됨: HP:", get_current_hp(), ", 공격:", get_attack_power(), ", 방어:", get_defense(), ", 속도:", get_attack_speed(), ", 회복:", get_recovery_power())
+	print("플레이어 스탯 업데이트됨: HP:", get_stat("current_hp"), ", 공격:", get_stat("attack_power"), ", 방어:", get_stat("defense"), ", 속도:", get_stat("attack_speed"), ", 회복:", get_stat("recovery_power"))
 
 
 

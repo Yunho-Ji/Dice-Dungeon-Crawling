@@ -18,11 +18,13 @@ signal next_battle_requested # 다음 전투 시작 요청 시그널
 # =============================================================================
 @onready var destiny_design_button = $DestinyDesignButton
 @onready var next_battle_button = $NextBattleButton
+@export var damage_popup_scene: PackedScene
 
 # =============================================================================
 # Godot 내장 함수 (Built-in Godot Functions)
 # =============================================================================
 func _ready():
+	print("DEBUG: BattleHUD.gd: _ready called.") # New line
 	# 각 버튼의 pressed 시그널을 내부 핸들러 함수와 연결합니다.
 	$BattleControls/AttackButton.pressed.connect(_on_attack_button_pressed)
 	$BattleControls/DefenseButton.pressed.connect(_on_defense_button_pressed)
@@ -72,3 +74,13 @@ func _on_destiny_design_button_pressed():
 
 func _on_next_battle_button_pressed():
 	emit_signal("next_battle_requested")
+
+func _on_character_damage_taken(amount: int, position: Vector2, is_player_character: bool):
+	if not damage_popup_scene:
+		printerr("BattleHUD: damage_popup_scene is not set!")
+		return
+
+	var popup_instance = damage_popup_scene.instantiate()
+	add_child(popup_instance) # Add to BattleHUD
+	popup_instance.set_damage_text(amount, is_player_character)
+	popup_instance.set_start_position(position)

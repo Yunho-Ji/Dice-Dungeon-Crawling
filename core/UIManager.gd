@@ -4,13 +4,13 @@ extends CanvasLayer
 
 enum Screen { NONE, DESTINY_DESIGN, BATTLE_HUD, INVENTORY }
 
-const DestinyDesignScreen = preload("res://ui/screens/DestinyDesignScreen.tscn")
-const InventoryScreen = preload("res://ui/screens/InventoryScreen.tscn")
-const AdvantageLabel = preload("res://ui/screens/AdvantageLabel.tscn")
+@export var destiny_design_screen_scene: PackedScene
+@export var inventory_screen_scene: PackedScene
+@export var advantage_label_scene: PackedScene
 
 @onready var advantage_container = $AdvantageContainer
 @onready var battle_hud = $BattleHUD
-@onready var game_manager = get_node("/root/GameManager")
+@onready var game_manager: GameManager = get_node("/root/GameManager") as GameManager
 
 var screen_nodes: Dictionary = {}
 var current_screen: Screen = Screen.NONE
@@ -50,10 +50,14 @@ func show_screen(screen_type: Screen):
 		var new_screen_instance = null
 		match screen_type:
 			Screen.DESTINY_DESIGN:
-				new_screen_instance = DestinyDesignScreen.instantiate()
+				new_screen_instance = destiny_design_screen_scene.instantiate()
 				new_screen_instance.connect("tree_exited", func(): screen_nodes.erase(Screen.DESTINY_DESIGN))
+				if game_manager.has_method("handle_dice_roll_request"):
+					new_screen_instance.dice_roll_requested.connect(game_manager.handle_dice_roll_request)
+				else:
+					printerr("UIManager: GameManager does not have handle_dice_roll_request method!")
 			Screen.INVENTORY:
-				new_screen_instance = InventoryScreen.instantiate()
+				new_screen_instance = inventory_screen_scene.instantiate()
 				new_screen_instance.inventory_closed.connect(_on_inventory_closed)
 				new_screen_instance.connect("tree_exited", func(): screen_nodes.erase(Screen.INVENTORY))
 			_:

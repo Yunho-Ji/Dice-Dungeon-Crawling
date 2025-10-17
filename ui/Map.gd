@@ -1,6 +1,7 @@
 extends Control
 
 @onready var dungeon_buttons_container = $DungeonButtonsContainer
+@onready var scene_manager: SceneManager = get_node("/root/SceneManager")
 
 func _ready():
 	for i in range(1, 4): # Dungeon 1, 2, 3
@@ -12,4 +13,4 @@ func _ready():
 
 func _on_dungeon_button_pressed(dungeon_id: int):
 	print("Selected Dungeon ", dungeon_id)
-	get_node("/root/GameManager").start_dungeon(dungeon_id)
+	scene_manager.start_dungeon(dungeon_id)
