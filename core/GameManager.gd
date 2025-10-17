@@ -171,3 +171,14 @@ func handle_retry():
 	current_battle_count = 0
 	if get_node("/root/DiceManager").player_dice_pool: get_node("/root/DiceManager").player_dice_pool.clear()
 	scene_manager.reload_current_scene() # Updated to use scene_manager
+
+func handle_dice_roll_request():
+	print("GameManager: 주사위 굴림 요청 처리")
+	var dice_rolls = get_node("/root/DiceManager").roll_player_dice()
+	
+	# Apply dice rolls to player stats
+	if player_node:
+		player_node.apply_dice_rolls(dice_rolls)
+		player_node.update_hp_label() # Update HP label after stat changes
+
+	emit_signal("dice_rolled_and_applied", dice_rolls)
