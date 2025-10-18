@@ -1,34 +1,33 @@
-# DestinyDesignScreen.gd
 extends Control
-signal dice_roll_requested
+signal closed
 
 const DiceLabelScene = preload("res://ui/elements/DiceLabel.tscn")
 const StatSlotScene = preload("res://ui/elements/StatSlot.tscn")
 
 @onready var dice_manager = get_node("/root/DiceManager")
-@onready var game_manager = get_node("/root/GameManager")
+@onready var game_manager = get_node("/root/GameManager") # Still needed for player node access
 
-# HBoxContainer/PanelA/PanelB 구조에 맞는 최종 경로
 @onready var stat_slots_container = $VBoxContainer/HBoxContainer/PanelA/StatSlotsContainer
 @onready var dice_results_container = $VBoxContainer/HBoxContainer/PanelB/VBoxContainer/DiceResultsContainer
 @onready var roll_dice_button = $VBoxContainer/HBoxContainer/PanelB/VBoxContainer/RollDiceButton
 @onready var close_button = $VBoxContainer/PanelC/HBoxContainer/CloseButton
 
-# 레이아웃 문제를 해결하기 위한 노드 참조
-@onready var panel_A = $VBoxContainer/HBoxContainer/PanelA
-
 func _ready():
-	print("DEBUG: DestinyDesignScreen.gd: _ready called.") # New line
-	close_button.pressed.connect(queue_free)
+	print("DEBUG: DestinyDesignScreen.gd: _ready called.")
+	close_button.pressed.connect(_on_close_button_pressed)
 	roll_dice_button.pressed.connect(_on_roll_dice_button_pressed)
-	game_manager.dice_rolled_and_applied.connect(_on_dice_rolled_and_applied)
+	dice_manager.dice_rolled.connect(_on_dice_rolled)
 	
 	_initialize_stat_slots()
 	
-	roll_dice_button.disabled = not game_manager.can_roll_new_dice
+	roll_dice_button.disabled = not dice_manager.can_roll()
 	
+	# Clear any old dice labels from a previous opening
 	for child in dice_results_container.get_children():
 		child.queue_free()
+
+func _on_close_button_pressed():
+	emit_signal("closed")
 
 func _initialize_stat_slots():
 	for child in stat_slots_container.get_children():
@@ -49,14 +48,15 @@ func _initialize_stat_slots():
 
 func _on_roll_dice_button_pressed():
 	print("DestinyDesignScreen: 주사위 굴리기 버튼 클릭")
-	emit_signal("dice_roll_requested") # Emit signal instead of direct call
-	roll_dice_button.disabled = true
-	game_manager.can_roll_new_dice = false
+	roll_dice_button.disabled = true # Visually disable immediately
+	dice_manager.roll_player_dice() # Ask DiceManager to roll
 
-func _on_dice_rolled_and_applied(rolled_values: Array):
+func _on_dice_rolled(rolled_values: Array):
+	# Clear old dice
 	for child in dice_results_container.get_children():
 		child.queue_free()
 
+	# Display new dice
 	for roll_value in rolled_values:
 		var new_label = DiceLabelScene.instantiate()
 		dice_results_container.add_child(new_label)

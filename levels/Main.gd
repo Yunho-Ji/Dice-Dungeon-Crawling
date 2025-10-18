@@ -83,6 +83,10 @@ func start_game_deferred():
 	print("DEBUG:   player_manager valid: ", is_instance_valid(player_manager)) # New line
 	game_manager.initialize_game_scene(player_node, enemy_node, battle_manager, ui_manager, stage_info_hud_instance, scene_manager, player_manager)
 
+	# Generate dungeon if needed, then show the map
+	get_node("/root/MapManager").generate_dungeon_if_needed()
+	get_node("/root/MapManager").show_dungeon_map()
+
 	print("--- Main.gd: 게임 시작 지연 호출 완료 ---\
 ")
 

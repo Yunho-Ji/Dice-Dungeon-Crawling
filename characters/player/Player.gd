@@ -27,13 +27,9 @@ func attack(_target_node: CharacterBody2D):
 	pass
 
 func apply_dice_rolls(dice_rolls: Array):
-	apply_stat("attack_power", dice_rolls[0]) # 가장 높은 값
-	apply_stat("max_hp", dice_rolls[1])       # 두 번째 높은 값
-	# current_hp is already handled in apply_stat when max_hp increases
-	apply_stat("defense", dice_rolls[2])      # 세 번째 높은 값
-	apply_stat("attack_speed", dice_rolls[3]) # 네 번째 높은 값 (공격속도는 높을수록 빠름)
-
-	print("플레이어 스탯 업데이트됨: HP:", get_stat("current_hp"), ", 공격:", get_stat("attack_power"), ", 방어:", get_stat("defense"), ", 속도:", get_stat("attack_speed"), ", 회복:", get_stat("recovery_power"))
+	# This function is now deprecated. Stat application is handled by the
+	# drag-and-drop UI (StatSlot.gd) which calls apply_dice_to_stat directly.
+	pass
 
 
 

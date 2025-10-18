@@ -20,11 +20,12 @@ aseprite_executable_path="C:/Program Files (x86)/Steam/steamapps/common/Aseprite
 
 [autoload]
 
-GameManager="res://core/GameManager.gd"
-DiceManager="res://core/DiceManager.gd"
-TownManager="res://core/TownManager.gd"
-SceneManager="res://core/SceneManager.gd"
-PlayerManager="res://core/PlayerManager.gd"
+GameManager="*res://core/GameManager.gd"
+DiceManager="*res://core/DiceManager.gd"
+SceneManager="*res://core/SceneManager.gd"
+TownManager="*res://core/TownManager.gd"
+PlayerManager="*res://core/PlayerManager.gd"
+MapManager="*res://core/MapManager.gd"
 
 [display]
 

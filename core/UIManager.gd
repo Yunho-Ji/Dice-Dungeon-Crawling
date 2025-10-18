@@ -2,10 +2,11 @@
 class_name UIManager
 extends CanvasLayer
 
-enum Screen { NONE, DESTINY_DESIGN, BATTLE_HUD, INVENTORY }
+enum Screen { NONE, DESTINY_DESIGN, BATTLE_HUD, INVENTORY, DUNGEON_MAP, END_OF_DUNGEON_OPTIONS }
 
 @export var destiny_design_screen_scene: PackedScene
 @export var inventory_screen_scene: PackedScene
+@export var end_of_dungeon_screen_scene: PackedScene # New export for the end of dungeon screen
 @export var advantage_label_scene: PackedScene
 
 @onready var advantage_container = $AdvantageContainer
@@ -21,7 +22,8 @@ func _ready():
 	# BattleHUD 시그널 연결
 	battle_hud.inventory_opened.connect(_on_inventory_opened)
 	battle_hud.destiny_design_opened.connect(_on_destiny_design_opened)
-	battle_hud.next_battle_requested.connect(game_manager.handle_start_combat) # '다음 전투' 요청을 GameManager에 바로 연결
+	battle_hud.map_requested.connect(get_node("/root/MapManager").show_dungeon_map)
+	battle_hud.start_combat_requested.connect(game_manager.handle_start_combat)
 	
 	# GameManager 시그널 연결
 	game_manager.battle_started.connect(_on_battle_started)
@@ -34,36 +36,46 @@ func _ready():
 	battle_hud.skill_1_used.connect(game_manager.use_skill_1)
 	battle_hud.skill_2_used.connect(game_manager.use_skill_2)
 
-	for screen_key in screen_nodes:
-		if screen_key != Screen.BATTLE_HUD:
-			screen_nodes[screen_key].visible = false
+	show_screen(Screen.BATTLE_HUD) # Start with battle hud
 
-func show_screen(screen_type: Screen):
-	if screen_type == Screen.DESTINY_DESIGN or screen_type == Screen.INVENTORY:
-		pass
-	else:
-		if current_screen != Screen.NONE and screen_nodes.has(current_screen):
-			screen_nodes[current_screen].visible = false
+func show_screen(screen_type: Screen, instance: Node = null):
+	# Hide the current screen
+	if current_screen != Screen.NONE and screen_nodes.has(current_screen):
+		var current_screen_node = screen_nodes[current_screen]
+		current_screen_node.visible = false
+		# If the screen we are leaving is a temporary one (like the map), remove it
+		if current_screen == Screen.DUNGEON_MAP or current_screen == Screen.INVENTORY or current_screen == Screen.DESTINY_DESIGN or current_screen == Screen.END_OF_DUNGEON_OPTIONS:
+			current_screen_node.queue_free()
+			screen_nodes.erase(current_screen)
 
 	current_screen = screen_type
+
+	# Show the new screen
 	if not screen_nodes.has(screen_type):
-		var new_screen_instance = null
-		match screen_type:
-			Screen.DESTINY_DESIGN:
-				new_screen_instance = destiny_design_screen_scene.instantiate()
-				new_screen_instance.connect("tree_exited", func(): screen_nodes.erase(Screen.DESTINY_DESIGN))
-				if game_manager.has_method("handle_dice_roll_request"):
-					new_screen_instance.dice_roll_requested.connect(game_manager.handle_dice_roll_request)
-				else:
-					printerr("UIManager: GameManager does not have handle_dice_roll_request method!")
-			Screen.INVENTORY:
-				new_screen_instance = inventory_screen_scene.instantiate()
-				new_screen_instance.inventory_closed.connect(_on_inventory_closed)
-				new_screen_instance.connect("tree_exited", func(): screen_nodes.erase(Screen.INVENTORY))
-			_:
-				printerr("UIManager: 동적으로 생성할 수 없는 화면입니다: ", screen_type)
-				return
-		
+		var new_screen_instance = instance # Use passed instance if available
+		if not new_screen_instance:
+			# Dynamically create instance if not passed
+			match screen_type:
+				Screen.DESTINY_DESIGN:
+					new_screen_instance = destiny_design_screen_scene.instantiate()
+					# Connect a new 'closed' signal to handle returning to the battle HUD
+					new_screen_instance.closed.connect(_on_destiny_design_closed)
+					if game_manager.has_method("handle_dice_roll_request"):
+						new_screen_instance.dice_roll_requested.connect(game_manager.handle_dice_roll_request)
+				Screen.INVENTORY:
+					new_screen_instance = inventory_screen_scene.instantiate()
+					new_screen_instance.inventory_closed.connect(_on_inventory_closed)
+				Screen.END_OF_DUNGEON_OPTIONS:
+					new_screen_instance = end_of_dungeon_screen_scene.instantiate()
+					new_screen_instance.return_to_town_requested.connect(game_manager.handle_return_to_town)
+					new_screen_instance.additional_exploration_requested.connect(game_manager.handle_additional_exploration)
+				Screen.BATTLE_HUD:
+					# Battle HUD is pre-loaded, do nothing
+					pass
+				_:
+					printerr("UIManager: Cannot dynamically create screen: ", screen_type)
+					return
+
 		if new_screen_instance:
 			add_child(new_screen_instance)
 			screen_nodes[screen_type] = new_screen_instance
@@ -71,26 +83,32 @@ func show_screen(screen_type: Screen):
 	if screen_nodes.has(screen_type):
 		screen_nodes[screen_type].visible = true
 
+func show_end_of_dungeon_options():
+	show_screen(Screen.END_OF_DUNGEON_OPTIONS)
+
 # --- GameManager 시그널 핸들러 ---
 func _on_battle_started():
 	battle_hud.set_destiny_button_enabled(false)
-	battle_hud.set_next_battle_button_visible(false)
+	# Hide both buttons when combat starts
+	if battle_hud.map_button: battle_hud.map_button.visible = false
+	if battle_hud.start_combat_button: battle_hud.start_combat_button.visible = false
 
 func _on_battle_ended(win: bool):
 	if win:
 		battle_hud.set_destiny_button_enabled(true)
-		battle_hud.set_next_battle_button_visible(true)
+		battle_hud.show_map_button()
 	else: # 패배 시
 		battle_hud.set_destiny_button_enabled(false)
-		battle_hud.set_next_battle_button_visible(false)
 
 # --- BattleHUD 시그널 핸들러 ---
 func _on_inventory_opened():
 	show_screen(Screen.INVENTORY)
 
 func _on_inventory_closed():
-	if screen_nodes.has(Screen.INVENTORY):
-		screen_nodes[Screen.INVENTORY].queue_free()
+	show_screen(Screen.BATTLE_HUD)
 
 func _on_destiny_design_opened():
 	show_screen(Screen.DESTINY_DESIGN)
+
+func _on_destiny_design_closed():
+	show_screen(Screen.BATTLE_HUD)

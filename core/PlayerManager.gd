@@ -1,5 +1,4 @@
 extends Node
-class_name PlayerManager
 
 const CLASS_STATS = {
 	"novice": {

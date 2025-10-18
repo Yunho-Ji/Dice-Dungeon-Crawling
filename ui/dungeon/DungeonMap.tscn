@@ -1,0 +1,47 @@
+[gd_scene load_steps=2 format=3 uid="uid://b1a2c3d4e5f6"]
+
+[ext_resource type="Script" uid="uid://dvei261h8pjix" path="res://ui/dungeon/DungeonMap.gd" id="1_script"]
+
+[node name="DungeonMap" type="Panel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="GraphEdit" type="GraphEdit" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+right_disconnects = true
+
+[node name="InfoLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = -30.0
+offset_right = 200.0
+offset_bottom = -10.0
+grow_vertical = 0
+text = "현재 노드 정보"
+
+[node name="EnterDungeonButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -100.0
+offset_top = -80.0
+offset_right = 100.0
+offset_bottom = -30.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "전투 시작"

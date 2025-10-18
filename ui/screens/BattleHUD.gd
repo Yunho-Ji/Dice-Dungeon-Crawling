@@ -1,9 +1,5 @@
-# BattleHUD.gd
 extends CanvasLayer
 
-# =============================================================================
-# 시그널 (Signals)
-# =============================================================================
 signal attack_stance_selected
 signal defense_stance_selected
 signal dodge_stance_selected
@@ -11,21 +7,16 @@ signal skill_1_used
 signal skill_2_used
 signal inventory_opened
 signal destiny_design_opened
-signal next_battle_requested # 다음 전투 시작 요청 시그널
+signal map_requested
+signal start_combat_requested
 
-# =============================================================================
-# 노드 참조 (Node References)
-# =============================================================================
 @onready var destiny_design_button = $DestinyDesignButton
-@onready var next_battle_button = $NextBattleButton
+@onready var map_button = $MapButton
+@onready var start_combat_button = $StartCombatButton
 @export var damage_popup_scene: PackedScene
 
-# =============================================================================
-# Godot 내장 함수 (Built-in Godot Functions)
-# =============================================================================
 func _ready():
-	print("DEBUG: BattleHUD.gd: _ready called.") # New line
-	# 각 버튼의 pressed 시그널을 내부 핸들러 함수와 연결합니다.
+	print("DEBUG: BattleHUD.gd: _ready called.")
 	$BattleControls/AttackButton.pressed.connect(_on_attack_button_pressed)
 	$BattleControls/DefenseButton.pressed.connect(_on_defense_button_pressed)
 	$BattleControls/DodgeButton.pressed.connect(_on_dodge_button_pressed)
@@ -34,23 +25,24 @@ func _ready():
 	$InventoryButton.pressed.connect(_on_inventory_button_pressed)
 	
 	if destiny_design_button: destiny_design_button.pressed.connect(_on_destiny_design_button_pressed)
-	if next_battle_button: next_battle_button.pressed.connect(_on_next_battle_button_pressed)
+	if map_button: map_button.pressed.connect(_on_map_button_pressed)
+	if start_combat_button: start_combat_button.pressed.connect(_on_start_combat_button_pressed)
 	
-	# 시작 시 버튼 상태 초기화
-	set_next_battle_button_visible(false)
+	# Initially hide both buttons
+	map_button.visible = false
+	start_combat_button.visible = false
 
-# =============================================================================
-# 공개 함수 (Public Methods)
-# =============================================================================
 func set_destiny_button_enabled(is_enabled: bool):
 	if destiny_design_button: destiny_design_button.disabled = not is_enabled
 
-func set_next_battle_button_visible(p_is_visible: bool):
-	if next_battle_button: next_battle_button.visible = p_is_visible
+func show_map_button():
+	if map_button: map_button.visible = true
+	if start_combat_button: start_combat_button.visible = false
 
-# =============================================================================
-# 시그널 핸들러 (Signal Handlers)
-# =============================================================================
+func show_start_combat_button():
+	if map_button: map_button.visible = false
+	if start_combat_button: start_combat_button.visible = true
+
 func _on_attack_button_pressed():
 	emit_signal("attack_stance_selected")
 
@@ -72,8 +64,11 @@ func _on_inventory_button_pressed():
 func _on_destiny_design_button_pressed():
 	emit_signal("destiny_design_opened")
 
-func _on_next_battle_button_pressed():
-	emit_signal("next_battle_requested")
+func _on_map_button_pressed():
+	emit_signal("map_requested")
+
+func _on_start_combat_button_pressed():
+	emit_signal("start_combat_requested")
 
 func _on_character_damage_taken(amount: int, position: Vector2, is_player_character: bool):
 	if not damage_popup_scene:
@@ -81,6 +76,6 @@ func _on_character_damage_taken(amount: int, position: Vector2, is_player_charac
 		return
 
 	var popup_instance = damage_popup_scene.instantiate()
-	add_child(popup_instance) # Add to BattleHUD
+	add_child(popup_instance)
 	popup_instance.set_damage_text(amount, is_player_character)
 	popup_instance.set_start_position(position)

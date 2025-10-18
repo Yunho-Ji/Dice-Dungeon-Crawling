@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://fauknsa3k37i"]
+[gd_scene load_steps=15 format=3 uid="uid://fauknsa3k37i"]
 
 [ext_resource type="Script" uid="uid://c74nrfoj7d6oe" path="res://levels/Main.gd" id="1_main_gd"]
 [ext_resource type="PackedScene" uid="uid://bd8mbroqs0yvb" path="res://characters/player/novice/Novice.tscn" id="2_3mabw"]
@@ -12,6 +12,7 @@
 [ext_resource type="PackedScene" uid="uid://rgdcm18nf3jm" path="res://ui/screens/DestinyDesignScreen.tscn" id="7_owvkk"]
 [ext_resource type="PackedScene" path="res://ui/screens/InventoryScreen.tscn" id="8_rak1d"]
 [ext_resource type="PackedScene" path="res://ui/screens/AdvantageLabel.tscn" id="9_3ubmn"]
+[ext_resource type="PackedScene" path="res://ui/screens/EndOfDungeonScreen.tscn" id="9_n3j8x"]
 [ext_resource type="PackedScene" uid="uid://d1c3h4e5f6g7" path="res://ui/DamagePopup.tscn" id="11_rak1d"]
 
 [node name="Main" type="Node2D"]
@@ -32,6 +33,7 @@ script = ExtResource("3_vmibe")
 script = ExtResource("4_bvijt")
 destiny_design_screen_scene = ExtResource("7_owvkk")
 inventory_screen_scene = ExtResource("8_rak1d")
+end_of_dungeon_screen_scene = ExtResource("9_n3j8x")
 advantage_label_scene = ExtResource("9_3ubmn")
 
 [node name="BattleHUD" parent="UIManager" instance=ExtResource("5_3mabw")]
