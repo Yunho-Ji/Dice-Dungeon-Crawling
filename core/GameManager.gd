@@ -29,6 +29,10 @@ var ui_manager: UIManager
 var stage_info_hud: Control
 var scene_manager: SceneManager
 var player_manager: PlayerManager
+var dice_manager: DiceManager # Reference to DiceManager
+
+func _ready():
+	dice_manager = get_node("/root/DiceManager") # Initialize DiceManager reference
 
 # --- 게임 상태 변수 ---
 var is_developer_mode: bool = false
@@ -36,6 +40,7 @@ var selected_dungeon_id: int = 0
 var current_battle_count: int = 0
 var current_stage: int = 1
 var current_battle_node_type: String = ""
+var current_dungeon_node: DungeonNode # Store the current dungeon node for battle context
 const BOSS_BATTLE_COUNT = 8
 
 const DUNGEON_CONFIGS = {
@@ -93,9 +98,9 @@ func initialize_game_scene(player: Character, enemy: Character, battle_mgr: Node
 	else:
 		printerr("GameManager: UIManager or BattleHUD is not valid for connecting damage signals!")
 
-	if get_node("/root/DiceManager").get_player_dice_pool().is_empty():
+	if dice_manager.get_player_dice_pool().is_empty():
 		for i in range(4):
-			get_node("/root/DiceManager").add_dice_to_pool(6)
+			dice_manager.add_dice_to_pool(6)
 
 	# Initial battle setup delegated to BattleManager
 	battle_manager.prepare_battle(null, player_node, enemy_node, current_stage, current_battle_count, ui_manager, stage_info_hud)
@@ -133,10 +138,6 @@ func handle_start_combat():
 	current_game_phase = GamePhase.COMBAT
 	emit_signal("battle_started")
 
-	# '다음 전투' 버튼 숨기기
-	if ui_manager and ui_manager.has_method("set_next_battle_button_visible"):
-		ui_manager.set_next_battle_button_visible(false)
-
 	player_node.target = enemy_node
 	enemy_node.target = player_node
 
@@ -151,10 +152,24 @@ func handle_battle_end(win: bool):
 	if win:
 		current_battle_count += 1
 
-		# Grant dice roll only on elite or boss wins
+	
+
+		# Grant dice roll only on elite or boss wins (moved before shortcut check)
 		if current_battle_node_type == "elite" or current_battle_node_type == "boss":
-			get_node("/root/DiceManager").enable_roll()
+			dice_manager.enable_roll()
 			print("강적 처치! 주사위 굴림 기회가 부여됩니다.")
+
+	
+
+			# Apply shortcut skip if current node is a shortcut
+
+			if current_dungeon_node and current_dungeon_node.is_shortcut:
+
+				get_node("/root/MapManager").apply_shortcut_skip(current_dungeon_node.skip_layers)
+
+				get_node("/root/MapManager").show_dungeon_map() # Show map again to reflect new depth
+
+				return # Stop further processing here, as map is shown for new selection
 
 		# Check if it's the final boss of the dungeon
 		if current_battle_node_type == "boss":
@@ -187,12 +202,13 @@ func handle_retry():
 	
 	current_stage = 1
 	current_battle_count = 0
-	if get_node("/root/DiceManager").player_dice_pool: get_node("/root/DiceManager").player_dice_pool.clear()
+	if dice_manager.player_dice_pool: dice_manager.player_dice_pool.clear()
 	scene_manager.reload_current_scene() # Updated to use scene_manager
 
 func prepare_dungeon_battle(node: DungeonNode):
 	if node:
 		current_battle_node_type = node.node_type
+		current_dungeon_node = node # Store the current dungeon node
 	else:
 		current_battle_node_type = "normal" # Default for non-map battles
 
@@ -209,5 +225,5 @@ func handle_return_to_town():
 	scene_manager.go_to_town(true)
 
 func handle_additional_exploration():
-	print("GameManager: Continuing additional exploration.")
-	get_node("/root/MapManager").show_dungeon_map()
+	print("GameManager: Returning to dungeon selection map.")
+	scene_manager.go_to_map()

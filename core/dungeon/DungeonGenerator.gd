@@ -14,11 +14,18 @@ func generate_dungeon(config: Dictionary) -> Dictionary:
 	var actual_special_node_count = config.special_node_count
 	var actual_has_elites = config.has_elites
 
-	var start_node = DungeonNode.new("start_0", "start", 0, Vector2(50, 300))
-	var all_nodes = { "start_0": start_node }
-	var final_boss_node = null
+	var all_nodes = {}
+	var current_layer_nodes: Array[DungeonNode] = []
+	var placed_shortcut_node: DungeonNode = null # Declare here
 
-	var current_layer_nodes: Array[DungeonNode] = [start_node]
+	# --- Create multiple start nodes (Depth 0) ---
+	var num_start_nodes = randi_range(1, 3) # 1 to 3 starting nodes
+	for j in range(num_start_nodes):
+		var node_id = "start_%d" % j
+		var node_pos = Vector2(50, 150 * (j - (num_start_nodes - 1) / 2.0) + 300)
+		var start_node = DungeonNode.new(node_id, "start", 0, node_pos)
+		all_nodes[node_id] = start_node
+		current_layer_nodes.append(start_node)
 
 	for i in range(1, actual_num_layers):
 		var next_layer_nodes_map = {}
@@ -82,19 +89,12 @@ func generate_dungeon(config: Dictionary) -> Dictionary:
 		
 		current_layer_nodes = next_layer_nodes_array
 
-		if i == actual_num_layers - 1:
-			if len(current_layer_nodes) > 0:
-				final_boss_node = current_layer_nodes[randi() % len(current_layer_nodes)]
-				final_boss_node.node_type = "boss"
-
-	if not final_boss_node and len(all_nodes) > 1:
-		var leaf_nodes = []
-		for node in all_nodes.values():
-			if not node.next_node_ids:
-				leaf_nodes.append(node)
-		if leaf_nodes:
-			final_boss_node = leaf_nodes[randi() % len(leaf_nodes)]
-			final_boss_node.node_type = "boss"
+	# --- NEW: Make all nodes in the last layer boss nodes ---
+	for node_id in all_nodes:
+		var node = all_nodes[node_id]
+		if node.depth == actual_num_layers - 1:
+			node.node_type = "boss"
+	# --- END NEW ---
 
 	# --- Place Special Nodes and Elites ---
 	var non_start_boss_nodes = []
@@ -107,10 +107,22 @@ func generate_dungeon(config: Dictionary) -> Dictionary:
 
 	# Place Special Nodes first
 	var special_node_candidates = non_start_boss_nodes.duplicate()
-	for i in range(min(actual_special_node_count, special_node_candidates.size())):
+	
+	# --- TEMPORARY: Ensure at least one special node for testing ---
+	var temp_actual_special_node_count = actual_special_node_count
+	if temp_actual_special_node_count == 0 and not special_node_candidates.is_empty():
+		temp_actual_special_node_count = 1
+	# --- END TEMPORARY ---
+
+	for i in range(min(temp_actual_special_node_count, special_node_candidates.size())):
 		var node = special_node_candidates[i]
-		# Randomly assign rest or shop
-		node.node_type = ["rest", "shop"][randi() % 2]
+		# --- TEMPORARY: Force first special node to be rest/shop for testing ---
+		if i == 0:
+			node.node_type = ["rest", "shop"][randi() % 2] # Force it to be one of these
+		else:
+			# Randomly assign rest or shop for subsequent special nodes
+			node.node_type = ["rest", "shop"][randi() % 2]
+		# --- END TEMPORARY ---
 
 	# Place Elite Nodes (only convert remaining 'battle' nodes)
 	if actual_has_elites:
@@ -124,5 +136,44 @@ func generate_dungeon(config: Dictionary) -> Dictionary:
 		var num_elites_to_place = randi_range(1, 2)
 		for i in range(min(num_elites_to_place, elite_candidates.size())):
 			elite_candidates[i].node_type = "elite"
+
+	# --- Place Shortcut Node (0-1 per dungeon) ---
+	var shortcut_candidates = []
+	for node_id in all_nodes:
+		var node = all_nodes[node_id]
+		# Only consider battle nodes that are not start, boss, rest, shop, or elite
+		if node.node_type == "battle" and node.depth > 0 and node.depth < actual_num_layers - 1: # Not start/boss layer
+			shortcut_candidates.append(node)
+	
+	shortcut_candidates.shuffle()
+	
+	if not shortcut_candidates.is_empty() and randf() < 0.5: # 50% chance to place a shortcut node
+		var shortcut_node = shortcut_candidates[0]
+		shortcut_node.is_shortcut = true
+		shortcut_node.skip_layers = int(actual_num_layers * 0.25)
+		print("DungeonGenerator: Shortcut node placed at ", shortcut_node.node_id, " (skips ", shortcut_node.skip_layers, " layers)")
+
+	# --- Handle Shortcut Node Connections (Diagonal) ---
+	if placed_shortcut_node:
+		placed_shortcut_node.next_node_ids.clear() # Clear existing connections
+
+		var target_layer_depth = placed_shortcut_node.depth + placed_shortcut_node.skip_layers
+		target_layer_depth = min(target_layer_depth, actual_num_layers - 1) # Don't skip beyond last layer
+
+		var target_layer_nodes = []
+		for node_id in all_nodes:
+			var node = all_nodes[node_id]
+			if node.depth == target_layer_depth:
+				target_layer_nodes.append(node)
+		
+		if not target_layer_nodes.is_empty():
+			target_layer_nodes.shuffle()
+			# Connect to 1-2 nodes in the target layer
+			var num_connections = randi_range(1, min(2, target_layer_nodes.size()))
+			for k in range(num_connections):
+				placed_shortcut_node.next_node_ids.append(target_layer_nodes[k].node_id)
+			print("DungeonGenerator: Shortcut node ", placed_shortcut_node.node_id, " connected to layer ", target_layer_depth, " nodes: ", placed_shortcut_node.next_node_ids)
+		else:
+			printerr("DungeonGenerator: No nodes found in target layer ", target_layer_depth, " for shortcut node ", placed_shortcut_node.node_id)
 
 	return all_nodes

@@ -26,7 +26,7 @@ func attack(_target_node: CharacterBody2D):
 	_attack_committed = false
 	pass
 
-func apply_dice_rolls(dice_rolls: Array):
+func apply_dice_rolls(_dice_rolls: Array):
 	# This function is now deprecated. Stat application is handled by the
 	# drag-and-drop UI (StatSlot.gd) which calls apply_dice_to_stat directly.
 	pass

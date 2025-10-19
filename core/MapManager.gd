@@ -12,6 +12,7 @@ var player_run_state: Dictionary = {
 	"VisitedNodeIDs": [],
 	"KnownNodeData": {},
 	"SelectedBossRoute": "",
+	"CurrentDepth": 0,
 	# Add other run-specific resources here later
 }
 
@@ -41,8 +42,12 @@ func generate_dungeon_if_needed():
 		var dungeon_generator = DungeonGenerator.new()
 		dungeon_data = dungeon_generator.generate_dungeon(dungeon_config)
 		dungeon_max_depth = dungeon_generator.num_layers # This will be set by generator based on config
-		player_run_state.CurrentNodeID = "start_0"
+		
+		# --- Player now chooses a start node from the map ---
+		player_run_state.CurrentNodeID = "" # No start node chosen yet
+		
 		player_run_state.VisitedNodeIDs.clear()
+		player_run_state.CurrentDepth = 0 # Initialize current depth for new dungeon
 		should_generate_new_dungeon = false
 		# Grant a dice roll for starting a new dungeon (Rule #1)
 		get_node("/root/DiceManager").enable_roll()
@@ -66,6 +71,7 @@ func show_dungeon_map():
 	dungeon_map_instance.dungeon_map_data = dungeon_data
 	dungeon_map_instance.current_node_id = player_run_state.CurrentNodeID
 	dungeon_map_instance.player_run_state = player_run_state
+	dungeon_map_instance.player_current_depth = player_run_state.CurrentDepth # Pass current depth
 	dungeon_map_instance.node_activated.connect(_on_dungeon_node_activated)
 
 	ui_manager.show_screen(UIManager.Screen.DUNGEON_MAP, dungeon_map_instance)
@@ -77,27 +83,33 @@ func _on_dungeon_node_activated(node_id: String):
 	print("DEBUG: MapManager: Node activated: ", node_id)
 	
 	# Update game state
+	var selected_node: DungeonNode = dungeon_data[node_id] # Define selected_node here
+	print("DEBUG: MapManager: selected_node: ", selected_node.node_id, ", type: ", selected_node.node_type, ", depth: ", selected_node.depth)
 	player_run_state.CurrentNodeID = node_id
 	player_run_state.VisitedNodeIDs.append(node_id)
+	player_run_state.CurrentDepth = selected_node.depth # Update current depth to activated node's depth
+	print("DEBUG: MapManager: player_run_state updated. CurrentNodeID: ", player_run_state.CurrentNodeID, ", CurrentDepth: ", player_run_state.CurrentDepth)
 	
 	update_dungeon_progress_hud()
+	print("DEBUG: MapManager: update_dungeon_progress_hud called.")
 
 	# Tell UIManager to switch back to the battle screen
 	ui_manager.show_screen(UIManager.Screen.BATTLE_HUD)
+	print("DEBUG: MapManager: UIManager requested to show BATTLE_HUD.")
 	
 	# Tell GameManager to prepare the battle
 	if dungeon_data.has(node_id):
-		var selected_node: DungeonNode = dungeon_data[node_id]
-
 		# Grant dice roll if the node is a special type (Rule #2)
 		if selected_node.node_type == "rest" or selected_node.node_type == "shop":
 			get_node("/root/DiceManager").enable_roll()
-			print("특수 노드 도착! 주사위 굴림 기회가 부여됩니다.")
+			print("DEBUG: MapManager: 특수 노드 도착! 주사위 굴림 기회가 부여됩니다.")
 
 		game_manager.prepare_dungeon_battle(selected_node)
+		print("DEBUG: MapManager: game_manager.prepare_dungeon_battle called.")
 	else:
-		printerr("ERROR: Node ID '" + node_id + "' not found in dungeon data!")
+		printerr("ERROR: MapManager: Node ID '" + node_id + "' not found in dungeon data!")
 		game_manager.prepare_dungeon_battle(null) # Fallback
+		print("DEBUG: MapManager: game_manager.prepare_dungeon_battle called with null.")
 
 func update_dungeon_progress_hud():
 	if not is_instance_valid(stage_info_hud):
@@ -112,6 +124,10 @@ func update_dungeon_progress_hud():
 
 func set_should_generate_new_dungeon(value: bool):
 	should_generate_new_dungeon = value
+
+func apply_shortcut_skip(layers_to_skip: int):
+	player_run_state.CurrentDepth = min(player_run_state.CurrentDepth + layers_to_skip, dungeon_max_depth)
+	print("MapManager: Player skipped ", layers_to_skip, " layers. New depth: ", player_run_state.CurrentDepth)
 
 func _get_main_scene_nodes():
 	# This is a helper to safely get nodes that only exist on the main game scene
