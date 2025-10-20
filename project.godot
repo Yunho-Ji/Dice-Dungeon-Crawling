@@ -33,7 +33,7 @@ window/stretch/mode="canvas_items"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/godot-4-aseprite-importers-main/addons/nklbdev.aseprite_importers/plugin.cfg")
+enabled=PackedStringArray("res://addons/betterrandnumgen/plugin.cfg", "res://addons/godot-4-aseprite-importers-main/addons/nklbdev.aseprite_importers/plugin.cfg", "res://addons/tree_maps/plugin.cfg")
 
 [rendering]
 

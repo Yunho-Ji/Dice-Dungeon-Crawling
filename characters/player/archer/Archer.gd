@@ -18,7 +18,7 @@ func _ready():
 
 func attack(target_node: CharacterBody2D):
 	super.attack(target_node) # Reset the _attack_committed flag in the parent
-	print(name, "가 ", target_node.name, "에게 공격합니다! 공격력: ", get_stat("attack_power"))
+	print(name, "가 ", target_node.name, "에게 공격합니다! 공격력: ", stats_manager.get_stat("attack_power").computed_value)
 
 	if animated_sprite_2d:
 		animated_sprite_2d.play("Attack01")
@@ -46,7 +46,7 @@ func _on_frame_changed():
 
 		# 데미지 적용
 		if is_instance_valid(target):
-			target.take_damage(get_stat("attack_power"))
+			target.take_damage(stats_manager.get_stat("attack_power").computed_value)
 		else:
 			print("Archer: 공격 대상이 유효하지 않습니다.")
 

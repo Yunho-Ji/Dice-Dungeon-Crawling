@@ -1,179 +1,152 @@
-
 extends Node
 class_name DungeonGenerator
 
-# const DungeonNode = preload("res://core/dungeon/DungeonNode.gd") # Removed to fix warning
+var _rng = RandomNumberGenerator.new()
 
-@export var num_layers = 7
-@export var nodes_per_layer = 3
-@export var branching_factor = 0.5
+func _seeded_shuffle(array: Array) -> void:
+	var size = array.size()
+	for i in range(size - 1, 0, -1):
+		var j = _rng.randi_range(0, i)
+		var temp = array[i]
+		array[i] = array[j]
+		array[j] = temp
 
-func generate_dungeon(config: Dictionary) -> Dictionary:
-	# Use config to determine dungeon parameters
-	var actual_num_layers = randi_range(config.min_layers, config.max_layers)
-	var actual_special_node_count = config.special_node_count
-	var actual_has_elites = config.has_elites
+func generate_dungeon(config: Dictionary, seed_value: int = 0) -> Dictionary:
+	# --- 0. Setup ---
+	if seed_value == 0:
+		_rng.randomize()
+	else:
+		_rng.seed = seed_value
 
-	var all_nodes = {}
-	var current_layer_nodes: Array[DungeonNode] = []
-	var placed_shortcut_node: DungeonNode = null # Declare here
-
-	# --- Create multiple start nodes (Depth 0) ---
-	var num_start_nodes = randi_range(1, 3) # 1 to 3 starting nodes
-	for j in range(num_start_nodes):
-		var node_id = "start_%d" % j
-		var node_pos = Vector2(50, 150 * (j - (num_start_nodes - 1) / 2.0) + 300)
-		var start_node = DungeonNode.new(node_id, "start", 0, node_pos)
-		all_nodes[node_id] = start_node
-		current_layer_nodes.append(start_node)
-
-	for i in range(1, actual_num_layers):
-		var next_layer_nodes_map = {}
-		var num_nodes_in_layer = randi_range(2, nodes_per_layer)
-
-		for j in range(num_nodes_in_layer):
-			var node_id = "node_%d_%d" % [i, j]
-			var node_type = "battle" # Default type
-			var node_pos = Vector2(200 * i + 50, 150 * (j - (num_nodes_in_layer - 1) / 2.0) + 300)
-			var new_node = DungeonNode.new(node_id, node_type, i, node_pos)
-			next_layer_nodes_map[node_id] = new_node
-			all_nodes[node_id] = new_node
-
-		# Connect current layer to the next layer in a structured way
-		var next_layer_nodes = next_layer_nodes_map.values()
-		for j in range(len(current_layer_nodes)):
-			var prev_node = current_layer_nodes[j]
-			
-			var num_nodes_in_next_layer = len(next_layer_nodes)
-			var target_mid_point = float(j) / len(current_layer_nodes) * num_nodes_in_next_layer
-			
-			var start_index = max(0, int(target_mid_point - 1))
-			var end_index = min(num_nodes_in_next_layer, int(target_mid_point + 2))
-			
-			var candidates = next_layer_nodes.slice(start_index, end_index)
-			if candidates.is_empty():
-				candidates = next_layer_nodes
-
-			candidates.shuffle()
-			
-			var num_connections = 1
-			if randf() < branching_factor:
-				num_connections = min(2, len(candidates))
-
-			for k in range(num_connections):
-				var child_node = candidates[k]
-				if not prev_node.next_node_ids.has(child_node.node_id):
-					prev_node.next_node_ids.append(child_node.node_id)
-
-		# Ensure all nodes in the next layer have at least one parent
-		for next_node in next_layer_nodes:
-			var has_parent = false
-			for node_id in all_nodes:
-				if all_nodes[node_id].next_node_ids.has(next_node.node_id):
-					has_parent = true
-					break
-			if not has_parent:
-				var closest_prev_node = current_layer_nodes[0]
-				var min_dist = INF
-				for prev_node in current_layer_nodes:
-					var dist = prev_node.position.distance_to(next_node.position)
-					if dist < min_dist:
-						min_dist = dist
-						closest_prev_node = prev_node
-				if not closest_prev_node.next_node_ids.has(next_node.node_id):
-					closest_prev_node.next_node_ids.append(next_node.node_id)
-
-		var next_layer_nodes_array: Array[DungeonNode] = []
-		for node in next_layer_nodes_map.values():
-			next_layer_nodes_array.append(node)
-		
-		current_layer_nodes = next_layer_nodes_array
-
-	# --- NEW: Make all nodes in the last layer boss nodes ---
-	for node_id in all_nodes:
-		var node = all_nodes[node_id]
-		if node.depth == actual_num_layers - 1:
-			node.node_type = "boss"
-	# --- END NEW ---
-
-	# --- Place Special Nodes and Elites ---
-	var non_start_boss_nodes = []
-	for node_id in all_nodes:
-		var node = all_nodes[node_id]
-		if node.node_type != "start" and node.node_type != "boss":
-			non_start_boss_nodes.append(node)
-
-	non_start_boss_nodes.shuffle()
-
-	# Place Special Nodes first
-	var special_node_candidates = non_start_boss_nodes.duplicate()
+	var max_layers = _rng.randi_range(config.min_layers, config.max_layers)
+	var grid_width = 7
 	
-	# --- TEMPORARY: Ensure at least one special node for testing ---
-	var temp_actual_special_node_count = actual_special_node_count
-	if temp_actual_special_node_count == 0 and not special_node_candidates.is_empty():
-		temp_actual_special_node_count = 1
-	# --- END TEMPORARY ---
+	var potential_nodes = {}
+	var paths = []
 
-	for i in range(min(temp_actual_special_node_count, special_node_candidates.size())):
-		var node = special_node_candidates[i]
-		# --- TEMPORARY: Force first special node to be rest/shop for testing ---
-		if i == 0:
-			node.node_type = ["rest", "shop"][randi() % 2] # Force it to be one of these
-		else:
-			# Randomly assign rest or shop for subsequent special nodes
-			node.node_type = ["rest", "shop"][randi() % 2]
-		# --- END TEMPORARY ---
+	# --- 1. Grid Initialization ---
+	for y in range(max_layers):
+		for x in range(grid_width):
+			var node_id = "node_%d_%d" % [y, x]
+			var pos = Vector2(250 * y + 100, 150 * (x - (grid_width - 1) / 2.0) + 300)
+			var node = DungeonNode.new(node_id, "", y, pos)
+			potential_nodes[Vector2i(x, y)] = node
 
-	# Place Elite Nodes (only convert remaining 'battle' nodes)
-	if actual_has_elites:
-		var elite_candidates = []
-		for node in non_start_boss_nodes:
-			if node.node_type == "battle": # Only convert battle nodes to elite
-				elite_candidates.append(node)
-		elite_candidates.shuffle()
+	# --- 2. Determine Final Boss Endpoint ---
+	var boss_x = _rng.randi_range(0, grid_width - 1)
+	var real_boss_node = potential_nodes[Vector2i(boss_x, max_layers - 1)]
+	real_boss_node.node_type = "boss"
+
+	# --- 3. Path Generation (Reverse from the single boss) ---
+	var start_nodes = []
+	for i in range(6):
+		var path = []
+		var current_node = real_boss_node
+		path.append(current_node)
+
+		for y in range(max_layers - 2, -1, -1):
+			var current_x = int(round((current_node.position.y - 300) / 150.0 + (grid_width - 1) / 2.0))
+			var parent_candidates = []
+			for offset in [-2, -1, 0, 1, 2]:
+				var parent_x = current_x + offset
+				if parent_x >= 0 and parent_x < grid_width:
+					parent_candidates.append(potential_nodes[Vector2i(parent_x, y)])
+			
+			if parent_candidates.is_empty():
+				path.clear()
+				break
+
+			var parent_node = parent_candidates[_rng.randi_range(0, parent_candidates.size() - 1)]
+			# Avoid duplicate connections
+			if not parent_node.next_node_ids.has(current_node.node_id):
+				parent_node.next_node_ids.append(current_node.node_id)
+			path.append(parent_node)
+			current_node = parent_node
 		
-		# Place a few elite nodes (e.g., 1-2 elites per dungeon)
-		var num_elites_to_place = randi_range(1, 2)
-		for i in range(min(num_elites_to_place, elite_candidates.size())):
-			elite_candidates[i].node_type = "elite"
+		if path.is_empty(): continue
 
-	# --- Place Shortcut Node (0-1 per dungeon) ---
-	var shortcut_candidates = []
-	for node_id in all_nodes:
-		var node = all_nodes[node_id]
-		# Only consider battle nodes that are not start, boss, rest, shop, or elite
-		if node.node_type == "battle" and node.depth > 0 and node.depth < actual_num_layers - 1: # Not start/boss layer
-			shortcut_candidates.append(node)
+		start_nodes.append(current_node)
+		paths.append(path)
+
+	# --- 4. Finalize Nodes and Paths ---
+	var final_nodes = {}
+	for path in paths:
+		for node in path:
+			if not final_nodes.has(node.node_id):
+				final_nodes[node.node_id] = node
+
+	# Set node types
+	var intermediate_nodes = []
+	for node in final_nodes.values():
+		if node.depth == 0:
+			node.node_type = "start"
+		elif node.node_type != "boss": # Only boss is pre-set
+			node.node_type = "battle"
+			intermediate_nodes.append(node)
+
+	# Place Fake Bosses on the second to last layer
+	var second_to_last_layer_candidates = []
+	for node in intermediate_nodes:
+		if node.depth == max_layers - 2:
+			second_to_last_layer_candidates.append(node)
 	
-	shortcut_candidates.shuffle()
+	_seeded_shuffle(second_to_last_layer_candidates)
+	var num_fake_bosses = config.get("num_fake_bosses", 2)
 	
-	if not shortcut_candidates.is_empty() and randf() < 0.5: # 50% chance to place a shortcut node
-		var shortcut_node = shortcut_candidates[0]
-		shortcut_node.is_shortcut = true
-		shortcut_node.skip_layers = int(actual_num_layers * 0.25)
-		print("DungeonGenerator: Shortcut node placed at ", shortcut_node.node_id, " (skips ", shortcut_node.skip_layers, " layers)")
+	for i in range(min(num_fake_bosses, second_to_last_layer_candidates.size())):
+		var fake_boss_node = second_to_last_layer_candidates.pop_front()
+		fake_boss_node.node_type = "fake_boss"
+		# Ensure fake bosses connect to the real boss
+		if not fake_boss_node.next_node_ids.has(real_boss_node.node_id):
+			fake_boss_node.next_node_ids.append(real_boss_node.node_id)
 
-	# --- Handle Shortcut Node Connections (Diagonal) ---
-	if placed_shortcut_node:
-		placed_shortcut_node.next_node_ids.clear() # Clear existing connections
+	# Place Elite and Special nodes from remaining intermediate nodes
+	# Filter out nodes that became fake bosses
+	intermediate_nodes = intermediate_nodes.filter(func(node): return node.node_type == "battle")
+	_seeded_shuffle(intermediate_nodes)
+	var num_elites = config.get("num_elites", 2)
+	var num_specials = config.get("num_specials", 2)
+	
+	for i in range(min(num_elites, intermediate_nodes.size())):
+		intermediate_nodes.pop_front().node_type = "elite"
+	
+	for i in range(min(num_specials, intermediate_nodes.size())):
+		intermediate_nodes.pop_front().node_type = "special"
 
-		var target_layer_depth = placed_shortcut_node.depth + placed_shortcut_node.skip_layers
-		target_layer_depth = min(target_layer_depth, actual_num_layers - 1) # Don't skip beyond last layer
+	# --- 5. Generate Visual Path Geometry ---
+	var visual_paths = []
+	var visited_edges = {}
+	for node in final_nodes.values():
+		for next_node_id in node.next_node_ids:
+			var edge_id = "%s-%s" % [node.node_id, next_node_id]
+			if visited_edges.has(edge_id): continue
+			visited_edges[edge_id] = true
 
-		var target_layer_nodes = []
-		for node_id in all_nodes:
-			var node = all_nodes[node_id]
-			if node.depth == target_layer_depth:
-				target_layer_nodes.append(node)
-		
-		if not target_layer_nodes.is_empty():
-			target_layer_nodes.shuffle()
-			# Connect to 1-2 nodes in the target layer
-			var num_connections = randi_range(1, min(2, target_layer_nodes.size()))
-			for k in range(num_connections):
-				placed_shortcut_node.next_node_ids.append(target_layer_nodes[k].node_id)
-			print("DungeonGenerator: Shortcut node ", placed_shortcut_node.node_id, " connected to layer ", target_layer_depth, " nodes: ", placed_shortcut_node.next_node_ids)
-		else:
-			printerr("DungeonGenerator: No nodes found in target layer ", target_layer_depth, " for shortcut node ", placed_shortcut_node.node_id)
+			if not final_nodes.has(next_node_id):
+				print("Error: Path points to a non-existent node: ", next_node_id)
+				continue
+			var to_node = final_nodes[next_node_id]
+			var from_pos = node.position
+			var to_pos = to_node.position
+			
+			var distance = from_pos.distance_to(to_pos)
+			var num_points = int(distance / 20.0)
+			var points = PackedVector2Array()
+			
+			var direction = (to_pos - from_pos).normalized()
+			var perpendicular = direction.orthogonal()
+			
+			points.append(from_pos)
+			for i in range(1, num_points):
+				var t = float(i) / num_points
+				var point = from_pos.lerp(to_pos, t)
+				
+				var wobble = _rng.randf_range(-15.0, 15.0)
+				point += perpendicular * wobble
+				
+				points.append(point)
+			points.append(to_pos)
+			
+			visual_paths.append({"from": node.node_id, "to": next_node_id, "points": points})
 
-	return all_nodes
+	return {"nodes": final_nodes, "paths": visual_paths, "num_layers": max_layers}

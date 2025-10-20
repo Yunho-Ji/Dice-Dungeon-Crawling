@@ -33,7 +33,7 @@ func _initialize_stat_slots():
 	for child in stat_slots_container.get_children():
 		child.queue_free()
 
-	var stats_to_display = ["attack_power", "max_hp", "defense", "attack_speed", "max_mp", "recovery_power", "luck", "resistance"]
+	var stats_to_display = ["attack_power", "health", "defense", "attack_speed", "current_mp", "recovery_power", "luck", "resistance"]
 	var player = game_manager.player_node
 	if not player: return
 
@@ -41,7 +41,7 @@ func _initialize_stat_slots():
 		var new_slot = StatSlotScene.instantiate()
 		stat_slots_container.add_child(new_slot)
 		
-		var current_stat_value = player.get_stat(stat_name)
+		var current_stat_value = player.stats_manager.get_stat(stat_name)
 		
 		if new_slot.has_method("set_stat"): 
 			new_slot.set_stat(stat_name, current_stat_value)

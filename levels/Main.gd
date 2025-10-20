@@ -58,13 +58,13 @@ func start_game_deferred():
 
 	var player_class = player_manager.selected_player_type
 	var stats = player_manager.get_class_stats(player_class)
-	if not stats.is_empty():
-		player_node.set_stat("max_hp", stats.max_hp)
-		player_node.set_stat("current_hp", stats.max_hp) # current_hp should be set to max_hp initially
-		player_node.set_stat("attack_power", stats.attack_power)
-		player_node.set_stat("defense", stats.defense)
-		player_node.set_stat("attack_speed", stats.attack_speed)
-	print("DEBUG: Main.gd: Player stats set. HP:", player_node.get_stat("max_hp"), ", ATK:", player_node.get_stat("attack_power")) # New line
+	if stats != null:
+		player_node.stats_manager.get_stat("health").base_value = stats.health.base_value
+		player_node.stats_manager.get_stat("current_mp").base_value = stats.current_mp.base_value # Assuming current_mp is also set here
+		player_node.stats_manager.get_stat("attack_power").base_value = stats.attack_power.base_value
+		player_node.stats_manager.get_stat("defense").base_value = stats.defense.base_value
+		player_node.stats_manager.get_stat("attack_speed").base_value = stats.attack_speed.base_value
+	print("DEBUG: Main.gd: Player stats set. HP:", player_node.stats_manager.get_stat("health").computed_value, ", ATK:", player_node.stats_manager.get_stat("attack_power").computed_value) # New line
 
 	# --- 최종 초기화 ---
 	assert(player_node != null, "Player 노드를 찾을 수 없습니다!")

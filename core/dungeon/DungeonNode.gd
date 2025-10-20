@@ -7,8 +7,7 @@ class_name DungeonNode
 @export var depth: int
 @export var next_node_ids: Array[String]
 @export var position: Vector2 # Keep position for layout calculation
-@export var is_shortcut: bool = false
-@export var skip_layers: int = 0
+@export var long_distance_connections: Array[String]
 
 func _init(p_id: String = "", p_type: String = "battle", p_depth: int = 0, p_position: Vector2 = Vector2.ZERO):
     node_id = p_id
@@ -16,3 +15,4 @@ func _init(p_id: String = "", p_type: String = "battle", p_depth: int = 0, p_pos
     depth = p_depth
     position = p_position
     next_node_ids = []
+    long_distance_connections = []

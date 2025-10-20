@@ -36,11 +36,14 @@ func _ready():
 
 # --- 게임 상태 변수 ---
 var is_developer_mode: bool = false
+var is_additional_exploration_mode: bool = false
 var selected_dungeon_id: int = 0
 var current_battle_count: int = 0
 var current_stage: int = 1
 var current_battle_node_type: String = ""
 var current_dungeon_node: DungeonNode # Store the current dungeon node for battle context
+var cleared_dungeons: Dictionary = {} # 각 던전의 dungeon_id별로 seed와 transformed_nodes를 저장
+var permanently_discovered_nodes: Dictionary = {} # 던전 ID별로 영구적으로 발견된 노드 ID 목록을 저장
 const BOSS_BATTLE_COUNT = 8
 
 const DUNGEON_CONFIGS = {
@@ -86,6 +89,14 @@ func initialize_game_scene(player: Character, enemy: Character, battle_mgr: Node
 	stage_info_hud = stage_hud
 	scene_manager = scene_mgr
 	player_manager = player_mgr
+
+	# 플레이어 스탯을 PlayerManager에서 가져와 설정
+	if player_node and player_manager and player_manager.current_player_stats:
+		player_node.stats_manager.character_stats = player_manager.current_player_stats
+		# current_mp를 max_mp로 설정하고 HP 라벨 업데이트
+		player_node.stats_manager.get_stat("current_mp").base_value = player_node.stats_manager.get_stat("attack_power").base_value # Assuming attack_power is max_mp for now, will adjust later
+		player_node.update_hp_label()
+		print("GameManager: Player stats loaded from PlayerManager: ", player_manager.current_player_stats)
 
 	if not is_instance_valid(ui_mgr):
 		printerr("GameManager: UIManager가 유효하지 않습니다!")
@@ -159,36 +170,43 @@ func handle_battle_end(win: bool):
 			dice_manager.enable_roll()
 			print("강적 처치! 주사위 굴림 기회가 부여됩니다.")
 
-	
-
-			# Apply shortcut skip if current node is a shortcut
-
-			if current_dungeon_node and current_dungeon_node.is_shortcut:
-
-				get_node("/root/MapManager").apply_shortcut_skip(current_dungeon_node.skip_layers)
-
-				get_node("/root/MapManager").show_dungeon_map() # Show map again to reflect new depth
-
-				return # Stop further processing here, as map is shown for new selection
-
+		# Check if it's the final boss of the dungeon
 		# Check if it's the final boss of the dungeon
 		if current_battle_node_type == "boss":
+			# 던전 클리어 로직
+			var map_manager = get_node("/root/MapManager")
+			if map_manager and selected_dungeon_id != 0:
+				# 1. 던전 클리어 정보 영구 저장
+				var current_dungeon_seed = map_manager.dungeon_seed
+				var transformed_nodes_to_save = map_manager.select_transformed_nodes()
+				cleared_dungeons[selected_dungeon_id] = {
+					"seed": current_dungeon_seed,
+					"transformed_nodes": transformed_nodes_to_save
+				}
+
+				# 2. 현재 던전의 VisitedNodeIDs를 permanently_discovered_nodes에 병합
+				var visited_node_ids = map_manager.get_current_dungeon_visited_node_ids()
+				if not permanently_discovered_nodes.has(selected_dungeon_id):
+					permanently_discovered_nodes[selected_dungeon_id] = []
+				for node_id in visited_node_ids:
+					if not node_id in permanently_discovered_nodes[selected_dungeon_id]:
+						permanently_discovered_nodes[selected_dungeon_id].append(node_id)
+
 			# End of dungeon, show options
 			ui_manager.show_end_of_dungeon_options()
 			return # Stop further processing here
-
 		# Normal win flow (not boss)
 		if current_battle_count > BOSS_BATTLE_COUNT:
 			# This path should ideally not be reached if boss check is correct
-			get_node("/root/MapManager").set_should_generate_new_dungeon(false)
+			get_node("/root/MapManager").set_should_generate_new_dungeon(false, true)
 			current_battle_count = 0
 			current_stage += 1
 			scene_manager.go_to_town(true)
 			return
 
 		if player_node:
-			var new_hp = min(player_node.get_stat("max_hp"), player_node.get_stat("current_hp") + player_node.get_stat("recovery_power"))
-			player_node.set_stat("current_hp", new_hp)
+			var new_hp = min(player_node.stats_manager.get_stat("health").base_value, player_node.stats_manager.get_stat("health").computed_value + player_node.stats_manager.get_stat("recovery_power").computed_value) # Assuming recovery_power is a stat
+			player_node.stats_manager.get_stat("health").base_value = new_hp
 			player_node.update_hp_label()
 
 		print("전투 승리! 다음 로직 대기 중...")
@@ -196,14 +214,22 @@ func handle_battle_end(win: bool):
 		handle_retry()
 
 func handle_retry():
-	print("GameManager: 재도전. 상태를 초기화하고 씬을 다시 로드합니다.")
-	# On defeat, generate a new dungeon for the next run
-	get_node("/root/MapManager").set_should_generate_new_dungeon(true)
-	
+	print("GameManager: 플레이어 사망. 메인 메뉴로 돌아갑니다.")
+	# 현재 던전의 VisitedNodeIDs를 permanently_discovered_nodes에 병합
+	var map_manager = get_node("/root/MapManager")
+	if map_manager and selected_dungeon_id != 0:
+		var visited_node_ids = map_manager.get_current_dungeon_visited_node_ids()
+		if not permanently_discovered_nodes.has(selected_dungeon_id):
+			permanently_discovered_nodes[selected_dungeon_id] = []
+		for node_id in visited_node_ids:
+			if not node_id in permanently_discovered_nodes[selected_dungeon_id]:
+				permanently_discovered_nodes[selected_dungeon_id].append(node_id)
+
+	# 게임 시작 화면(메인 메뉴)으로 돌아갑니다.
 	current_stage = 1
 	current_battle_count = 0
 	if dice_manager.player_dice_pool: dice_manager.player_dice_pool.clear()
-	scene_manager.reload_current_scene() # Updated to use scene_manager
+	scene_manager.go_to_main_menu() # 메인 메뉴로 이동
 
 func prepare_dungeon_battle(node: DungeonNode):
 	if node:
@@ -219,11 +245,27 @@ func prepare_dungeon_battle(node: DungeonNode):
 
 func handle_return_to_town():
 	print("GameManager: Returning to town.")
-	get_node("/root/MapManager").set_should_generate_new_dungeon(false) # Preserve dungeon for next run
+	# 현재 던전의 VisitedNodeIDs를 permanently_discovered_nodes에 병합
+	var map_manager = get_node("/root/MapManager")
+	if map_manager and selected_dungeon_id != 0:
+		var visited_node_ids = map_manager.get_current_dungeon_visited_node_ids()
+		if not permanently_discovered_nodes.has(selected_dungeon_id):
+			permanently_discovered_nodes[selected_dungeon_id] = []
+		for node_id in visited_node_ids:
+			if not node_id in permanently_discovered_nodes[selected_dungeon_id]:
+				permanently_discovered_nodes[selected_dungeon_id].append(node_id)
+
+	# Preserve dungeon for next run by preserving the seed
+	get_node("/root/MapManager").set_should_generate_new_dungeon(false, true) 
 	current_battle_count = 0
 	current_stage = 1
 	scene_manager.go_to_town(true)
 
 func handle_additional_exploration():
-	print("GameManager: Returning to dungeon selection map.")
-	scene_manager.go_to_map()
+	print("GameManager: 추가 탐험 시작.")
+	is_additional_exploration_mode = true
+	# 던전 시드는 유지되므로, MapManager에서 새로운 던전을 생성하지 않도록 설정
+	get_node("/root/MapManager").set_should_generate_new_dungeon(false, true)
+	# 플레이어 위치는 시작 지점으로, 이번 탐험의 방문 노드 기록은 초기화
+	# 이 부분은 MapManager에서 맵 로드 시 처리될 예정
+	scene_manager.start_dungeon(selected_dungeon_id, true)

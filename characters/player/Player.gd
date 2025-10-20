@@ -14,7 +14,7 @@ func _ready():
 	position = initial_position # 초기 위치 설정
 
 func _process(delta: float):
-	if target == null or not is_instance_valid(target) or target.get_stat("current_hp") <= 0:
+	if target == null or not is_instance_valid(target) or target.stats_manager.get_stat("health").computed_value <= 0:
 		action_gauge_bar.value = 0
 		action_gauge = 0.0
 		return

@@ -29,9 +29,9 @@ func start_battle(p: Character, e: Character, gm: Node):
 # _process 함수는 전투가 진행 중일 때만 활성화됩니다.
 func _process(_delta: float):
 	# 게임 종료 조건 확인
-	if player_node.get_stat("current_hp") <= 0:
+	if player_node.stats_manager.get_stat("health").computed_value <= 0:
 		_handle_battle_end(false) # 패배
-	elif enemy_node.get_stat("current_hp") <= 0:
+	elif enemy_node.stats_manager.get_stat("health").computed_value <= 0:
 		_handle_battle_end(true) # 승리
 
 # 전투 종료 처리 함수 (GameManager에 결과 전달)
@@ -77,7 +77,7 @@ func prepare_battle(node: DungeonNode, p_player: Character, p_enemy: Character, 
 	p_enemy.is_boss = is_boss # Correctly set the enemy's is_boss property
 	p_enemy.set_level(p_stage, p_battle_count, hp_multiplier)
 	p_enemy.position = Vector2(800, 300)
-	print("DEBUG: BattleManager: Enemy stats set: HP:", p_enemy.get_stat("max_hp"))
+	print("DEBUG: BattleManager: Enemy stats set: HP:", p_enemy.stats_manager.get_stat("health").computed_value)
 
 	# Reset characters
 	if p_player.has_method("reset_for_next_battle"): p_player.reset_for_next_battle()
