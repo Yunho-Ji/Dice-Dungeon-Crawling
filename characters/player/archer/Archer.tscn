@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://cbh8cvxaj6yvc"]
+[gd_scene load_steps=22 format=3 uid="uid://cbh8cvxaj6yvc"]
 
 [ext_resource type="Script" uid="uid://db7lrmibulmn7" path="res://characters/player/archer/Archer.gd" id="1_archer_script"]
 [ext_resource type="Texture2D" uid="uid://bslntg0lx4uxu" path="res://assets/sprites/characters/archer/Atk01/Attack_1.png" id="2_ldxec"]
@@ -16,6 +16,8 @@
 [ext_resource type="Texture2D" uid="uid://by5b1lxsjhje8" path="res://assets/sprites/characters/archer/Idle/Idle_4.png" id="14_ka5xd"]
 [ext_resource type="Texture2D" uid="uid://boh4t8tu5e6yk" path="res://assets/sprites/characters/archer/Idle/Idle_5.png" id="15_7r774"]
 [ext_resource type="Texture2D" uid="uid://cggcgv4fg1qu4" path="res://assets/sprites/characters/archer/Idle/Idle_6.png" id="16_nunbo"]
+[ext_resource type="Script" uid="uid://b3s6hftg66a4i" path="res://core/MyStatsManager.gd" id="18_dnfno"]
+[ext_resource type="Script" uid="uid://kukc5jf2pxgg" path="res://resources/stats/MyCharacterStats.gd" id="19_ll4py"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0rwas"]
 size = Vector2(50, 50)
@@ -78,6 +80,10 @@ animations = [{
 "speed": 5.0
 }]
 
+[sub_resource type="Resource" id="Resource_boyfm"]
+script = ExtResource("19_ll4py")
+metadata/_custom_type_script = "uid://kukc5jf2pxgg"
+
 [node name="Archer" type="CharacterBody2D"]
 input_pickable = true
 script = ExtResource("1_archer_script")
@@ -112,3 +118,7 @@ wait_time = 0.3
 
 [node name="Atk01FxSpawnPoint" type="Marker2D" parent="."]
 position = Vector2(25, -11)
+
+[node name="MyStatsManager" type="Node" parent="."]
+script = ExtResource("18_dnfno")
+character_stats = SubResource("Resource_boyfm")

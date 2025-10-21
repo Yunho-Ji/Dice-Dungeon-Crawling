@@ -20,11 +20,12 @@ aseprite_executable_path="C:/Program Files (x86)/Steam/steamapps/common/Aseprite
 
 [autoload]
 
-GameManager="res://core/GameManager.gd"
-DiceManager="res://core/DiceManager.gd"
-TownManager="res://core/TownManager.gd"
-SceneManager="res://core/SceneManager.gd"
-PlayerManager="res://core/PlayerManager.gd"
+GameManager="*res://core/GameManager.gd"
+DiceManager="*res://core/DiceManager.gd"
+SceneManager="*res://core/SceneManager.gd"
+TownManager="*res://core/TownManager.gd"
+PlayerManager="*res://core/PlayerManager.gd"
+MapManager="*res://core/MapManager.gd"
 
 [display]
 
@@ -32,7 +33,7 @@ window/stretch/mode="canvas_items"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/godot-4-aseprite-importers-main/addons/nklbdev.aseprite_importers/plugin.cfg")
+enabled=PackedStringArray("res://addons/betterrandnumgen/plugin.cfg", "res://addons/godot-4-aseprite-importers-main/addons/nklbdev.aseprite_importers/plugin.cfg", "res://addons/tree_maps/plugin.cfg")
 
 [rendering]
 

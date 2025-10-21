@@ -5,14 +5,14 @@ extends PanelContainer
 
 # 스탯 이름과 표시 이름을 매핑합니다.
 const STAT_NAMES = {
+	"health": "체력",
+	"current_mp": "마력",
 	"attack_power": "공격력",
 	"defense": "방어력",
 	"attack_speed": "공격 속도",
 	"recovery_power": "회복력",
 	"luck": "행운",
-	"resistance": "저항",
-	"hp": "체력", # Combined HP display
-	"mp": "마력"  # Combined MP display
+	"resistance": "저항"
 }
 
 # 드래그 상태를 추적하기 위한 변수
@@ -44,22 +44,22 @@ func show_stats(character: Character):
 
 		# 각 스탯에 맞는 getter 함수를 직접 호출하여 값을 가져옵니다.
 		match stat_key:
-			"hp":
-				value_text = "%s/%s" % [character.get_stat("current_hp"), character.get_stat("max_hp")]
-			"mp":
-				value_text = "%s/%s" % [character.get_stat("current_mp"), character.get_stat("max_mp")]
+			"health":
+				value_text = "%s/%s" % [character.stats_manager.get_stat("health").computed_value, character.stats_manager.get_stat("health").base_value]
+			"current_mp":
+				value_text = "%s/%s" % [character.stats_manager.get_stat("current_mp").computed_value, character.stats_manager.get_stat("current_mp").base_value]
 			"attack_power":
-				value_text = str(character.get_stat("attack_power"))
+				value_text = str(character.stats_manager.get_stat("attack_power").computed_value)
 			"defense":
-				value_text = str(character.get_stat("defense"))
+				value_text = str(character.stats_manager.get_stat("defense").computed_value)
 			"attack_speed":
-				value_text = str(character.get_stat("attack_speed"))
+				value_text = str(character.stats_manager.get_stat("attack_speed").computed_value)
 			"recovery_power":
-				value_text = str(character.get_stat("recovery_power"))
+				value_text = str(character.stats_manager.get_stat("recovery_power").computed_value)
 			"luck":
-				value_text = str(character.get_stat("luck"))
+				value_text = str(character.stats_manager.get_stat("luck").computed_value)
 			"resistance":
-				value_text = str(character.get_stat("resistance"))
+				value_text = str(character.stats_manager.get_stat("resistance").computed_value)
 
 		var label = Label.new()
 		label.text = "%s: %s" % [stat_name, value_text]

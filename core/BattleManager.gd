@@ -29,9 +29,9 @@ func start_battle(p: Character, e: Character, gm: Node):
 # _process 함수는 전투가 진행 중일 때만 활성화됩니다.
 func _process(_delta: float):
 	# 게임 종료 조건 확인
-	if player_node.get_stat("current_hp") <= 0:
+	if player_node.stats_manager.get_stat("health").computed_value <= 0:
 		_handle_battle_end(false) # 패배
-	elif enemy_node.get_stat("current_hp") <= 0:
+	elif enemy_node.stats_manager.get_stat("health").computed_value <= 0:
 		_handle_battle_end(true) # 승리
 
 # 전투 종료 처리 함수 (GameManager에 결과 전달)
@@ -53,3 +53,46 @@ func _handle_battle_end(win: bool):
 		game_manager.handle_battle_end(win)
 	else:
 		print("오류: GameManager 참조가 설정되지 않았습니다.")
+
+func prepare_battle(node: DungeonNode, p_player: Character, p_enemy: Character, p_stage: int, p_battle_count: int, p_ui_manager: UIManager, p_stage_info_hud: Control):
+	print("DEBUG: BattleManager: prepare_battle called.")
+
+	# Make sure characters are visible for the battle
+	if is_instance_valid(p_player): p_player.visible = true
+	if is_instance_valid(p_enemy): p_enemy.visible = true
+
+	# Set enemy level based on node type
+	var hp_multiplier = 1.0
+	var is_boss = false
+	if node:
+		match node.node_type:
+			"elite":
+				hp_multiplier = 1.5
+				print("엘리트 전투 준비!")
+			"boss":
+				hp_multiplier = 2.0
+				is_boss = true
+				print("보스 전투 준비!")
+	
+	p_enemy.is_boss = is_boss # Correctly set the enemy's is_boss property
+	p_enemy.set_level(p_stage, p_battle_count, hp_multiplier)
+	p_enemy.position = Vector2(800, 300)
+	print("DEBUG: BattleManager: Enemy stats set: HP:", p_enemy.stats_manager.get_stat("health").computed_value)
+
+	# Reset characters
+	if p_player.has_method("reset_for_next_battle"): p_player.reset_for_next_battle()
+	if p_enemy.has_method("reset_for_next_battle"): p_enemy.reset_for_next_battle()
+
+	# Update UI
+	if p_ui_manager:
+		p_ui_manager.show_screen(UIManager.Screen.BATTLE_HUD)
+	
+	p_player.update_hp_label()
+	p_enemy.update_hp_label()
+
+	if p_stage_info_hud:
+		p_stage_info_hud.show()
+
+	# Show the button to manually start combat
+	if p_ui_manager and p_ui_manager.battle_hud:
+		p_ui_manager.battle_hud.show_start_combat_button()

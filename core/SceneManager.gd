@@ -1,5 +1,4 @@
 extends Node
-class_name SceneManager
 
 signal game_started
 
@@ -22,11 +21,16 @@ func go_to_town(from_dungeon_return: bool = false):
 func go_to_map():
 	get_tree().change_scene_to_file(map_scene_path)
 
-func start_dungeon(dungeon_id: int):
-	get_node("/root/GameManager").selected_dungeon_id = dungeon_id
-	get_node("/root/GameManager").current_stage = dungeon_id
-	get_node("/root/GameManager").current_battle_count = 0
+func start_dungeon(dungeon_id: int, is_additional_exploration: bool = false):
+	var game_manager = get_node("/root/GameManager")
+	game_manager.selected_dungeon_id = dungeon_id
+	game_manager.is_additional_exploration_mode = is_additional_exploration # Set the flag
+	game_manager.current_stage = dungeon_id
+	game_manager.current_battle_count = 0
 	get_tree().change_scene_to_file(main_scene_path)
 
 func reload_current_scene():
 	get_tree().reload_current_scene()
+
+func go_to_main_menu():
+	get_tree().change_scene_to_file("res://ui/MainMenu.tscn")

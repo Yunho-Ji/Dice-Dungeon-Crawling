@@ -1,5 +1,4 @@
 extends Node
-class_name TownManager
 
 signal time_updated(current_time_string: String)
 signal penalties_applied(penalty_type: String)

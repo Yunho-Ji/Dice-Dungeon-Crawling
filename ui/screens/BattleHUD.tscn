@@ -56,10 +56,18 @@ offset_right = 1056.0
 offset_bottom = 644.0
 text = "운명설계"
 
-[node name="NextBattleButton" type="Button" parent="."]
+[node name="MapButton" type="Button" parent="."]
 visible = false
 offset_left = 900.0
 offset_top = 612.0
 offset_right = 972.0
 offset_bottom = 643.0
-text = "다음전투"
+text = "지도"
+
+[node name="StartCombatButton" type="Button" parent="."]
+visible = false
+offset_left = 790.0
+offset_top = 612.0
+offset_right = 890.0
+offset_bottom = 643.0
+text = "전투 시작"
