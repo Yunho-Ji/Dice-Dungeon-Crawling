@@ -1,0 +1,73 @@
+[33m949ab92[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/battlesystem[m[33m, [m[1;32mrefactor/code[m[33m, [m[1;32mmaster[m[33m, [m[1;32mbugfix/code[m[33m)[m HEAD@{0}: checkout: moving from bugfix/code to feature/battlesystem
+[33m949ab92[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/battlesystem[m[33m, [m[1;32mrefactor/code[m[33m, [m[1;32mmaster[m[33m, [m[1;32mbugfix/code[m[33m)[m HEAD@{1}: checkout: moving from refactor/code to bugfix/code
+[33m949ab92[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/battlesystem[m[33m, [m[1;32mrefactor/code[m[33m, [m[1;32mmaster[m[33m, [m[1;32mbugfix/code[m[33m)[m HEAD@{2}: delete_branch: bugfix [949ab92acfbfcbf324750bc363cc7839b9948c71]
+[33m949ab92[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/battlesystem[m[33m, [m[1;32mrefactor/code[m[33m, [m[1;32mmaster[m[33m, [m[1;32mbugfix/code[m[33m)[m HEAD@{3}: checkout: moving from feature/battlesystem to refactor/code
+[33m949ab92[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/battlesystem[m[33m, [m[1;32mrefactor/code[m[33m, [m[1;32mmaster[m[33m, [m[1;32mbugfix/code[m[33m)[m HEAD@{4}: delete_branch: refactor [949ab92acfbfcbf324750bc363cc7839b9948c71]
+[33m949ab92[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/battlesystem[m[33m, [m[1;32mrefactor/code[m[33m, [m[1;32mmaster[m[33m, [m[1;32mbugfix/code[m[33m)[m HEAD@{5}: checkout: moving from master to feature/battlesystem
+[33m949ab92[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/battlesystem[m[33m, [m[1;32mrefactor/code[m[33m, [m[1;32mmaster[m[33m, [m[1;32mbugfix/code[m[33m)[m HEAD@{6}: delete_branch: feature [949ab92acfbfcbf324750bc363cc7839b9948c71]
+[33m949ab92[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/battlesystem[m[33m, [m[1;32mrefactor/code[m[33m, [m[1;32mmaster[m[33m, [m[1;32mbugfix/code[m[33m)[m HEAD@{7}: checkout: moving from feature to master
+[33m949ab92[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/battlesystem[m[33m, [m[1;32mrefactor/code[m[33m, [m[1;32mmaster[m[33m, [m[1;32mbugfix/code[m[33m)[m HEAD@{8}: checkout: moving from bugfix to feature
+[33m949ab92[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/battlesystem[m[33m, [m[1;32mrefactor/code[m[33m, [m[1;32mmaster[m[33m, [m[1;32mbugfix/code[m[33m)[m HEAD@{9}: checkout: moving from refactor to bugfix
+[33m949ab92[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/battlesystem[m[33m, [m[1;32mrefactor/code[m[33m, [m[1;32mmaster[m[33m, [m[1;32mbugfix/code[m[33m)[m HEAD@{10}: checkout: moving from bugfix to refactor
+[33m949ab92[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/battlesystem[m[33m, [m[1;32mrefactor/code[m[33m, [m[1;32mmaster[m[33m, [m[1;32mbugfix/code[m[33m)[m HEAD@{11}: checkout: moving from feature to bugfix
+[33m949ab92[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/battlesystem[m[33m, [m[1;32mrefactor/code[m[33m, [m[1;32mmaster[m[33m, [m[1;32mbugfix/code[m[33m)[m HEAD@{12}: checkout: moving from master to feature
+[33m949ab92[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/battlesystem[m[33m, [m[1;32mrefactor/code[m[33m, [m[1;32mmaster[m[33m, [m[1;32mbugfix/code[m[33m)[m HEAD@{13}: delete_branch: aseprite_test [3ca3feb8cd294f46bc95366e6eeb3dbc63a333f5]
+[33m949ab92[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/battlesystem[m[33m, [m[1;32mrefactor/code[m[33m, [m[1;32mmaster[m[33m, [m[1;32mbugfix/code[m[33m)[m HEAD@{14}: checkout: moving from aseprite_test to master
+[33m3ca3feb[m HEAD@{15}: rebase: checkout aseprite_test
+[33m949ab92[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/battlesystem[m[33m, [m[1;32mrefactor/code[m[33m, [m[1;32mmaster[m[33m, [m[1;32mbugfix/code[m[33m)[m HEAD@{16}: delete_branch: dungeonsystem2 [3ca3feb8cd294f46bc95366e6eeb3dbc63a333f5]
+[33m949ab92[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/battlesystem[m[33m, [m[1;32mrefactor/code[m[33m, [m[1;32mmaster[m[33m, [m[1;32mbugfix/code[m[33m)[m HEAD@{17}: checkout: moving from dungeonsystem2 to master
+[33m3ca3feb[m HEAD@{18}: rebase: checkout dungeonsystem2
+[33m949ab92[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/battlesystem[m[33m, [m[1;32mrefactor/code[m[33m, [m[1;32mmaster[m[33m, [m[1;32mbugfix/code[m[33m)[m HEAD@{19}: delete_branch: battlesystem [7cbc21399c98e61264990ee482aead483613dc59]
+[33m949ab92[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/battlesystem[m[33m, [m[1;32mrefactor/code[m[33m, [m[1;32mmaster[m[33m, [m[1;32mbugfix/code[m[33m)[m HEAD@{20}: checkout: moving from battlesystem to master
+[33m7cbc213[m HEAD@{21}: rebase: checkout battlesystem
+[33m949ab92[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/battlesystem[m[33m, [m[1;32mrefactor/code[m[33m, [m[1;32mmaster[m[33m, [m[1;32mbugfix/code[m[33m)[m HEAD@{22}: delete_branch: dungeonmapsystem [3ca3feb8cd294f46bc95366e6eeb3dbc63a333f5]
+[33m949ab92[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/battlesystem[m[33m, [m[1;32mrefactor/code[m[33m, [m[1;32mmaster[m[33m, [m[1;32mbugfix/code[m[33m)[m HEAD@{23}: checkout: moving from dungeonmapsystem to master
+[33m3ca3feb[m HEAD@{24}: rebase: checkout dungeonmapsystem
+[33m949ab92[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/battlesystem[m[33m, [m[1;32mrefactor/code[m[33m, [m[1;32mmaster[m[33m, [m[1;32mbugfix/code[m[33m)[m HEAD@{25}: checkout: moving from dungeonmapsystem to master
+[33m3ca3feb[m HEAD@{26}: checkout: moving from battlesystem to dungeonmapsystem
+[33m7cbc213[m HEAD@{27}: rebase: checkout battlesystem
+[33m3ca3feb[m HEAD@{28}: rebase: checkout aseprite_test
+[33m7cbc213[m HEAD@{29}: reset: moving to 7cbc21399c98e61264990ee482aead483613dc59 [1a31be51fd8d54746c7910b951ed46fdd99f1e74]
+[33m3ca3feb[m HEAD@{30}: rebase: checkout battlesystem
+[33m3ca3feb[m HEAD@{31}: rebase: checkout battlesystem
+[33m3ca3feb[m HEAD@{32}: checkout: moving from aseprite_test to battlesystem
+[33m3ca3feb[m HEAD@{33}: checkout: moving from battlesystem to aseprite_test
+[33m3ca3feb[m HEAD@{34}: checkout: moving from aseprite_test to battlesystem
+[33m3ca3feb[m HEAD@{35}: Branch: renamed refs/heads/dev/20251014_aseprite_test to refs/heads/aseprite_test
+[33m3ca3feb[m HEAD@{37}: rebase: checkout dev/20251014_aseprite_test
+[33m3ca3feb[m HEAD@{38}: rebase: checkout dev/20251014_aseprite_test
+[33m3ca3feb[m HEAD@{39}: rebase (finish): returning to refs/heads/dev/20251014_aseprite_test
+[33m3ca3feb[m HEAD@{40}: rebase (start): checkout master
+[33m3ca3feb[m HEAD@{41}: rebase (finish): returning to refs/heads/feature/dungeon-map-system
+[33m3ca3feb[m HEAD@{42}: rebase (start): checkout battlesystem
+[33mfee7b84[m HEAD@{43}: undo: checkout: moving from dev/20251014_aseprite_test to master
+[33m949ab92[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/battlesystem[m[33m, [m[1;32mrefactor/code[m[33m, [m[1;32mmaster[m[33m, [m[1;32mbugfix/code[m[33m)[m HEAD@{44}: checkout: moving from dev/20251014_aseprite_test to master
+[33mfee7b84[m HEAD@{45}: merge feature/dungeon-map-system: Merge made by the 'ort' strategy.
+[33m5562a1f[m HEAD@{46}: checkout: moving from master to dev/20251014_aseprite_test
+[33m949ab92[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/battlesystem[m[33m, [m[1;32mrefactor/code[m[33m, [m[1;32mmaster[m[33m, [m[1;32mbugfix/code[m[33m)[m HEAD@{47}: checkout: moving from battlesystem to master
+[33m3ca3feb[m HEAD@{48}: checkout: moving from dev/20251014_aseprite_test to battlesystem
+[33m5562a1f[m HEAD@{49}: checkout: moving from battlesystem to dev/20251014_aseprite_test
+[33m3ca3feb[m HEAD@{50}: checkout: moving from dev/20251014_aseprite_test to battlesystem
+[33m5562a1f[m HEAD@{51}: merge master: Merge made by the 'ort' strategy.
+[33m93305e9[m HEAD@{52}: checkout: moving from battlesystem to dev/20251014_aseprite_test
+[33m3ca3feb[m HEAD@{53}: checkout: moving from feature/dungeon-map-system to battlesystem
+[33m701cfec[m HEAD@{54}: merge battlesystem: Merge made by the 'ort' strategy.
+[33mf480978[m HEAD@{55}: checkout: moving from battlesystem to feature/dungeon-map-system
+[33m3ca3feb[m HEAD@{56}: commit (amend): 던전 지도 작성 시스템개선
+[33m1d6ba4f[m HEAD@{57}: commit: 버그수정
+[33m7cbc213[m HEAD@{58}: undo: reset: moving to HEAD
+[33m7cbc213[m HEAD@{59}: reset: moving to HEAD
+[33m7cbc213[m HEAD@{60}: commit: feat: 던전 맵 시스템 구현
+[33mf480978[m HEAD@{61}: checkout: moving from feature/dungeon-map-system to battlesystem
+[33mf480978[m HEAD@{62}: commit: feat: Implement dungeon map system, refine game flow, and fix related bugs
+[33m949ab92[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/battlesystem[m[33m, [m[1;32mrefactor/code[m[33m, [m[1;32mmaster[m[33m, [m[1;32mbugfix/code[m[33m)[m HEAD@{63}: checkout: moving from master to feature/dungeon-map-system
+[33m949ab92[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/battlesystem[m[33m, [m[1;32mrefactor/code[m[33m, [m[1;32mmaster[m[33m, [m[1;32mbugfix/code[m[33m)[m HEAD@{64}: merge refactor/system-improvements: Fast-forward
+[33me4dae72[m HEAD@{65}: checkout: moving from refactor/system-improvements to master
+[33m949ab92[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/battlesystem[m[33m, [m[1;32mrefactor/code[m[33m, [m[1;32mmaster[m[33m, [m[1;32mbugfix/code[m[33m)[m HEAD@{66}: commit: feat: Implement stat label alignment and styling
+[33m3f9e9af[m HEAD@{67}: commit: feat: Implement damage display and complete refactoring tasks
+[33m744ed5b[m HEAD@{68}: commit: feat: Implement damage display and complete refactoring tasks
+[33m93305e9[m HEAD@{69}: checkout: moving from dev/20251014_aseprite_test to refactor/system-improvements
+[33m93305e9[m HEAD@{70}: commit: Initial commit
+[33m1eedd8d[m HEAD@{71}: commit: feat: 마을 인터페이스, 지도 선택, 플레이어 스탯 지속성 구현
+[33me4dae72[m HEAD@{72}: checkout: moving from master to dev/20251014_aseprite_test
+[33me4dae72[m HEAD@{73}: commit (initial): "Update"

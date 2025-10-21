@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://bujnofxyh5kmq"]
 
-[ext_resource type="Script" path="res://characters/enemy/EnemyCharacter.gd" id="1_2v10u"]
+[ext_resource type="Script" uid="uid://delvqgy3pv2j4" path="res://characters/enemy/EnemyCharacter.gd" id="1_2v10u"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_4j8lt"]
 size = Vector2(32, 32)
@@ -17,8 +17,8 @@ offset_left = -16.0
 offset_top = -16.0
 offset_right = 16.0
 offset_bottom = 16.0
-color = Color(0.952524, 0.138725, 0.400091, 1)
 mouse_filter = 1
+color = Color(0.952524, 0.138725, 0.400091, 1)
 
 [node name="ProgressBar" type="ProgressBar" parent="."]
 offset_left = -32.0
