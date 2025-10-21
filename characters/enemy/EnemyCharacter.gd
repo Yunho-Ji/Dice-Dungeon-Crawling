@@ -36,5 +36,3 @@ func set_level(stage: int, battle_count: int, p_hp_multiplier: float = 1.0):
 	update_hp_label() # HP 라벨 UI를 업데이트합니다。
 
 	print("적 스탯 설정됨 (스테이지 ", stage, "-", battle_count, "): HP:", stats_manager.get_stat("health").computed_value, ", 공격:", stats_manager.get_stat("attack_power").computed_value, ", 방어:", stats_manager.get_stat("defense").computed_value, ", 속도:", stats_manager.get_stat("attack_speed").computed_value)
-
-

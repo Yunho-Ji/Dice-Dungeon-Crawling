@@ -131,12 +131,15 @@ func initialize_game_scene(player: Character, enemy: Character, battle_mgr: Node
 
 func handle_attack_stance():
 	print("GameManager: 공격 자세 선택됨")
+	if battle_manager: battle_manager.set_player_stance(Character.Stance.ATTACK)
 
 func handle_defense_stance():
 	print("GameManager: 방어 자세 선택됨")
+	if battle_manager: battle_manager.set_player_stance(Character.Stance.DEFENSE)
 
 func handle_dodge_stance():
 	print("GameManager: 회피 자세 선택됨")
+	if battle_manager: battle_manager.set_player_stance(Character.Stance.EVADE)
 
 func use_skill_1():
 	print("GameManager: 스킬 1 사용")

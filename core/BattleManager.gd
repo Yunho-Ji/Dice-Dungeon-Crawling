@@ -11,7 +11,8 @@ func _ready():
 	# _ready()는 Main.gd에서 add_child될 때 호출됩니다.
 	# 초기에는 _process()를 비활성화합니다.
 	set_process(false)
-	print("--- BattleManager.gd: 초기화 완료 ---\n")
+	print("--- BattleManager.gd: 초기화 완료 ---\
+")
 
 # 전투 시작 함수 (GameManager에서 호출)
 func start_battle(p: Character, e: Character, gm: Node):
@@ -24,7 +25,7 @@ func start_battle(p: Character, e: Character, gm: Node):
 	player_node.set_process(true)
 	enemy_node.set_process(true)
 	set_process(true)
-	print("--- 전투 시작! ---")
+	print("--- 전투 시작!---")
 
 # _process 함수는 전투가 진행 중일 때만 활성화됩니다.
 func _process(_delta: float):
@@ -96,3 +97,9 @@ func prepare_battle(node: DungeonNode, p_player: Character, p_enemy: Character, 
 	# Show the button to manually start combat
 	if p_ui_manager and p_ui_manager.battle_hud:
 		p_ui_manager.battle_hud.show_start_combat_button()
+
+func set_player_stance(new_stance: Character.Stance):
+	if player_node:
+		player_node.set_stance(new_stance)
+	else:
+		printerr("BattleManager: player_node가 유효하지 않아 스탠스를 설정할 수 없습니다.")
