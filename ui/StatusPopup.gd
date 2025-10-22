@@ -66,6 +66,23 @@ func show_stats(character: Character):
 		label.add_theme_color_override("font_color", Color.WHITE)
 		stats_grid.add_child(label)
 
+	# 임시 피해 감소 정보 추가
+	if character.temp_damage_reduction_active:
+		var dr_label = Label.new()
+		dr_label.text = "1회 피해 감소: %d%% (임시)" % (character.temp_damage_reduction_amount * 100)
+		dr_label.add_theme_color_override("font_color", Color.YELLOW)
+		stats_grid.add_child(dr_label)
+
+	# 활성 상태 효과 정보 추가
+	if not character.active_status_effects.is_empty():
+		var se_label = Label.new()
+		var effect_names = []
+		for effect in character.active_status_effects:
+			effect_names.append(effect.get_effect_name())
+		se_label.text = "활성 효과: %s" % ", ".join(effect_names)
+		se_label.add_theme_color_override("font_color", Color.CYAN)
+		stats_grid.add_child(se_label)
+
 	# 팝업을 보이게 함
 	show()
 

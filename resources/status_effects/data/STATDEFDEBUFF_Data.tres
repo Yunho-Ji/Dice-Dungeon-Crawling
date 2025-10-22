@@ -3,15 +3,15 @@
 [ext_resource type="Script" path="res://resources/status_effects/StatusEffectData.gd" id="1_status_effect_data"]
 [ext_resource type="Script" path="res://resources/stats/MyStatModifier.gd" id="1_my_stat_modifier"]
 
-[sub_resource type="Script" id="2"]
+[sub_resource type="Resource" id="2"]
 script = ExtResource("1_my_stat_modifier")
-operation = MyStatModifier.Operation.ADD
+operation = 0
 value = -0.1
 target_stat_key = "DEFENSE"
 
 [resource]
 script = ExtResource("1_status_effect_data")
-effect_name = "$\text{STAT\_DEF\_DEBUFF}$"
+effect_name = "STAT_DEF_DEBUFF"
 duration = 3.0
 modifiers = [SubResource("2")]
 icon_path = ""

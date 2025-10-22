@@ -1,9 +1,13 @@
-[gd_scene load_steps=2 format=3 uid="uid://b56sttf5fvs7m"]
+[gd_scene load_steps=3 format=3 uid="uid://b56sttf5fvs7m"]
 
 [ext_resource type="Script" uid="uid://dvxtwu6tmwq87" path="res://ui/screens/BattleHUD.gd" id="1_z7a2w"]
+[ext_resource type="PackedScene" uid="uid://d1c3h4e5f6g7" path="res://ui/DamagePopup.tscn" id="2_8mwke"]
 
-[node name="BattleHUD" type="CanvasLayer"]
+[node name="BattleHUD" type="CanvasLayer" node_paths=PackedStringArray("map_button", "start_combat_button")]
 script = ExtResource("1_z7a2w")
+map_button = NodePath("MapButton")
+start_combat_button = NodePath("StartCombatButton")
+damage_popup_scene = ExtResource("2_8mwke")
 
 [node name="BattleControls" type="HBoxContainer" parent="."]
 anchors_preset = 7
@@ -71,3 +75,8 @@ offset_top = 612.0
 offset_right = 890.0
 offset_bottom = 643.0
 text = "전투 시작"
+
+[connection signal="pressed" from="InventoryButton" to="." method="_on_inventory_button_pressed"]
+[connection signal="pressed" from="DestinyDesignButton" to="." method="_on_destiny_design_button_pressed"]
+[connection signal="pressed" from="MapButton" to="." method="_on_map_button_pressed"]
+[connection signal="pressed" from="StartCombatButton" to="." method="_on_start_combat_button_pressed"]

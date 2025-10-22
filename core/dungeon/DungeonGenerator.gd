@@ -11,6 +11,12 @@ func _seeded_shuffle(array: Array) -> void:
 		array[i] = array[j]
 		array[j] = temp
 
+# 역할: 설정(config)과 시드(seed)를 기반으로 절차적 던전을 생성합니다.
+# 1. 그리드 노드 초기화
+# 2. 최종 보스 위치 결정
+# 3. 보스로부터 역방향으로 여러 경로 생성
+# 4. 경로에 포함된 노드 확정 및 타입(시작, 전투, 엘리트 등) 설정
+# 5. 노드 간의 시각적 경로(선) 생성
 func generate_dungeon(config: Dictionary, seed_value: int = 0) -> Dictionary:
 	# --- 0. Setup ---
 	if seed_value == 0:

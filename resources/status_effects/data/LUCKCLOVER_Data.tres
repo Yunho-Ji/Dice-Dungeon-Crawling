@@ -3,17 +3,16 @@
 [ext_resource type="Script" path="res://resources/status_effects/StatusEffectData.gd" id="1_status_effect_data"]
 [ext_resource type="Script" path="res://resources/stats/MyStatModifier.gd" id="1_my_stat_modifier"]
 
-[sub_resource type="Script" id="2"]
+[sub_resource type="Resource" id="2"]
 script = ExtResource("1_my_stat_modifier")
-operation = MyStatModifier.Operation.ADD
+operation = 0
 value = 10.0
 target_stat_key = "LUCK"
 
 [resource]
 script = ExtResource("1_status_effect_data")
-effect_name = "$\text{LUCK\_CLOVER}$"
+effect_name = "LUCK_CLOVER"
 duration = 0.0
 modifiers = [SubResource("2")]
 icon_path = ""
 description = "행운 스탯 증가. (영구 지속)"
-

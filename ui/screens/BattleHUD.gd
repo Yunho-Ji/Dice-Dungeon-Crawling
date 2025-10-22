@@ -11,12 +11,16 @@ signal map_requested
 signal start_combat_requested
 
 @onready var destiny_design_button = $DestinyDesignButton
-@onready var map_button = $MapButton
-@onready var start_combat_button = $StartCombatButton
+@export var map_button: Button
+@export var start_combat_button: Button
 @export var damage_popup_scene: PackedScene
 
 func _ready():
-	print("DEBUG: BattleHUD.gd: _ready called.")
+	print("DEBUG BattleHUD: _ready called.")
+	print("DEBUG BattleHUD: destiny_design_button is ", "valid" if is_instance_valid(destiny_design_button) else "NULL")
+	print("DEBUG BattleHUD: map_button is ", "valid" if is_instance_valid(map_button) else "NULL")
+	print("DEBUG BattleHUD: start_combat_button is ", "valid" if is_instance_valid(start_combat_button) else "NULL")
+
 	$BattleControls/AttackButton.pressed.connect(_on_attack_button_pressed)
 	$BattleControls/DefenseButton.pressed.connect(_on_defense_button_pressed)
 	$BattleControls/DodgeButton.pressed.connect(_on_dodge_button_pressed)
@@ -33,15 +37,35 @@ func _ready():
 	start_combat_button.visible = false
 
 func set_destiny_button_enabled(is_enabled: bool):
-	if destiny_design_button: destiny_design_button.disabled = not is_enabled
+	if is_instance_valid(destiny_design_button):
+		destiny_design_button.disabled = not is_enabled
+		print("DEBUG BattleHUD: destiny_design_button disabled set to ", not is_enabled)
+	else:
+		printerr("DEBUG BattleHUD: destiny_design_button is invalid in set_destiny_button_enabled.")
 
 func show_map_button():
-	if map_button: map_button.visible = true
-	if start_combat_button: start_combat_button.visible = false
+	if is_instance_valid(map_button):
+		map_button.visible = true
+		print("DEBUG BattleHUD: map_button set visible to true.")
+	else:
+		printerr("DEBUG BattleHUD: map_button is invalid in show_map_button.")
+	if is_instance_valid(start_combat_button):
+		start_combat_button.visible = false
+		print("DEBUG BattleHUD: start_combat_button set visible to false.")
+	else:
+		printerr("DEBUG BattleHUD: start_combat_button is invalid in show_map_button.")
 
 func show_start_combat_button():
-	if map_button: map_button.visible = false
-	if start_combat_button: start_combat_button.visible = true
+	if is_instance_valid(map_button):
+		map_button.visible = false
+		print("DEBUG BattleHUD: map_button set visible to false.")
+	else:
+		printerr("DEBUG BattleHUD: map_button is invalid in show_start_combat_button.")
+	if is_instance_valid(start_combat_button):
+		start_combat_button.visible = true
+		print("DEBUG BattleHUD: start_combat_button set visible to true.")
+	else:
+		printerr("DEBUG BattleHUD: start_combat_button is invalid in show_start_combat_button.")
 
 func _on_attack_button_pressed():
 	emit_signal("attack_stance_selected")
