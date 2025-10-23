@@ -8,8 +8,13 @@ signal game_started
 
 
 
-func start_game_with_character(char_type: String):
-	get_node("/root/PlayerManager").selected_player_type = char_type
+func start_game_with_character(character_data: CharacterData):
+	var player_manager = get_node("/root/PlayerManager")
+	if player_manager:
+		player_manager.player_data = character_data
+		# 임시: 만약 player_data가 여전히 null이면 Novice.tres를 로드 (테스트용)
+		if player_manager.player_data == null:
+			player_manager.player_data = load("res://resources/characters/player/Novice.tres")
 	go_to_town()
 	emit_signal("game_started")
 
