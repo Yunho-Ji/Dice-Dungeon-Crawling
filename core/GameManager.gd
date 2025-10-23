@@ -82,10 +82,11 @@ const DUNGEON_CONFIGS = {
 func initialize_game_scene(player: Character, enemy: Character, battle_mgr: Node, ui_mgr: UIManager, stage_hud: Control, scene_mgr: SceneManager, player_mgr: PlayerManager):
 	print("DEBUG: GameManager: initialize_game_scene called.")
 	print("GameManager: 게임 씬 초기화 중...")
-	    player_node = player
-	    enemy_node = enemy
-	    enemy_node.initialize(load("res://resources/characters/enemy/Goblin.tres")) # 임시: 적 캐릭터 초기화
-	    battle_manager = battle_mgr	ui_manager = ui_mgr
+	player_node = player
+	enemy_node = enemy
+	enemy_node.initialize(load("res://resources/characters/enemy/Goblin.tres")) # 임시: 적 캐릭터 초기화
+	battle_manager = battle_mgr
+	ui_manager = ui_mgr
 	stage_info_hud = stage_hud
 	scene_manager = scene_mgr
 	player_manager = player_mgr
