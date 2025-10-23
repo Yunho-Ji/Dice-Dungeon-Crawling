@@ -38,28 +38,15 @@ func show_stats(character: Character):
 		child.queue_free()
 
 	# 새로운 스탯 정보 추가
-	for stat_key in STAT_NAMES.keys():
-		var stat_name = STAT_NAMES[stat_key]
+	for stat in character.stats_manager.get_all_stats():
+		var stat_name = STAT_NAMES.get(stat.key, stat.key) # 표시 이름이 없으면 키 자체를 사용
 		var value_text = "-"
 
-		# 각 스탯에 맞는 getter 함수를 직접 호출하여 값을 가져옵니다.
-		match stat_key:
-			"health":
-				value_text = "%s/%s" % [character.stats_manager.get_stat("health").computed_value, character.stats_manager.get_stat("health").base_value]
-			"current_mp":
-				value_text = "%s/%s" % [character.stats_manager.get_stat("current_mp").computed_value, character.stats_manager.get_stat("current_mp").base_value]
-			"attack_power":
-				value_text = str(character.stats_manager.get_stat("attack_power").computed_value)
-			"defense":
-				value_text = str(character.stats_manager.get_stat("defense").computed_value)
-			"attack_speed":
-				value_text = str(character.stats_manager.get_stat("attack_speed").computed_value)
-			"recovery_power":
-				value_text = str(character.stats_manager.get_stat("recovery_power").computed_value)
-			"luck":
-				value_text = str(character.stats_manager.get_stat("luck").computed_value)
-			"resistance":
-				value_text = str(character.stats_manager.get_stat("resistance").computed_value)
+		# 체력과 마력은 현재/최대 값으로 표시
+		if stat.key == "health" or stat.key == "current_mp":
+			value_text = "%s/%s" % [stat.computed_value, stat.base_value]
+		else:
+			value_text = str(stat.computed_value)
 
 		var label = Label.new()
 		label.text = "%s: %s" % [stat_name, value_text]

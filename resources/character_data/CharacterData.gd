@@ -1,0 +1,5 @@
+extends Resource
+class_name CharacterData
+
+@export var character_name: String = ""
+@export var base_stats: MyCharacterStats

@@ -12,10 +12,19 @@ var ui_manager: Node
 var is_in_battle: bool = false
 var current_stance: Stance = Stance.ATTACK # 현재 스탠스
 var active_status_effects: Array[StatusEffect] = [] # 활성 상태 효과 (버프, 디버프, DOT 등)
+var character_data: CharacterData # 캐릭터의 기본 데이터를 담을 변수
 
-const BuffA_Data = preload("res://resources/status_effects/data/BuffA_Data.tres")
-const GuardBuff_Data = preload("res://resources/status_effects/data/GuardBuff_Data.tres")
-const PerfectGuardBuff_Data = preload("res://resources/status_effects/data/PerfectGuardBuff_Data.tres")
+func initialize(data: CharacterData):
+	self.character_data = data
+	# 중요: 리소스 공유 문제를 피하기 위해 스탯 리소스를 복제합니다.
+	stats_manager.character_stats = data.base_stats.duplicate(true)
+	# 초기화 후 스탯 라벨 업데이트 등 필요한 작업 수행
+	update_hp_label()
+	print(name, " 초기화 완료. 스탯: ", stats_manager.character_stats.health.computed_value)
+
+#const BuffA_Data = preload("res://resources/status_effects/data/BuffA_Data.tres")
+
+
 
 func set_stance(new_stance: Stance):
 	current_stance = new_stance
@@ -104,6 +113,9 @@ func perform_attack_action():
 	else:
 		print(name, " 공격할 대상이 없습니다.")
 
+var is_guarding: bool = false
+var is_perfect_guarding: bool = false
+
 func perform_defense_action(action_gauge_value: float):
 	print(name, " 방어 행동 시작 (게이지: ", action_gauge_value, "%)")
 	var gauge_percentage = action_gauge_value
@@ -112,16 +124,18 @@ func perform_defense_action(action_gauge_value: float):
 		print(name, " 방어 실패 (게이지 부족)")
 	elif gauge_percentage < 85.0:
 		print(name, " 가드 성공!")
-		add_status_effect(GuardBuff_Data) # 가드 버프 적용
+		is_guarding = true
 		# 액션 게이지 20% 리턴
 		action_gauge += 20.0
 	else: # 85.0 이상
 		print(name, " 퍼펙트 가드 성공!")
-		add_status_effect(PerfectGuardBuff_Data) # 퍼펙트 가드 버프 적용
+		is_perfect_guarding = true
 		# TODO: 퍼펙트 가드 효과 구현 (예: 받는 피해 대폭 감소 및 반격 기회)
 		# 액션 게이지 40% 리턴
 		action_gauge += 40.0
 	action_gauge_bar.value = action_gauge # 게이지 업데이트
+
+const STATPOWDEBUFF_Data = preload("res://resources/status_effects/data/STATPOWDEBUFF_Data.tres")
 
 func perform_evade_action(action_gauge_value: float):
 	print(name, " 회피 행동 시작 (게이지: ", action_gauge_value, "%)")
@@ -140,7 +154,7 @@ func perform_evade_action(action_gauge_value: float):
 
 	if randf() * 100.0 < success_chance:
 		print(name, " 회피 성공! 버프 A 획득 (", buff_duration, "초)")
-		add_status_effect(BuffA_Data, buff_duration) # BuffA 데이터와 지속 시간 오버라이드
+		add_status_effect(STATPOWDEBUFF_Data, buff_duration) # BuffA 데이터와 지속 시간 오버라이드
 	else:
 		print(name, " 회피 실패!")
 
@@ -149,7 +163,20 @@ func _on_input_event(_viewport: Node, _event: InputEvent, _shape_idx: int):
 	
 
 func take_damage(amount: int):
+	var damage_reduction = 0.0
+	if is_perfect_guarding:
+		print(name, " 퍼펙트 가드로 공격을 막았습니다!")
+		damage_reduction = 1.0
+		is_perfect_guarding = false
+		is_guarding = false # 퍼펙트 가드 시 일반 가드도 해제
+	elif is_guarding:
+		print(name, " 가드로 피해를 50% 감소시킵니다!")
+		damage_reduction = 0.5
+		is_guarding = false
+
 	var final_damage = max(0, amount - stats_manager.get_stat("defense").computed_value)
+	final_damage = int(final_damage * (1.0 - damage_reduction))
+
 	stats_manager.get_stat("health").base_value -= final_damage # Direct modification of base_value
 	stats_manager.get_stat("health").base_value = max(0, stats_manager.get_stat("health").computed_value) # Ensure HP doesn't go below 0
 

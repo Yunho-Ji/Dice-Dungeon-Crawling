@@ -1,0 +1,4 @@
+[gd_resource type="Resource" format=3 uid="uid://b0eamvwrxpfon"]
+
+[resource]
+script = "res://resources/character_data/CharacterData.gd"

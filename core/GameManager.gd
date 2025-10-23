@@ -91,12 +91,9 @@ func initialize_game_scene(player: Character, enemy: Character, battle_mgr: Node
 	player_manager = player_mgr
 
 	# 플레이어 스탯을 PlayerManager에서 가져와 설정
-	if player_node and player_manager and player_manager.current_player_stats:
-		player_node.stats_manager.character_stats = player_manager.current_player_stats
-		# current_mp를 max_mp로 설정하고 HP 라벨 업데이트
-		player_node.stats_manager.get_stat("current_mp").base_value = player_node.stats_manager.get_stat("attack_power").base_value # Assuming attack_power is max_mp for now, will adjust later
-		player_node.update_hp_label()
-		print("GameManager: Player stats loaded from PlayerManager: ", player_manager.current_player_stats)
+	if player_node and player_manager and player_manager.player_data:
+		player_node.initialize(player_manager.player_data)
+		print("GameManager: Player stats loaded from PlayerManager: ", player_manager.player_data.character_name)
 
 	if not is_instance_valid(ui_mgr):
 		printerr("GameManager: UIManager가 유효하지 않습니다!")
