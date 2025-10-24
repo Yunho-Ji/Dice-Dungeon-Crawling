@@ -8,8 +8,21 @@ signal game_started
 
 
 
-func start_game_with_character(char_type: String):
-	get_node("/root/PlayerManager").selected_player_type = char_type
+func start_game_with_character(character_data: CharacterData):
+	var player_manager = get_node("/root/PlayerManager")
+	if player_manager:
+		player_manager.player_data = character_data
+		# 여기서 플레이어의 세션 스탯(current_player_stats)을 최초로 생성합니다.
+		# 게임 시작 시 단 한 번만 호출되어야 합니다.
+		if character_data and character_data.base_stats:
+			player_manager.current_player_stats = character_data.base_stats.duplicate(true)
+			print("DEBUG: SceneManager: Player session stats (current_player_stats) initialized.")
+		else:
+			printerr("ERROR: SceneManager: Could not initialize session stats, CharacterData or base_stats is invalid.")
+		
+		# 임시: 만약 player_data가 여전히 null이면 Novice.tres를 로드 (테스트용)
+		if player_manager.player_data == null:
+			player_manager.player_data = load("res://resources/characters/player/Novice.tres") as CharacterData
 	go_to_town()
 	emit_signal("game_started")
 

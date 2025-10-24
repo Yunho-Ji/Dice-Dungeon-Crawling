@@ -32,39 +32,50 @@ func _gui_input(event: InputEvent):
 
 # 캐릭터의 스탯을 받아서 UI에 표시하는 함수
 func show_stats(character: Character):
-	print("StatusPopup: show_stats 호출됨")
+	print("DEBUG: StatusPopup: show_stats called for character: ", character.name)
+	print("DEBUG: StatusPopup: Character instance ID: ", character.get_instance_id())
+	if character.stats_manager and character.stats_manager.character_stats:
+		for stat_key in character.stats_manager.character_stats.get_all_stat_keys():
+			var stat = character.stats_manager.get_stat(stat_key)
+			if stat:
+				print("DEBUG: StatusPopup:   ", stat.key, ": base=", stat.base_value, ", current=", stat.current_value, ", computed=", stat.computed_value)
+	else:
+		printerr("ERROR: StatusPopup: Character's stats_manager or character_stats is invalid.")
+	
 	# 이전 스탯 정보 삭제
 	for child in stats_grid.get_children():
 		child.queue_free()
 
 	# 새로운 스탯 정보 추가
-	for stat_key in STAT_NAMES.keys():
-		var stat_name = STAT_NAMES[stat_key]
+	for stat in character.stats_manager.get_all_stats():
+		var stat_name = STAT_NAMES.get(stat.key, stat.key) # 표시 이름이 없으면 키 자체를 사용
 		var value_text = "-"
 
-		# 각 스탯에 맞는 getter 함수를 직접 호출하여 값을 가져옵니다.
-		match stat_key:
-			"health":
-				value_text = "%s/%s" % [character.stats_manager.get_stat("health").computed_value, character.stats_manager.get_stat("health").base_value]
-			"current_mp":
-				value_text = "%s/%s" % [character.stats_manager.get_stat("current_mp").computed_value, character.stats_manager.get_stat("current_mp").base_value]
-			"attack_power":
-				value_text = str(character.stats_manager.get_stat("attack_power").computed_value)
-			"defense":
-				value_text = str(character.stats_manager.get_stat("defense").computed_value)
-			"attack_speed":
-				value_text = str(character.stats_manager.get_stat("attack_speed").computed_value)
-			"recovery_power":
-				value_text = str(character.stats_manager.get_stat("recovery_power").computed_value)
-			"luck":
-				value_text = str(character.stats_manager.get_stat("luck").computed_value)
-			"resistance":
-				value_text = str(character.stats_manager.get_stat("resistance").computed_value)
+		# 체력과 마력은 현재/최대 값으로 표시
+		if stat.key == "health" or stat.key == "current_mp":
+			value_text = "%s/%s" % [stat.current_value, stat.computed_value]
+		else:
+			if stat.current_value != stat.computed_value:
+				value_text = "%s (%s)" % [stat.current_value, stat.computed_value] # Current (Computed)
+			else:
+				value_text = str(stat.computed_value) # Just Computed (which is equal to current)
 
 		var label = Label.new()
 		label.text = "%s: %s" % [stat_name, value_text]
 		label.add_theme_color_override("font_color", Color.WHITE)
 		stats_grid.add_child(label)
+
+
+
+	# 활성 상태 효과 정보 추가
+	if not character.active_status_effects.is_empty():
+		var se_label = Label.new()
+		var effect_names = []
+		for effect in character.active_status_effects:
+			effect_names.append(effect.get_effect_name())
+		se_label.text = "활성 효과: %s" % ", ".join(effect_names)
+		se_label.add_theme_color_override("font_color", Color.CYAN)
+		stats_grid.add_child(se_label)
 
 	# 팝업을 보이게 함
 	show()

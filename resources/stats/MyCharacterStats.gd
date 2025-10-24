@@ -34,3 +34,56 @@ func get_stat(key: String) -> MyStat:
 
 func get_all_stats() -> Array[MyStat]:
 	return [health, attack_power, defense, attack_speed, current_mp, recovery_power, luck, resistance] # Added luck and resistance # Added recovery_power
+
+func get_all_stat_keys() -> Array[String]:
+	return ["health", "attack_power", "defense", "attack_speed", "current_mp", "recovery_power", "luck", "resistance"]
+
+# Ensures a true deep copy of this resource is created.
+func _duplicate(deep: bool = false) -> Resource:
+	var new_instance = MyCharacterStats.new()
+
+	# Manually copy/duplicate the stat properties
+	if deep:
+		new_instance.health = health.clone()
+		new_instance.attack_power = attack_power.clone()
+		new_instance.defense = defense.clone()
+		new_instance.attack_speed = attack_speed.clone()
+		new_instance.current_mp = current_mp.clone()
+		new_instance.recovery_power = recovery_power.clone()
+		new_instance.luck = luck.clone()
+		new_instance.resistance = resistance.clone()
+	else:
+		# For a shallow copy, just assign the references
+		new_instance.health = health
+		new_instance.attack_power = attack_power
+		new_instance.defense = defense
+		new_instance.attack_speed = attack_speed
+		new_instance.current_mp = current_mp
+		new_instance.recovery_power = recovery_power
+		new_instance.luck = luck
+		new_instance.resistance = resistance
+	
+	return new_instance
+
+func sync_from(source_stats: MyCharacterStats):
+	if not source_stats:
+		printerr("ERROR: MyCharacterStats: Source stats for sync_from is null.")
+		return
+	
+	for stat_key in get_all_stat_keys():
+		var source_stat = source_stats.get_stat(stat_key)
+		var target_stat = get_stat(stat_key)
+		
+		if source_stat and target_stat:
+			target_stat.sync_from(source_stat)
+		else:
+			printerr("ERROR: MyCharacterStats: Failed to sync stat '", stat_key, "'. Source or target stat is null.")
+
+func apply_dice_to_stat(stat_name: String, value: int):
+	var stat = get_stat(stat_name)
+	if stat:
+		stat.base_value += value # Direct modification of base_value
+		stat.current_value += value # Also update current_value
+		print(stat_name, "에 ", value, " 추가. 현재 값: ", stat.computed_value)
+	else:
+		print("알 수 없는 스탯: ", stat_name)

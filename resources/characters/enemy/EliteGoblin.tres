@@ -1,0 +1,69 @@
+[gd_resource type="Resource" script_class="CharacterData" load_steps=13 format=3 uid="uid://bgvd5y0vh1go3"]
+
+[ext_resource type="Script" uid="uid://b6il3r4uf7skt" path="res://resources/stats/MyIntStat.gd" id="1_dum5s"]
+[ext_resource type="Script" uid="uid://kukc5jf2pxgg" path="res://resources/stats/MyCharacterStats.gd" id="2_c5x41"]
+[ext_resource type="Script" uid="uid://cron4d6nve5cs" path="res://resources/character_data/CharacterData.gd" id="3_pvrad"]
+
+[sub_resource type="Resource" id="Resource_i4uap"]
+script = ExtResource("1_dum5s")
+key = "attack_power"
+base_value = 12
+current_value = 0
+
+[sub_resource type="Resource" id="Resource_bwbja"]
+script = ExtResource("1_dum5s")
+key = "attack_speed"
+base_value = 110
+current_value = 0
+
+[sub_resource type="Resource" id="Resource_am1h0"]
+script = ExtResource("1_dum5s")
+key = "current_mp"
+base_value = 0
+current_value = 0
+
+[sub_resource type="Resource" id="Resource_ng75j"]
+script = ExtResource("1_dum5s")
+key = "defense"
+base_value = 2
+current_value = 0
+
+[sub_resource type="Resource" id="Resource_4ydcw"]
+script = ExtResource("1_dum5s")
+key = "health"
+base_value = 120
+current_value = 0
+
+[sub_resource type="Resource" id="Resource_syfqg"]
+script = ExtResource("1_dum5s")
+key = "luck"
+base_value = 0
+current_value = 0
+
+[sub_resource type="Resource" id="Resource_55m6r"]
+script = ExtResource("1_dum5s")
+key = "recovery_power"
+base_value = 13
+current_value = 0
+
+[sub_resource type="Resource" id="Resource_0mvcl"]
+script = ExtResource("1_dum5s")
+key = "resistance"
+base_value = 0
+current_value = 0
+
+[sub_resource type="Resource" id="Resource_h83hv"]
+script = ExtResource("2_c5x41")
+health = SubResource("Resource_4ydcw")
+attack_power = SubResource("Resource_i4uap")
+defense = SubResource("Resource_ng75j")
+attack_speed = SubResource("Resource_bwbja")
+current_mp = SubResource("Resource_am1h0")
+recovery_power = SubResource("Resource_55m6r")
+luck = SubResource("Resource_syfqg")
+resistance = SubResource("Resource_0mvcl")
+
+[resource]
+script = ExtResource("3_pvrad")
+character_name = "Elite Goblin"
+base_stats = SubResource("Resource_h83hv")

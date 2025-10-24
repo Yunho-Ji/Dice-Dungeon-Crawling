@@ -7,46 +7,70 @@ extends Panel
 
 @export var stat_name: String = ""
 var current_stat_value: MyStat
-var assigned_dice_value: int = 0
-
 func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
-	return data is Dictionary and data.has("type") and data.type == "dice" and assigned_dice_value == 0
+	# Allow dropping if it's a dice and no modifier from a dice is currently applied
+	# We need to check if there's already a MyIntStatModifier from a dice
+	if not (data is Dictionary and data.has("type") and data.type == "dice"):
+		return false
+	
+	if current_stat_value:
+		for modifier in current_stat_value.modifiers:
+			if modifier is MyIntStatModifier and modifier.target_stat_key == stat_name: # Assuming target_stat_key is set for dice modifiers
+				return false # A dice modifier is already applied to this slot
+	return true
 
 func _drop_data(_at_position: Vector2, data: Variant):
-	assigned_dice_value = data.value
-	update_display()
-
-	var game_manager = get_node("/root/GameManager")
-	if game_manager and game_manager.player_node:
-		var player_stat = game_manager.player_node.stats_manager.get_stat(stat_name)
-		if player_stat:
-			player_stat.base_value += assigned_dice_value
-			print("스탯 즉시 적용: ", stat_name, "에 ", assigned_dice_value, ". 현재 값: ", player_stat.computed_value)
-			game_manager.player_node.update_hp_label() # Assuming HP label needs update
-		else:
-			printerr("StatSlot: Unknown stat: ", stat_name)
-	
-	if data.has("source_label") and is_instance_valid(data.source_label):
-		data.source_label.queue_free()
+	print("DEBUG: StatSlot: _drop_data called!")
+	if current_stat_value:
+		var dice_modifier = MyIntStatModifier.new()
+		dice_modifier.value = data.value
+		dice_modifier.operation = MyStatModifier.Operation.ADD
+		dice_modifier.target_stat_key = stat_name # Mark this modifier as coming from a dice for this stat
+		current_stat_value.add_modifier(dice_modifier)
+		
+		# The update_display() will be triggered by the value_changed signal from MyStat
+		
+		if data.has("source_label") and is_instance_valid(data.source_label):
+			data.source_label.queue_free()
 
 func set_stat(p_stat_name: String, p_stat_value: MyStat): # Now accepts MyStat object
 	stat_name = p_stat_name
-	# Connect to value_changed signal to update display automatically
-	if current_stat_value != null: # Disconnect previous signal if any
+	# Disconnect from previous stat's signal if it exists
+	if current_stat_value and current_stat_value.value_changed.is_connected(update_display):
 		current_stat_value.value_changed.disconnect(update_display)
+	
 	current_stat_value = p_stat_value
-	current_stat_value.value_changed.connect(update_display)
+	
+	# Connect to the new stat's signal
+	print("DEBUG: StatSlot: Attempting to connect to MyStat instance: ", current_stat_value.get_instance_id(), " for stat: ", stat_name)
+	if current_stat_value and not current_stat_value.value_changed.is_connected(update_display):
+		var error = current_stat_value.value_changed.connect(update_display)
+		if error != OK:
+			printerr("ERROR: StatSlot: Failed to connect signal for stat: ", stat_name, " Error: ", error)
+	
+	print("DEBUG: StatSlot: Connected update_display for stat: ", stat_name)
 	update_display()
 
 func update_display():
+	print("DEBUG: StatSlot: update_display called for stat: ", stat_name, ", computed_value: ", str(current_stat_value.computed_value) if current_stat_value else "N/A")
 	stat_name_label.text = stat_name
 	if current_stat_value:
 		current_value_label.text = "(%s)" % str(current_stat_value.computed_value)
 	else:
 		current_value_label.text = "(N/A)"
 	
-	if assigned_dice_value != 0:
-		assigned_value_label.text = "+%s" % str(assigned_dice_value)
+	# Check if there's an active dice modifier to display
+	var has_dice_modifier = false
+	var dice_modifier_value = 0
+	if current_stat_value:
+		for modifier in current_stat_value.modifiers:
+			if modifier is MyIntStatModifier and modifier.target_stat_key == stat_name:
+				has_dice_modifier = true
+				dice_modifier_value = modifier.value
+				break
+	
+	if has_dice_modifier:
+		assigned_value_label.text = "+%s" % str(dice_modifier_value)
 		modulate = Color(0.7, 1.0, 0.7) # 할당되면 초록빛
 	else:
 		assigned_value_label.text = "-"

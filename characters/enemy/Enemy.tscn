@@ -1,10 +1,8 @@
 [gd_scene load_steps=6 format=3 uid="uid://bujnofxyh5kmq"]
 
 [ext_resource type="Script" uid="uid://delvqgy3pv2j4" path="res://characters/enemy/EnemyCharacter.gd" id="1_2v10u"]
-
 [ext_resource type="Script" uid="uid://b3s6hftg66a4i" path="res://core/MyStatsManager.gd" id="3_ey2db"]
 [ext_resource type="Script" uid="uid://kukc5jf2pxgg" path="res://resources/stats/MyCharacterStats.gd" id="4_e0t8f"]
-
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_4j8lt"]
 size = Vector2(32, 32)

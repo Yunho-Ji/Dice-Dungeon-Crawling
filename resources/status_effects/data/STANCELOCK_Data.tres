@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="StatusEffectData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://resources/status_effects/StatusEffectData.gd" id="1_status_effect_data"]
+[ext_resource type="Script" path="res://resources/stats/MyStatModifier.gd" id="1_my_stat_modifier"]
+
+[sub_resource type="Resource" id="2"]
+script = ExtResource("1_my_stat_modifier")
+operation = 4
+value = null
+target_stat_key = "Stance Change"
+
+[resource]
+script = ExtResource("1_status_effect_data")
+effect_name = "STANCE_LOCK"
+duration = 2.0
+modifiers = [SubResource("2")]
+icon_path = ""
+description = "스탠스 고정:전투/방어/회피 기어 변속 불가."

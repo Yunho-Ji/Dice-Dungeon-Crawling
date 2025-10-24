@@ -11,6 +11,7 @@ enum Operation {
 
 var operation: Operation = Operation.ADD
 var value: Variant = 0
+var target_stat_key: String = "" # 이 수정자가 적용될 스탯의 키 (예: "health", "attack_power")
 
 func apply(current_value: Variant) -> Variant:
 	match operation:
