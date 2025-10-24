@@ -24,7 +24,20 @@ func _on_character_selected(char_type: String):
 func _on_confirm_button_pressed():
 	if selected_character_type != "":
 		print("Confirming selection: ", selected_character_type)
-		scene_manager.start_game_with_character(selected_character_type)
+		var character_data_path = ""
+		if selected_character_type == "novice":
+			character_data_path = "res://resources/characters/player/Novice.tres"
+		elif selected_character_type == "archer":
+			character_data_path = "res://resources/characters/player/Archer.tres"
+		
+		if character_data_path != "":
+			var selected_character_data = load(character_data_path) as CharacterData
+			if selected_character_data:
+				scene_manager.start_game_with_character(selected_character_data)
+			else:
+				printerr("Failed to load CharacterData for type: ", selected_character_type)
+		else:
+			printerr("Invalid character type selected: ", selected_character_type)
 	else:
 		print("No character selected.")
 

@@ -26,11 +26,11 @@ func _ready():
 	$BattleControls/DodgeButton.pressed.connect(_on_dodge_button_pressed)
 	$BattleControls/Skill1Button.pressed.connect(_on_skill_1_button_pressed)
 	$BattleControls/Skill2Button.pressed.connect(_on_skill_2_button_pressed)
-	$InventoryButton.pressed.connect(_on_inventory_button_pressed)
+	# $InventoryButton.pressed.connect(_on_inventory_button_pressed) # Connected in editor
 	
-	if destiny_design_button: destiny_design_button.pressed.connect(_on_destiny_design_button_pressed)
-	if map_button: map_button.pressed.connect(_on_map_button_pressed)
-	if start_combat_button: start_combat_button.pressed.connect(_on_start_combat_button_pressed)
+	# if destiny_design_button: destiny_design_button.pressed.connect(_on_destiny_design_button_pressed)
+	# if map_button: map_button.pressed.connect(_on_map_button_pressed)
+	# if start_combat_button: start_combat_button.pressed.connect(_on_start_combat_button_pressed)
 	
 	# Initially hide both buttons
 	map_button.visible = false

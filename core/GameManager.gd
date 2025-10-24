@@ -46,6 +46,27 @@ var cleared_dungeons: Dictionary = {} # 각 던전의 dungeon_id별로 seed와 t
 var permanently_discovered_nodes: Dictionary = {} # 던전 ID별로 영구적으로 발견된 노드 ID 목록을 저장
 const BOSS_BATTLE_COUNT = 8
 
+# Enemy scene and data mapping
+const ENEMY_SCENES = {
+	"battle": preload("res://characters/enemy/Enemy.tscn"),
+	"elite": preload("res://characters/enemy/EliteEnemy.tscn"),
+	"boss": preload("res://characters/enemy/BossEnemy.tscn"),
+}
+const ENEMY_DATA = {
+	"battle": preload("res://resources/characters/enemy/Goblin.tres"),
+	"elite": preload("res://resources/characters/enemy/EliteGoblin.tres"),
+	"boss": preload("res://resources/characters/enemy/BossGoblin.tres"),
+}
+
+func _get_enemy_data_for_node_type(node_type: String) -> Dictionary:
+	var enemy_scene = ENEMY_SCENES.get(node_type, ENEMY_SCENES.battle) # Default to normal battle enemy
+	var enemy_data_res = ENEMY_DATA.get(node_type, ENEMY_DATA.battle) # Default to normal battle enemy data
+	
+	# Load and duplicate the CharacterData resource
+	var enemy_character_data = (enemy_data_res as CharacterData).duplicate(true)
+	
+	return {"scene": enemy_scene, "data": enemy_character_data}
+
 const DUNGEON_CONFIGS = {
 	1: {
 		"min_layers": 6,
@@ -84,17 +105,23 @@ func initialize_game_scene(player: Character, enemy: Character, battle_mgr: Node
 	print("GameManager: 게임 씬 초기화 중...")
 	player_node = player
 	enemy_node = enemy
-	enemy_node.initialize(load("res://resources/characters/enemy/Goblin.tres")) # 임시: 적 캐릭터 초기화
+	var enemy_character_data = (load("res://resources/characters/enemy/Goblin.tres") as CharacterData).duplicate(true)
+	print("DEBUG: GameManager: Enemy CharacterData loaded. Name: ", enemy_character_data.character_name)
+	print("DEBUG: GameManager: Enemy CharacterData health base_value: ", enemy_character_data.base_stats.health.base_value)
+	print("DEBUG: GameManager: Enemy CharacterData attack_power base_value: ", enemy_character_data.base_stats.attack_power.base_value)
+	print("DEBUG: GameManager: Enemy CharacterData defense base_value: ", enemy_character_data.base_stats.defense.base_value)
+	enemy_node.initialize(enemy_character_data)
 	battle_manager = battle_mgr
 	ui_manager = ui_mgr
 	stage_info_hud = stage_hud
 	scene_manager = scene_mgr
 	player_manager = player_mgr
 
-	# 플레이어 스탯을 PlayerManager에서 가져와 설정
+	# 플레이어 노드를 기본 데이터로 초기화한 후, PlayerManager의 세션 스탯으로 즉시 업데이트합니다.
 	if player_node and player_manager and player_manager.player_data:
 		player_node.initialize(player_manager.player_data)
-		print("GameManager: Player stats loaded from PlayerManager: ", player_manager.player_data.character_name)
+		player_node.update_stats_from_player_manager(player_manager)
+		print("DEBUG: GameManager: Player node initialized and stats synced with PlayerManager.")
 
 	if not is_instance_valid(ui_mgr):
 		printerr("GameManager: UIManager가 유효하지 않습니다!")
@@ -205,10 +232,14 @@ func handle_battle_end(win: bool):
 			scene_manager.go_to_town(true)
 			return
 
-		if player_node:
-			var new_hp = min(player_node.stats_manager.get_stat("health").base_value, player_node.stats_manager.get_stat("health").computed_value + player_node.stats_manager.get_stat("recovery_power").computed_value) # Assuming recovery_power is a stat
-			player_node.stats_manager.get_stat("health").base_value = new_hp
-			player_node.update_hp_label()
+		if player_node and player_manager and player_manager.current_player_stats:
+			# Update player_manager.current_player_stats with current values from player_node
+			for stat_key in player_node.stats_manager.character_stats.get_all_stat_keys():
+				var player_stat = player_node.stats_manager.get_stat(stat_key)
+				var persistent_stat = player_manager.current_player_stats.get_stat(stat_key)
+				if player_stat and persistent_stat:
+					persistent_stat.base_value = player_stat.base_value # Base value should persist if modified by Destiny Design
+					persistent_stat.current_value = player_stat.current_value # Current value should persist
 
 		print("전투 승리! 다음 로직 대기 중...")
 	else:
@@ -242,6 +273,58 @@ func prepare_dungeon_battle(node: DungeonNode):
 	if not is_instance_valid(battle_manager):
 		printerr("GameManager: BattleManager is not valid!")
 		return
+	
+	# --- Dynamic Enemy Spawning ---
+	var enemy_info = _get_enemy_data_for_node_type(current_battle_node_type)
+	var new_enemy_scene: PackedScene = enemy_info.scene
+	var new_enemy_data: CharacterData = enemy_info.data
+	
+	# Get the current scene root to add the new enemy
+	var current_scene_root = get_tree().current_scene
+	if not is_instance_valid(current_scene_root):
+		printerr("GameManager: Current scene root is not valid!")
+		return
+
+	# Free the old enemy if it exists and is a child of the current scene
+	if is_instance_valid(enemy_node) and enemy_node.get_parent() == current_scene_root:
+		enemy_node.queue_free()
+		enemy_node = null # Clear reference
+
+	# Instantiate and add the new enemy
+	var instantiated_enemy = new_enemy_scene.instantiate()
+	current_scene_root.add_child(instantiated_enemy)
+	instantiated_enemy.name = "Enemy" # Ensure it has the expected name for Main.gd's @onready
+	
+	# Set position (assuming a default position for now, or it could be passed from DungeonNode/MapManager)
+	# For now, use the same position as the original enemy in Main.tscn
+	instantiated_enemy.position = Vector2(800, 300) 
+	
+	# Initialize the new enemy
+	instantiated_enemy.initialize(new_enemy_data)
+	
+	# Update the GameManager's enemy_node reference
+	enemy_node = instantiated_enemy
+	
+	print("DEBUG: GameManager: Spawned new enemy: ", enemy_node.name, " with data: ", new_enemy_data.character_name)
+
+	# Scale enemy stats based on current stage and battle count
+	# For now, using a simple multiplier. This can be refined later with actual enemy data.
+	var hp_multiplier = 1.0 + (current_stage - 1) * 0.1 + current_battle_count * 0.05 # Example scaling
+	enemy_node.set_level(current_stage, current_battle_count, hp_multiplier)
+	
+	# Connect the new enemy's input_event to Main.gd's handler
+	var main_scene_root = get_tree().current_scene
+	if main_scene_root and main_scene_root.has_method("_on_character_input_event"):
+		enemy_node.input_event.connect(Callable(main_scene_root, "_on_character_input_event").bind(enemy_node))
+	else:
+		printerr("GameManager: Could not connect enemy input_event. Main scene root or handler not found.")
+
+	# Connect damage_taken signal for the new enemy
+	if ui_manager and ui_manager.battle_hud:
+		enemy_node.damage_taken.connect(Callable(ui_manager.battle_hud, "_on_character_damage_taken").bind(false))
+	else:
+		printerr("GameManager: UIManager or BattleHUD is not valid for connecting enemy damage signals in prepare_dungeon_battle!")
+
 	battle_manager.prepare_battle(node, player_node, enemy_node, current_stage, current_battle_count, ui_manager, stage_info_hud)
 
 func handle_return_to_town():
@@ -261,6 +344,12 @@ func handle_return_to_town():
 	current_battle_count = 0
 	current_stage = 1
 	scene_manager.go_to_town(true)
+
+func update_player_node_stats():
+	if player_node and player_manager:
+		player_node.update_stats_from_player_manager(player_manager)
+	else:
+		printerr("ERROR: GameManager: Player node or PlayerManager not valid for updating player stats.")
 
 func handle_additional_exploration():
 	print("GameManager: 추가 탐험 시작.")

@@ -45,7 +45,7 @@ func start_game_deferred():
 
 	# --- 플레이어 생성 및 스탯 설정 ---
 	var player_scene: PackedScene
-	if player_manager.selected_player_type == "novice":
+	if player_manager.player_data.character_name == "Novice":
 		player_scene = novice_player_scene
 	else:
 		player_scene = archer_player_scene
@@ -56,22 +56,13 @@ func start_game_deferred():
 	print("DEBUG: Main.gd: Player node added. Is player_node valid: ", is_instance_valid(player_node)) # New line
 	print("DEBUG: Main.gd: Player node _ready() called: ", player_node.is_node_ready()) # New line
 
-	var player_class = player_manager.selected_player_type
-	var stats = player_manager.get_class_stats(player_class)
-	if stats != null:
-		player_node.stats_manager.get_stat("health").base_value = stats.health.base_value
-		player_node.stats_manager.get_stat("current_mp").base_value = stats.current_mp.base_value # Assuming current_mp is also set here
-		player_node.stats_manager.get_stat("attack_power").base_value = stats.attack_power.base_value
-		player_node.stats_manager.get_stat("defense").base_value = stats.defense.base_value
-		player_node.stats_manager.get_stat("attack_speed").base_value = stats.attack_speed.base_value
-	print("DEBUG: Main.gd: Player stats set. HP:", player_node.stats_manager.get_stat("health").computed_value, ", ATK:", player_node.stats_manager.get_stat("attack_power").computed_value) # New line
 
 	# --- 최종 초기화 ---
 	assert(player_node != null, "Player 노드를 찾을 수 없습니다!")
 	assert(enemy_node != null, "Enemy 노드를 찾을 수 없습니다!")
 	
 	player_node.input_event.connect(Callable(self, "_on_character_input_event").bind(player_node))
-	enemy_node.input_event.connect(Callable(self, "_on_character_input_event").bind(enemy_node))
+	# enemy_node.input_event.connect(Callable(self, "_on_character_input_event").bind(enemy_node)) # GameManager에서 동적으로 연결
 
 	print("DEBUG: Main.gd: Calling game_manager.initialize_game_scene with:") # New line
 	print("DEBUG:   player_node valid: ", is_instance_valid(player_node)) # New line

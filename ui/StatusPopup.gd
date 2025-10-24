@@ -32,7 +32,16 @@ func _gui_input(event: InputEvent):
 
 # 캐릭터의 스탯을 받아서 UI에 표시하는 함수
 func show_stats(character: Character):
-	print("StatusPopup: show_stats 호출됨")
+	print("DEBUG: StatusPopup: show_stats called for character: ", character.name)
+	print("DEBUG: StatusPopup: Character instance ID: ", character.get_instance_id())
+	if character.stats_manager and character.stats_manager.character_stats:
+		for stat_key in character.stats_manager.character_stats.get_all_stat_keys():
+			var stat = character.stats_manager.get_stat(stat_key)
+			if stat:
+				print("DEBUG: StatusPopup:   ", stat.key, ": base=", stat.base_value, ", current=", stat.current_value, ", computed=", stat.computed_value)
+	else:
+		printerr("ERROR: StatusPopup: Character's stats_manager or character_stats is invalid.")
+	
 	# 이전 스탯 정보 삭제
 	for child in stats_grid.get_children():
 		child.queue_free()
@@ -44,21 +53,19 @@ func show_stats(character: Character):
 
 		# 체력과 마력은 현재/최대 값으로 표시
 		if stat.key == "health" or stat.key == "current_mp":
-			value_text = "%s/%s" % [stat.computed_value, stat.base_value]
+			value_text = "%s/%s" % [stat.current_value, stat.computed_value]
 		else:
-			value_text = str(stat.computed_value)
+			if stat.current_value != stat.computed_value:
+				value_text = "%s (%s)" % [stat.current_value, stat.computed_value] # Current (Computed)
+			else:
+				value_text = str(stat.computed_value) # Just Computed (which is equal to current)
 
 		var label = Label.new()
 		label.text = "%s: %s" % [stat_name, value_text]
 		label.add_theme_color_override("font_color", Color.WHITE)
 		stats_grid.add_child(label)
 
-	# 임시 피해 감소 정보 추가
-	if character.temp_damage_reduction_active:
-		var dr_label = Label.new()
-		dr_label.text = "1회 피해 감소: %d%% (임시)" % (character.temp_damage_reduction_amount * 100)
-		dr_label.add_theme_color_override("font_color", Color.YELLOW)
-		stats_grid.add_child(dr_label)
+
 
 	# 활성 상태 효과 정보 추가
 	if not character.active_status_effects.is_empty():

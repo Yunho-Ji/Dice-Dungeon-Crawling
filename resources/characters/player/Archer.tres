@@ -1,4 +1,69 @@
-[gd_resource type="Resource" format=3 uid="uid://ch02ldigk6os8"]
+[gd_resource type="Resource" script_class="CharacterData" load_steps=13 format=3 uid="uid://ch02ldigk6os8"]
+
+[ext_resource type="Script" uid="uid://b6il3r4uf7skt" path="res://resources/stats/MyIntStat.gd" id="1_yabk5"]
+[ext_resource type="Script" uid="uid://kukc5jf2pxgg" path="res://resources/stats/MyCharacterStats.gd" id="2_pilwi"]
+[ext_resource type="Script" uid="uid://cron4d6nve5cs" path="res://resources/character_data/CharacterData.gd" id="3_srytq"]
+
+[sub_resource type="Resource" id="Resource_n3f7i"]
+script = ExtResource("1_yabk5")
+key = "attack_power"
+base_value = 16
+current_value = 16
+
+[sub_resource type="Resource" id="Resource_7l0cj"]
+script = ExtResource("1_yabk5")
+key = "attack_speed"
+base_value = 120
+current_value = 120
+
+[sub_resource type="Resource" id="Resource_16q0s"]
+script = ExtResource("1_yabk5")
+key = "current_mp"
+base_value = 0
+current_value = 0
+
+[sub_resource type="Resource" id="Resource_j7n0w"]
+script = ExtResource("1_yabk5")
+key = "defense"
+base_value = 3
+current_value = 3
+
+[sub_resource type="Resource" id="Resource_20w14"]
+script = ExtResource("1_yabk5")
+key = "health"
+base_value = 80
+current_value = 80
+
+[sub_resource type="Resource" id="Resource_bm3da"]
+script = ExtResource("1_yabk5")
+key = "luck"
+base_value = 0
+current_value = 0
+
+[sub_resource type="Resource" id="Resource_orwsh"]
+script = ExtResource("1_yabk5")
+key = "recovery_power"
+base_value = 0
+current_value = 0
+
+[sub_resource type="Resource" id="Resource_fkfhb"]
+script = ExtResource("1_yabk5")
+key = "resistance"
+base_value = 0
+current_value = 0
+
+[sub_resource type="Resource" id="Resource_8mnqk"]
+script = ExtResource("2_pilwi")
+health = SubResource("Resource_20w14")
+attack_power = SubResource("Resource_n3f7i")
+defense = SubResource("Resource_j7n0w")
+attack_speed = SubResource("Resource_7l0cj")
+current_mp = SubResource("Resource_16q0s")
+recovery_power = SubResource("Resource_orwsh")
+luck = SubResource("Resource_bm3da")
+resistance = SubResource("Resource_fkfhb")
 
 [resource]
-script = "res://resources/character_data/CharacterData.gd"
+script = ExtResource("3_srytq")
+character_name = "Archer"
+base_stats = SubResource("Resource_8mnqk")

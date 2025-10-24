@@ -26,19 +26,35 @@ func start_battle(p: Character, e: Character, gm: Node):
 	enemy_node.set_process(true)
 	set_process(true)
 	print("--- 전투 시작!---")
+	
+	# DEBUG: 전투 시작 시 플레이어 스탯
+	print("DEBUG: --- 전투 시작: 플레이어 스탯 ---")
+	_print_character_stats(player_node)
+	
+	# DEBUG: 전투 시작 시 적 스탯
+	print("DEBUG: --- 전투 시작: 적 스탯 ---")
+	_print_character_stats(enemy_node)
 
 # _process 함수는 전투가 진행 중일 때만 활성화됩니다.
 func _process(_delta: float):
 	# 게임 종료 조건 확인
-	if player_node.stats_manager.get_stat("health").computed_value <= 0:
+	if player_node.stats_manager.get_stat("health").current_value <= 0:
 		_handle_battle_end(false) # 패배
-	elif enemy_node.stats_manager.get_stat("health").computed_value <= 0:
+	elif enemy_node.stats_manager.get_stat("health").current_value <= 0:
 		_handle_battle_end(true) # 승리
 
 # 전투 종료 처리 함수 (GameManager에 결과 전달)
 func _handle_battle_end(win: bool):
 	if not is_battle_active: return
 	is_battle_active = false
+	
+	# DEBUG: 전투 종료 시 플레이어 스탯
+	print("DEBUG: --- 전투 종료: 플레이어 스탯 ---")
+	_print_character_stats(player_node)
+	
+	# DEBUG: 전투 종료 시 적 스탯
+	print("DEBUG: --- 전투 종료: 적 스탯 ---")
+	_print_character_stats(enemy_node)
 	
 	# BattleManager 자신의 _process() 함수 비활성화
 	set_process(false)
@@ -81,7 +97,7 @@ func prepare_battle(node: DungeonNode, p_player: Character, p_enemy: Character, 
 	print("DEBUG: BattleManager: Enemy stats set: HP:", p_enemy.stats_manager.get_stat("health").computed_value)
 
 	# Reset characters
-	if p_player.has_method("reset_for_next_battle"): p_player.reset_for_next_battle()
+	# if p_player.has_method("reset_for_next_battle"): p_player.reset_for_next_battle()
 	if p_enemy.has_method("reset_for_next_battle"): p_enemy.reset_for_next_battle()
 
 	# Update UI
@@ -103,3 +119,22 @@ func set_player_stance(new_stance: Character.Stance):
 		player_node.set_stance(new_stance)
 	else:
 		printerr("BattleManager: player_node가 유효하지 않아 스탠스를 설정할 수 없습니다.")
+
+func _print_character_stats(char: Character):
+	if not is_instance_valid(char) or not char.stats_manager:
+		print("DEBUG: 캐릭터 또는 스탯 매니저가 유효하지 않습니다.")
+		return
+
+	print("DEBUG: 캐릭터: ", char.name)
+	var stats = char.stats_manager.character_stats
+	if not stats:
+		print("DEBUG: 스탯이 로드되지 않았습니다.")
+		return
+
+	var stat_keys = ["health", "attack_power", "defense"] # 주요 스탯만 출력
+	for key in stat_keys:
+		var stat = stats.get_stat(key)
+		if stat:
+			print("DEBUG:   ", key, ": base=", stat.base_value, ", current=", stat.current_value, ", computed=", stat.computed_value)
+		else:
+			print("DEBUG:   ", key, ": 스탯을 찾을 수 없습니다.")

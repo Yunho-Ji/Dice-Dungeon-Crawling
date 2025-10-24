@@ -27,21 +27,31 @@ func _ready():
 		child.queue_free()
 
 func _on_close_button_pressed():
+	# The screen now directly modifies current_player_stats, so no copy is needed.
+	# We just need to ensure the player node in the scene reflects these changes.
+	var player_mgr = get_node("/root/PlayerManager")
+	if player_mgr:
+		player_mgr._print_stats_debug_info("DestinyDesignScreen Closed")
+		
+		# Request GameManager to update the active player node's stats
+		if game_manager:
+			game_manager.update_player_node_stats()
+			
 	emit_signal("closed")
-
 func _initialize_stat_slots():
 	for child in stat_slots_container.get_children():
 		child.queue_free()
 
 	var stats_to_display = ["attack_power", "health", "defense", "attack_speed", "current_mp", "recovery_power", "luck", "resistance"]
-	var player = game_manager.player_node
-	if not player: return
+	var player_stats_source = get_node("/root/PlayerManager").current_player_stats # Work with the current session's stats
+
+	if not player_stats_source: return # Check if player_data is valid
 
 	for stat_name in stats_to_display:
 		var new_slot = StatSlotScene.instantiate()
 		stat_slots_container.add_child(new_slot)
 		
-		var current_stat_value = player.stats_manager.get_stat(stat_name)
+		var current_stat_value = player_stats_source.get_stat(stat_name) # Get stat from player_data.base_stats
 		
 		if new_slot.has_method("set_stat"): 
 			new_slot.set_stat(stat_name, current_stat_value)
@@ -63,5 +73,3 @@ func _on_dice_rolled(rolled_values: Array):
 		new_label.text = str(roll_value)
 		new_label.dice_value = roll_value
 		new_label.mouse_filter = Control.MOUSE_FILTER_STOP
-	
-	_initialize_stat_slots() # Refresh stat display after dice applied

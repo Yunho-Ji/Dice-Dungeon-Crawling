@@ -32,7 +32,7 @@ func set_level(stage: int, battle_count: int, p_hp_multiplier: float = 1.0):
 		stats_manager.get_stat("attack_speed").base_value = 100.0 # 보스 공격 속도는 고정값으로 설정합니다.
 
 	# 현재 HP를 최대 HP와 동일하게 설정하여 완전히 회복된 상태로 만듭니다。
-	stats_manager.get_stat("health").base_value = stats_manager.get_stat("health").computed_value
+	stats_manager.get_stat("health").current_value = stats_manager.get_stat("health").computed_value
 	update_hp_label() # HP 라벨 UI를 업데이트합니다。
 
 	print("적 스탯 설정됨 (스테이지 ", stage, "-", battle_count, "): HP:", stats_manager.get_stat("health").computed_value, ", 공격:", stats_manager.get_stat("attack_power").computed_value, ", 방어:", stats_manager.get_stat("defense").computed_value, ", 속도:", stats_manager.get_stat("attack_speed").computed_value)
