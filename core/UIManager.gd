@@ -20,7 +20,6 @@ func _ready():
 	screen_nodes[Screen.BATTLE_HUD] = battle_hud
 	
 	# BattleHUD 시그널 연결
-	battle_hud.inventory_opened.connect(_on_inventory_opened)
 	battle_hud.destiny_design_opened.connect(_on_destiny_design_opened)
 	battle_hud.map_requested.connect(get_node("/root/MapManager").show_dungeon_map)
 	battle_hud.start_combat_requested.connect(game_manager.handle_start_combat)
@@ -62,9 +61,6 @@ func show_screen(screen_type: Screen, instance: Node = null):
 					new_screen_instance.closed.connect(_on_destiny_design_closed)
 					if game_manager.has_method("handle_dice_roll_request"):
 						new_screen_instance.dice_roll_requested.connect(game_manager.handle_dice_roll_request)
-				Screen.INVENTORY:
-					new_screen_instance = inventory_screen_scene.instantiate()
-					new_screen_instance.inventory_closed.connect(_on_inventory_closed)
 				Screen.END_OF_DUNGEON_OPTIONS:
 					new_screen_instance = end_of_dungeon_screen_scene.instantiate()
 					new_screen_instance.return_to_town_requested.connect(game_manager.handle_return_to_town)

@@ -104,3 +104,29 @@ offset_bottom = -160.0
 grow_horizontal = 2
 grow_vertical = 0
 text = "원정 시작"
+
+[node name="InventoryButton" type="Button" parent="."]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -88.0
+offset_top = -40.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "원정 시작"
+
+[node name="InventoryButton" type="Button" parent="."]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -88.0
+offset_top = -40.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "가방"
+
+[connection signal="pressed" from="InventoryButton" to="." method="_on_inventory_button_pressed"]

@@ -42,8 +42,7 @@ func _on_location_button_pressed(button_name: String):
 			print("대장간 방문: 장비 개선/수리 기능 구현 예정")
 		"TavernButton":
 			print("선술집 방문: 현상금 수주/버프 기능 구현 예정")
-		"PrayerHouseButton":
-			print("기도원 방문: 주사위 축복 기능 구현 예정")
+		"PrayerHouseButton":			print("기도원 방문: 주사위 축복 기능 구현 예정")
 		"GeneralStoreButton":
 			print("잡화점 방문: 아이템 매매 기능 구현 예정")
 
@@ -60,3 +59,7 @@ func _on_town_closing_time_reached():
 func _on_start_expedition_button_pressed():
 	print("원정 시작 버튼 클릭: 지도로 이동")
 	scene_manager.go_to_map()
+
+func _on_inventory_button_pressed():
+	print("가방 버튼 클릭: 인벤토리 화면 표시")
+	InventoryScreen.show_screen()

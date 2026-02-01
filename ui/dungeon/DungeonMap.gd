@@ -8,6 +8,7 @@ signal node_activated(node_id: String)
 @onready var path_container: Node2D = $PathContainer
 @onready var info_label: Label = $InfoLabel
 @onready var enter_dungeon_button: Button = $EnterDungeonButton
+@onready var completion_label: Label = $CompletionLabel
 
 # Data from MapManager - This will be refreshed in _on_visibility_changed
 var dungeon_data: Dictionary
@@ -166,6 +167,13 @@ func _update_map_visuals():
 		for node_id in nodes_in_range:
 			visible_node_ids[node_id] = true
 
+	# --- FOG OF WAR DEBUGGING ---
+	print("DEBUG: DungeonMap: _update_map_visuals called.")
+	print("DEBUG:   is_dev_mode: ", is_dev)
+	print("DEBUG:   VisitedNodeIDs count: ", player_run_state.VisitedNodeIDs.size())
+	print("DEBUG:   visible_node_ids count (computed): ", visible_node_ids.size())
+	# ----------------------------
+
 	for node_visual in node_container.get_children():
 		if node_visual == player_marker: continue
 
@@ -207,41 +215,70 @@ func _update_map_visuals():
 			if ids.size() < 2: continue
 			path_line.visible = (ids[0] in visible_node_ids) and (ids[1] in visible_node_ids)
 
+	_update_completion_rate()
 	_update_button_states()
 	_update_info_label()
 	_update_player_marker()
+
+func _update_completion_rate():
+	if not dungeon_data or not dungeon_data.has("nodes"):
+		return
+		
+	var total_nodes = dungeon_data.nodes.size()
+	
+	# 중복 제거를 위해 Dictionary 사용
+	var unique_visited = {}
+	for id in player_run_state.VisitedNodeIDs:
+		unique_visited[id] = true
+	
+	var rate = int((float(unique_visited.size()) / float(total_nodes)) * 100)
+	if is_instance_valid(completion_label):
+		completion_label.text = "탐사율: %d%%" % rate
 
 func _update_button_states():
 	_current_reachable_ids.clear()
 	print("DEBUG: _update_button_states called. current_node_id: ", current_node_id)
 
 	if dungeon_data.nodes.has(current_node_id):
+		# 진행 중: 현재 노드와 연결된 다음 노드들만 선택 가능
 		var player_node: DungeonNode = dungeon_data.nodes[current_node_id]
 		_current_reachable_ids = player_node.next_node_ids.duplicate()
 		print("DEBUG: Reachable IDs from ", current_node_id, ": ", _current_reachable_ids)
-
-	var visited_ids = player_run_state.VisitedNodeIDs
 
 	for node_visual in node_container.get_children():
 		var button = node_visual.find_child("SelectButton")
 		if button:
 			var node_id = node_visual.name
 			var is_reachable = node_id in _current_reachable_ids
-			var is_visited = node_id in visited_ids
-			button.disabled = not is_reachable or is_visited
-			print("DEBUG: Node ", node_id, ": is_reachable = ", is_reachable, ", is_visited = ", is_visited, ", button.disabled = ", button.disabled)
+			# CHANGE: 이미 방문한 노드라도 도달 가능하다면 선택 가능 (잔당 소탕 허용)
+			button.disabled = not is_reachable
+			print("DEBUG: Node ", node_id, ": is_reachable = ", is_reachable, ", button.disabled = ", button.disabled)
 
 func _update_info_label():
-	var info_text = "Dungeon Seed: %s\n" % dungeon_seed
+	var info_text = ""
+	
 	if not dungeon_data.nodes.has(selected_target_node_id):
-		info_text += "Select a destination.\n"
+		info_text += "이동할 지점을 선택하십시오.\n"
+		enter_dungeon_button.text = "전투 시작" # 기본값
 	else:
 		var info_node: DungeonNode = dungeon_data.nodes[selected_target_node_id]
-		info_text += "Selected: %s (Depth: %d, Type: %s)\n" % [info_node.node_id, info_node.depth, info_node.node_type]
+		var is_visited = selected_target_node_id in player_run_state.VisitedNodeIDs
+		
+		if is_visited:
+			info_text += "[탐사 완료] 구역\n"
+			info_text += "위협 수준: 낮음 (잔당 소탕)\n"
+			enter_dungeon_button.text = "소탕 시작"
+		else:
+			info_text += "[미개척] 구역\n"
+			info_text += "위협 수준: 측정 불가\n"
+			enter_dungeon_button.text = "전투 시작"
+			
+		info_text += "좌표: %s (깊이: %d)\n" % [info_node.node_id, info_node.depth]
+		info_text += "유형: %s\n" % info_node.node_type.capitalize()
 	
 	if dungeon_data.nodes.has(current_node_id):
 		var current_node_data: DungeonNode = dungeon_data.nodes[current_node_id]
-		info_text += "Current: %s (Depth: %d, Type: %s)" % [current_node_data.node_id, current_node_data.depth, current_node_data.node_type]
+		info_text += "\n현재 위치: %s" % current_node_data.node_id
 
 	info_label.text = info_text
 

@@ -82,7 +82,7 @@ func generate_dungeon_if_needed():
 			if not node_id in player_run_state.VisitedNodeIDs:
 				player_run_state.VisitedNodeIDs.append(node_id)
 
-		# 시작 노드 재설정 (첫 번째 시작 노드로 가정)
+		# 시작 노드 재설정 (첫 번째 시작 노드로 가정 - 안정성 우선)
 		var start_node_id = ""
 		for node in dungeon_data.nodes.values():
 			if node.node_type == "start":

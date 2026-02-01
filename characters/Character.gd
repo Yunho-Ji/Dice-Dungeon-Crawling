@@ -36,6 +36,13 @@ func initialize(data: CharacterData):
 func set_stance(new_stance: Stance):
 	current_stance = new_stance
 	print(name, " 스탠스 변경: ", Stance.keys()[current_stance])
+	
+	# 방어는 선불 비용만 있으면 언제든 즉시 발동 (긴급 방어)
+	if new_stance == Stance.DEFENSE and action_gauge >= 15.0:
+		perform_stance_action()
+	# 그 외 행동은 게이지 100%일 때만 발동
+	elif action_gauge >= 100.0:
+		perform_stance_action()
 
 func add_status_effect(effect_data: StatusEffectData, duration_override: float = -1.0):
 	var new_effect = StatusEffect.new()
@@ -97,102 +104,125 @@ func _process(delta: float):
 	for effect in effects_to_remove:
 		remove_status_effect(effect)
 
-	action_gauge += stats_manager.get_stat("attack_speed").computed_value * delta
+	# 방어 태세 중에는 행동 게이지가 차오르지 않음 (유지)
+	if current_stance != Stance.DEFENSE:
+		action_gauge += stats_manager.get_stat("attack_speed").computed_value * delta
+	
 	action_gauge_bar.value = action_gauge
 
-	if action_gauge >= 100.0:
+	# 공격/회피 스탠스일 때만 100% 도달 시 자동 행동 (방어는 유저가 선택한 시점에 이미 perform_defense_action 호출됨)
+	if current_stance != Stance.DEFENSE and action_gauge >= 100.0:
 		perform_stance_action()
-		action_gauge = 0.0 # 행동 후 게이지 초기화
 
 func perform_stance_action():
 	match current_stance:
 		Stance.ATTACK:
 			perform_attack_action()
 		Stance.DEFENSE:
-			perform_defense_action(action_gauge)
+			perform_defense_action()
 		Stance.EVADE:
-			perform_evade_action(action_gauge)
+			perform_evade_action()
 
 func perform_attack_action():
 	if target and is_instance_valid(target):
-		#print(name, "가 ", target.name, "에게 공격합니다! 공격력: ", stats_manager.get_stat("attack_power").computed_value)
-		attack(target) # 기존 attack 함수 호출
+		attack(target)
 	else:
 		print(name, " 공격할 대상이 없습니다.")
+	
+	# 공격은 항상 게이지 전체 소모
+	action_gauge = 0.0
+	action_gauge_bar.value = action_gauge
 
 var is_guarding: bool = false
 var is_perfect_guarding: bool = false
 
-func perform_defense_action(action_gauge_value: float):
-	print(name, " 방어 행동 시작 (게이지: ", action_gauge_value, "%)")
-	var gauge_percentage = action_gauge_value
-
-	if gauge_percentage < 40.0:
-		print(name, " 방어 실패 (게이지 부족)")
-	elif gauge_percentage < 85.0:
-		print(name, " 가드 성공!")
-		is_guarding = true
-		# 액션 게이지 20% 리턴
-		action_gauge += 20.0
-	else: # 85.0 이상
-		print(name, " 퍼펙트 가드 성공!")
-		is_perfect_guarding = true
-		# TODO: 퍼펙트 가드 효과 구현 (예: 받는 피해 대폭 감소 및 반격 기회)
-		# 액션 게이지 40% 리턴
-		action_gauge += 40.0
-	action_gauge_bar.value = action_gauge # 게이지 업데이트
+func perform_defense_action():
+	# 선불제 방어: 즉시 비용 지불하고 태세 돌입
+	var upfront_cost = 15.0
+	action_gauge = max(0.0, action_gauge - upfront_cost)
+	is_guarding = true
+	is_perfect_guarding = false 
+	
+	print(name, " 방어 태세 돌입! (선불 비용: ", upfront_cost, ", 잔여 게이지: ", action_gauge, "%)")
+	action_gauge_bar.value = action_gauge # UI 즉시 갱신
 
 const STATPOWDEBUFF_Data = preload("res://resources/status_effects/data/STATPOWDEBUFF_Data.tres")
 
-func perform_evade_action(action_gauge_value: float):
-	print(name, " 회피 행동 시작 (게이지: ", action_gauge_value, "%)")
-	var gauge_percentage = action_gauge_value
+func perform_evade_action():
+	print(name, " 회피 행동 시작 (게이지: ", action_gauge, "%)")
+	var gauge_percentage = action_gauge
 	var success_chance: float = 0.0
-	var buff_duration: float = 0.0 # 버프 지속 시간
+	var buff_duration: float = 0.0
+	var consumption = 100.0
 
 	if gauge_percentage < 60.0:
 		print(name, " 긴급 회피 시도...")
 		success_chance = 60.0
-		buff_duration = 3.0 # 짧은 버프 A 지속 시간
-	else: # 60.0 이상
+		buff_duration = 3.0
+	else:
 		print(name, " 회피 시도...")
 		success_chance = 80.0
-		buff_duration = 6.0 # 긴 버프 A 지속 시간
+		buff_duration = 6.0
 
 	if randf() * 100.0 < success_chance:
-		print(name, " 회피 성공! 버프 A 획득 (", buff_duration, "초)")
-		add_status_effect(STATPOWDEBUFF_Data, buff_duration) # BuffA 데이터와 지속 시간 오버라이드
+		print(name, " 회피 성공! 버프 획득")
+		add_status_effect(STATPOWDEBUFF_Data, buff_duration)
+		consumption = 70.0 # 회피 성공 시 30% 보존
 	else:
 		print(name, " 회피 실패!")
+		consumption = 100.0
+		
+	action_gauge = max(0.0, action_gauge - consumption)
+	action_gauge_bar.value = action_gauge
 
 func _on_input_event(_viewport: Node, _event: InputEvent, _shape_idx: int):
 	pass
 	
 
 func take_damage(amount: int):
+	print("DEBUG: take_damage called. Amount: ", amount, ", is_guarding: ", is_guarding)
 	var damage_reduction = 0.0
-	if is_perfect_guarding:
-		print(name, " 퍼펙트 가드로 공격을 막았습니다!")
-		damage_reduction = 0.9
-		is_perfect_guarding = false
-		is_guarding = false # 퍼펙트 가드 시 일반 가드도 해제
-	elif is_guarding:
-		print(name, " 가드로 피해를 30% 감소시킵니다!")
-		damage_reduction = 0.3
+	var retained_gauge = 0.0 
+	
+	if is_guarding:
+		print(name, " [방어 판정 진입] 현재 게이지: ", action_gauge, "%")
+		if action_gauge >= 85.0:
+			print(name, " >>> 퍼펙트 가드 성공! <<<")
+			damage_reduction = 0.9
+			retained_gauge = 50.0
+			is_perfect_guarding = true 
+		elif action_gauge >= 40.0:
+			print(name, " 가드 성공!")
+			damage_reduction = 0.3
+			retained_gauge = 20.0
+		else:
+			print(name, " 가드 브레이크! (게이지 부족)")
+			damage_reduction = 0.0
+			retained_gauge = 0.0
+		
+		# 피격 후 방어 태세 해제 및 보상 게이지 적용
 		is_guarding = false
+		current_stance = Stance.ATTACK 
+		print(name, " 방어 해제 완료. Stance: ", Stance.keys()[current_stance], ", Next Gauge: ", retained_gauge)
+		
+		action_gauge = retained_gauge
+		action_gauge_bar.value = action_gauge # UI 즉시 갱신
 
 	var final_damage = max(0, amount - stats_manager.get_stat("defense").computed_value)
 	final_damage = int(final_damage * (1.0 - damage_reduction))
 
-	stats_manager.get_stat("health").current_value -= final_damage # Changed from base_value
-	stats_manager.get_stat("health").current_value = max(0, stats_manager.get_stat("health").current_value) # Changed from base_value and computed_value
+	stats_manager.get_stat("health").current_value -= final_damage
+	stats_manager.get_stat("health").current_value = max(0, stats_manager.get_stat("health").current_value)
 
 	update_hp_label()
-	emit_signal("damage_taken", final_damage, global_position) # Emit signal
-	#print(name, "가 ", final_damage, " 데미지를 받았습니다. 남은 HP: ", stats_manager.get_stat("health").computed_value)
-	if stats_manager.get_stat("health").current_value <= 0: # Changed from computed_value
+	emit_signal("damage_taken", final_damage, global_position)
+	
+	print(name, "가 ", final_damage, " 대미지를 받았습니다. 남은 HP: ", stats_manager.get_stat("health").current_value)
+
+	if stats_manager.get_stat("health").current_value <= 0:
 		print(name, " 사망!")
 		set_process(false)
+
 
 func update_hp_label():
 	print("DEBUG: update_hp_label called by signal system!")

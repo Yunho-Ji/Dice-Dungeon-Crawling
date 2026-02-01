@@ -1,7 +1,7 @@
-[gd_scene load_steps=4 format=3 uid="uid://byb34d40xkc11"]
+[gd_scene load_steps=4 format=3 uid="uid://dxr8su78x0hsb"]
 
-[ext_resource type="Script" uid="uid://dni0feyt1bs7x" path="res://ui/screens/InventoryScreen.gd" id="1_inv_script"]
-[ext_resource type="Script" uid="uid://dfrl4e0x3aw7k" path="res://addons/apeloot/inventory/grid_inventory/inventory_interface.gd" id="2_inventory_script"]
+[ext_resource type="Script" uid="uid://dni0feyt1bs7x" path="res://ui/screens/InventoryScreen.gd" id="1_iq33x"]
+[ext_resource type="Script" uid="uid://dfrl4e0x3aw7k" path="res://addons/apeloot/inventory/grid_inventory/inventory_interface.gd" id="2_4syei"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
 bg_color = Color(0.18, 0.2, 0.25, 1)
@@ -20,7 +20,7 @@ expand_margin_bottom = 10.0
 
 [node name="InventoryScreen" type="CanvasLayer"]
 layer = 100
-script = ExtResource("1_inv_script")
+script = ExtResource("1_iq33x")
 
 [node name="Background" type="ColorRect" parent="."]
 anchors_preset = 15
@@ -76,7 +76,7 @@ text = "X"
 [node name="InventoryInterface" type="PanelContainer" parent="CenterContainer/MainPanel/VBox"]
 custom_minimum_size = Vector2(240, 180)
 layout_mode = 2
-script = ExtResource("2_inventory_script")
+script = ExtResource("2_4syei")
 id = "player_inventory"
 slot_count = 12
 columns = 4

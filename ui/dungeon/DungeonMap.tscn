@@ -10,17 +10,41 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_script")
 
+[node name="TitleLabel" type="Label" parent="."]
+layout_mode = 1
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 220.0
+offset_bottom = 60.0
+theme_override_font_sizes/font_size = 32
+text = "탐험 수첩"
+
+[node name="CompletionLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -220.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 60.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 24
+text = "탐사율: 0%"
+horizontal_alignment = 2
+
 [node name="InfoLabel" type="Label" parent="."]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = -30.0
-offset_right = 200.0
-offset_bottom = -10.0
+offset_left = 20.0
+offset_top = -150.0
+offset_right = 400.0
+offset_bottom = -20.0
 grow_vertical = 0
 text = "현재 노드 정보"
+vertical_alignment = 2
 
 [node name="EnterDungeonButton" type="Button" parent="."]
 layout_mode = 1

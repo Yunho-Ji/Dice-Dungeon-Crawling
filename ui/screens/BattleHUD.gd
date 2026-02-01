@@ -32,6 +32,9 @@ func _ready():
 	# if map_button: map_button.pressed.connect(_on_map_button_pressed)
 	# if start_combat_button: start_combat_button.pressed.connect(_on_start_combat_button_pressed)
 	
+	# InventoryScreen Autoload에 inventory_opened 시그널 연결
+	inventory_opened.connect(InventoryScreen.show_screen)
+
 	# Initially hide both buttons
 	map_button.visible = false
 	start_combat_button.visible = false

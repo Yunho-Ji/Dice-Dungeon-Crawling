@@ -2,7 +2,21 @@ extends Node
 
 @export var player_data: CharacterData # 플레이어의 캐릭터 데이터 리소스
 var current_player_stats: MyCharacterStats # 전투 간 플레이어의 현재 스탯을 저장
+var gold: int = 0
 
+func add_gold(amount: int):
+	var projected_gold = gold + amount
+	var allowed_gold = InventoryManager.calculate_allowed_gold(gold, projected_gold)
+	
+	if allowed_gold != projected_gold:
+		var lost = projected_gold - allowed_gold
+		print("PlayerManager: [골드 유실] 인벤토리 공간 부족으로 ", lost, "G가 증발했습니다!")
+	
+	gold = allowed_gold
+	print("PlayerManager: Gold updated. Current Gold: ", gold)
+
+func get_gold() -> int:
+	return gold
 
 func _print_stats_debug_info(context: String):
 	print("DEBUG: PlayerManager: --- Stats Debug Info (Context: ", context, ") ---")
