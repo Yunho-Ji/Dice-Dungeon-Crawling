@@ -15,6 +15,9 @@ var inventory_interface: GridInventory = null
 func _ready():
 	print("DEBUG: InventoryScreen _ready called.")
 	
+	# SignalBus 연결: 골드 변화 감지
+	SignalBus.connect("gold_changed", _on_gold_changed)
+	
 	# 노드 경로: CenterContainer -> MainPanel -> VBox
 	var vbox = $CenterContainer/MainPanel/VBox
 	
@@ -62,11 +65,14 @@ func show_screen():
 	# if inventory_interface.items.size() == 0:
 	# 	_test_inventory()
 
-func update_gold_display():
+func update_gold_display(gold_amount: int = -1):
 	var header = $CenterContainer/MainPanel/VBox/Header
 	if header and header.has_node("GoldLabel"):
-		var gold = PlayerManager.get_gold()
-		header.get_node("GoldLabel").text = str(gold) + " G"
+		# 인자가 없으면 현재 골드 조회
+		if gold_amount == -1:
+			gold_amount = EconomyManager.get_gold()
+		
+		header.get_node("GoldLabel").text = str(gold_amount) + " G"
 
 func hide_screen():
 	print("InventoryScreen: 화면 숨김")
@@ -94,10 +100,15 @@ func _test_inventory():
 # 시그널 핸들러 (Signal Handlers)
 # =============================================================================
 
+func _on_gold_changed(new_gold: int, _delta: int):
+	# SignalBus를 통해 골드가 변경되면 자동 업데이트
+	update_gold_display(new_gold)
+
 func _on_debug_gold_button_pressed():
 	print("DEBUG: +1000 Gold added via button.")
-	PlayerManager.add_gold(1000)
-	update_gold_display()
+	# EconomyManager 직접 사용
+	EconomyManager.add_gold(1000)
+	# 업데이트는 SignalBus가 처리하므로 수동 호출 불필요
 
 func _on_close_button_pressed():
 	# 닫기 버튼이 눌리면 화면을 숨기고 시그널을 보냅니다.

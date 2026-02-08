@@ -1,6 +1,11 @@
-[gd_scene load_steps=2 format=3 uid="uid://fureneyqqdx4"]
+[gd_scene load_steps=7 format=3 uid="uid://fureneyqqdx4"]
 
 [ext_resource type="Script" uid="uid://j64urwfurset" path="res://ui/Town.gd" id="1_town_script"]
+[ext_resource type="Script" uid="uid://dv2al5gu4e1mu" path="res://core/UIManager.gd" id="2_uimanager_script"]
+[ext_resource type="PackedScene" uid="uid://rgdcm18nf3jm" path="res://ui/screens/DestinyDesignScreen.tscn" id="3_destiny_design_scene"]
+[ext_resource type="PackedScene" uid="uid://byb34d40xkc11" path="res://ui/screens/InventoryScreen.tscn" id="4_inventory_scene"]
+[ext_resource type="PackedScene" uid="uid://dungeon_end_screen" path="res://ui/screens/EndOfDungeonScreen.tscn" id="5_end_of_dungeon_scene"]
+[ext_resource type="PackedScene" path="res://ui/screens/AdvantageLabel.tscn" id="6_advantage_label_scene"]
 
 [node name="Town" type="Control"]
 layout_mode = 3
@@ -105,28 +110,32 @@ grow_horizontal = 2
 grow_vertical = 0
 text = "원정 시작"
 
-[node name="InventoryButton" type="Button" parent="."]
+[node name="BottomButtons" type="HBoxContainer" parent="."]
+layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -88.0
-offset_top = -40.0
+offset_left = -150.0
+offset_top = -60.0
+offset_right = -20.0
+offset_bottom = -20.0
 grow_horizontal = 0
 grow_vertical = 0
-text = "원정 시작"
+theme_override_constants/separation = 10
+alignment = 2
 
-[node name="InventoryButton" type="Button" parent="."]
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -88.0
-offset_top = -40.0
-grow_horizontal = 0
-grow_vertical = 0
+[node name="InventoryButton" type="Button" parent="BottomButtons"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
 text = "가방"
 
-[connection signal="pressed" from="InventoryButton" to="." method="_on_inventory_button_pressed"]
+[node name="UIManager" type="CanvasLayer" parent="."]
+script = ExtResource("2_uimanager_script")
+destiny_design_screen_scene = ExtResource("3_destiny_design_scene")
+inventory_screen_scene = ExtResource("4_inventory_scene")
+end_of_dungeon_screen_scene = ExtResource("5_end_of_dungeon_scene")
+advantage_label_scene = ExtResource("6_advantage_label_scene")
+
+[connection signal="pressed" from="BottomButtons/InventoryButton" to="." method="_on_inventory_button_pressed"]

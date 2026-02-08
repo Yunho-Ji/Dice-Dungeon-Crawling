@@ -137,8 +137,9 @@ func handle_battle_end(win: bool):
 			ui_manager.show_end_of_dungeon_options()
 			return
 		if player_node and player_manager and player_manager.current_player_stats:
-			for stat_key in player_node.stats_manager.character_stats.get_all_stat_keys():
-				var player_stat = player_node.stats_manager.get_stat(stat_key)
+			# stats_manager -> current_stats 변경
+			for stat_key in player_node.current_stats.get_all_stat_keys():
+				var player_stat = player_node.current_stats.get_stat(stat_key)
 				var persistent_stat = player_manager.current_player_stats.get_stat(stat_key)
 				if player_stat and persistent_stat:
 					persistent_stat.base_value = player_stat.base_value
@@ -187,8 +188,16 @@ func prepare_dungeon_battle(node: DungeonNode):
 			print("GameManager: [빈 방] 이미 사용된 특수 노드입니다.")
 			handle_battle_end(true)
 		else:
-			print("GameManager: 특수(함정) 노드 진입.")
-			_show_trap_event()
+			# [개선] 특수 노드 진입 시 이벤트 무작위 결정 (기획 준수)
+			var event_roll = randf()
+			if event_roll < 0.3: # 30% 함정
+				_show_trap_event()
+			elif event_roll < 0.6: # 30% 보물상자
+				_show_treasure_event()
+			elif event_roll < 0.8: # 20% 제단 (대가성 보상)
+				_show_altar_event()
+			else: # 20% 성소 (순수 은총)
+				_show_sanctuary_event()
 		return
 
 	var enemy_info = _get_enemy_data_for_node_type(current_battle_node_type)
@@ -224,15 +233,59 @@ func prepare_dungeon_battle(node: DungeonNode):
 
 	battle_manager.prepare_battle(node, player_node, enemy_node, current_stage, current_battle_count, ui_manager, stage_info_hud)
 
+func _trigger_dice_reward():
+	var new_dice_sides = 8 if current_battle_node_type == "elite" else 12
+	print("GameManager: 주사위 보상 획득 - D", new_dice_sides)
+	
+	# 보상을 즉시 주사위 매니저의 대기열에 추가 (UI 팝업 없음)
+	if dice_manager.has_method("add_pending_reward"):
+		dice_manager.add_pending_reward(new_dice_sides)
+	else:
+		print("DiceManager에 add_pending_reward 메서드가 없습니다.")
+
+	# 보상 획득 후 운명 설계(주사위 굴리기) 활성화
+	dice_manager.enable_roll()
+
 func _show_trap_event():
 	if not ui_manager: return
 	var popup = EVENT_POPUP_SCENE.instantiate()
 	get_tree().current_scene.add_child(popup)
 	var agi = 10
-	if player_node and player_node.stats_manager:
-		var stat = player_node.stats_manager.get_stat("agility")
+	if player_node and player_node.current_stats: 
+		var stat = player_node.current_stats.get_stat("attack_speed")
 		if stat: agi = stat.computed_value
-	popup.setup(15, 20, agi)
+	# 범용 이벤트 설정 호출 (함정)
+	popup.setup_event(popup.EventType.TRAP, 15, 20, agi)
+	popup.event_completed.connect(_on_event_completed.bind(popup))
+
+# [신규] 보물상자 이벤트 처리
+func _show_treasure_event():
+	if not ui_manager: return
+	var popup = EVENT_POPUP_SCENE.instantiate()
+	get_tree().current_scene.add_child(popup)
+	
+	# 범용 이벤트 설정 호출 (보물상자)
+	popup.setup_event(popup.EventType.TREASURE) 
+	popup.event_completed.connect(_on_event_completed.bind(popup))
+
+# [신규] 제단 이벤트 처리 (대가성 보상)
+func _show_altar_event():
+	if not ui_manager: return
+	var popup = EVENT_POPUP_SCENE.instantiate()
+	get_tree().current_scene.add_child(popup)
+	
+	# 범용 이벤트 설정 호출 (제단)
+	popup.setup_event(popup.EventType.ALTAR) 
+	popup.event_completed.connect(_on_event_completed.bind(popup))
+
+# [신규] 성소 이벤트 처리 (순수 은총)
+func _show_sanctuary_event():
+	if not ui_manager: return
+	var popup = EVENT_POPUP_SCENE.instantiate()
+	get_tree().current_scene.add_child(popup)
+	
+	# 범용 이벤트 설정 호출 (성소)
+	popup.setup_event(popup.EventType.SANCTUARY)
 	popup.event_completed.connect(_on_event_completed.bind(popup))
 
 func _on_event_completed(popup_instance):

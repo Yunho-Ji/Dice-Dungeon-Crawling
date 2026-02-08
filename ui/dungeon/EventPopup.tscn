@@ -1,99 +1,104 @@
-[gd_scene load_steps=4 format=3 uid="uid://dxr8su78x0hsb"]
+[gd_scene load_steps=3 format=3 uid="uid://dxr8su78x0hsb"]
 
-[ext_resource type="Script" uid="uid://dni0feyt1bs7x" path="res://ui/screens/InventoryScreen.gd" id="1_iq33x"]
-[ext_resource type="Script" uid="uid://dfrl4e0x3aw7k" path="res://addons/apeloot/inventory/grid_inventory/inventory_interface.gd" id="2_4syei"]
+[ext_resource type="Script" uid="uid://3d3qewutw0ak" path="res://ui/dungeon/EventPopup.gd" id="1_script"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
-bg_color = Color(0.18, 0.2, 0.25, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.1, 0.1, 0.15, 0.95)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
+border_color = Color(0.3, 0.3, 0.4, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
-expand_margin_left = 10.0
-expand_margin_top = 10.0
-expand_margin_right = 10.0
-expand_margin_bottom = 10.0
 
-[node name="InventoryScreen" type="CanvasLayer"]
-layer = 100
-script = ExtResource("1_iq33x")
+[node name="EventPopupLayer" type="CanvasLayer"]
+layer = 120
+script = ExtResource("1_script")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="EventPopup" type="Panel" parent="."]
+custom_minimum_size = Vector2(450, 420)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -225.0
+offset_top = -210.0
+offset_right = 225.0
+offset_bottom = 210.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="MarginContainer" type="MarginContainer" parent="EventPopup"]
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.75)
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
 
-[node name="CenterContainer" type="CenterContainer" parent="."]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="MainPanel" type="PanelContainer" parent="CenterContainer"]
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
-
-[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainPanel"]
+[node name="VBoxContainer" type="VBoxContainer" parent="EventPopup/MarginContainer"]
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="Header" type="HBoxContainer" parent="CenterContainer/MainPanel/VBox"]
+[node name="TitleLabel" type="Label" parent="EventPopup/MarginContainer/VBoxContainer"]
 layout_mode = 2
-alignment = 1
-
-[node name="GoldLabel" type="Label" parent="CenterContainer/MainPanel/VBox/Header"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.843137, 0, 1)
-theme_override_font_sizes/font_size = 18
-text = "0 G"
-
-[node name="DebugGoldButton" type="Button" parent="CenterContainer/MainPanel/VBox/Header"]
-custom_minimum_size = Vector2(40, 20)
-layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "+1K"
-
-[node name="Title" type="Label" parent="CenterContainer/MainPanel/VBox/Header"]
-layout_mode = 2
-size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 24
-text = "가방"
+text = "함정 발견!"
 horizontal_alignment = 1
 
-[node name="CloseButton" type="Button" parent="CenterContainer/MainPanel/VBox/Header"]
-custom_minimum_size = Vector2(30, 30)
+[node name="DescriptionLabel" type="RichTextLabel" parent="EventPopup/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
-text = "X"
+size_flags_vertical = 3
+bbcode_enabled = true
+text = "[center]전방에 위험한 장치가 보입니다. 
+어떻게 하시겠습니까?[/center]"
 
-[node name="InventoryInterface" type="PanelContainer" parent="CenterContainer/MainPanel/VBox"]
-custom_minimum_size = Vector2(240, 180)
+[node name="DiceDisplayArea" type="CenterContainer" parent="EventPopup/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
-script = ExtResource("2_4syei")
-id = "player_inventory"
-slot_count = 12
-columns = 4
 
-[node name="EventPopup" type="Panel" parent="."]
+[node name="VisualHolder" type="Control" parent="EventPopup/MarginContainer/VBoxContainer/DiceDisplayArea"]
+layout_mode = 2
 
-[node name="TitleLabel" type="Label" parent="EventPopup"]
-layout_mode = 0
+[node name="ResultLabel" type="Label" parent="EventPopup/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+text = "..."
+horizontal_alignment = 1
+autowrap_mode = 2
 
-[node name="DescriptionLabel" type="RichTextLabel" parent="EventPopup"]
-layout_mode = 0
+[node name="ButtonContainer" type="HBoxContainer" parent="EventPopup/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
 
-[node name="Option1Button" type="Button" parent="EventPopup"]
-layout_mode = 0
+[node name="Option1Button" type="Button" parent="EventPopup/MarginContainer/VBoxContainer/ButtonContainer"]
+custom_minimum_size = Vector2(120, 50)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "강행 돌파"
+text_overrun_behavior = 3
+clip_text = true
 
-[node name="Option2Button" type="Button" parent="EventPopup"]
-layout_mode = 0
+[node name="Option2Button" type="Button" parent="EventPopup/MarginContainer/VBoxContainer/ButtonContainer"]
+custom_minimum_size = Vector2(120, 50)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "해제 시도"
+text_overrun_behavior = 3
+clip_text = true
 
-[node name="ResultLabel" type="Label" parent="EventPopup"]
-layout_mode = 0
+[node name="ConfirmButton" type="Button" parent="EventPopup/MarginContainer/VBoxContainer/ButtonContainer"]
+visible = false
+layout_mode = 2
+text = "확인하고 계속하기"

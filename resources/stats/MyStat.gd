@@ -10,14 +10,10 @@ var modifiers: Array = [] # Array of MyStatModifier resources
 
 var computed_value: int:
 	get:
-		return _calculate_computed_value()
-
-func _calculate_computed_value() -> int:
-	var effective_value = base_value # Start with base_value
-	for modifier in modifiers:
-		if modifier is MyStatModifier:
-			effective_value = modifier.apply(effective_value) # Corrected line
-	return effective_value
+		# 로직 분리: 계산 로직을 StatManager로 위임
+		if StatManager:
+			return StatManager.calculate_stat_value(self)
+		return base_value
 
 func add_modifier(modifier: MyStatModifier):
 	if not modifiers.has(modifier):
@@ -35,8 +31,9 @@ func clear_modifiers():
 		_emit_value_changed()
 
 func _emit_value_changed():
-	print("DEBUG: MyStat: value_changed signal emitted from instance: ", get_instance_id(), " for key: ", key, ", new computed_value: ", computed_value)
-	value_changed.emit() # Emit without argument
+	# 디버그 로그 제거 또는 간소화
+	# print("DEBUG: MyStat: value_changed", key, computed_value)
+	value_changed.emit() # Emit without argument for now, or match signal signature
 
 # Synchronizes this stat's values from a source stat object.
 func sync_from(source_stat):
@@ -56,5 +53,4 @@ func sync_from(source_stat):
 		new_modifier.target_stat_key = modifier.target_stat_key
 		self.modifiers.append(new_modifier)
 	
-	# After copying, emit a signal so any connected UI updates.
 	_emit_value_changed()

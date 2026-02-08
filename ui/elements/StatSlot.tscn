@@ -14,41 +14,45 @@ corner_radius_top_right = 5
 corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
 
-[node name="StatSlot" type="Panel"]
+[node name="StatSlot" type="VBoxContainer"]
+custom_minimum_size = Vector2(70, 70)
+offset_right = 70.0
+offset_bottom = 70.0
+theme_override_constants/separation = 2
 script = ExtResource("1_ss_gd")
-theme_override_styles/panel = SubResource("StyleBoxFlat_border")
-size_flags_horizontal = 3
-size_flags_vertical = 3
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
+[node name="StatNameLabel" type="Label" parent="."]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 14
+text = "STAT"
+horizontal_alignment = 1
+
+[node name="SlotPanel" type="Panel" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_border")
+
+[node name="MarginContainer" type="MarginContainer" parent="SlotPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_top = 5
-theme_override_constants/margin_bottom = 5
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="SlotPanel/MarginContainer"]
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-alignment = 0
+alignment = 1
 
-[node name="StatNameLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+[node name="AssignedValueLabel" type="Label" parent="SlotPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "스탯 이름"
-horizontal_alignment = 1
-
-[node name="AssignedValueLabel" type="Label" parent="MarginContainer/VBoxContainer"]
-layout_mode = 2
-size_flags_vertical = 3
-text = "-"
+theme_override_font_sizes/font_size = 22
+text = "0"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="CurrentValueLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+[node name="CurrentValueLabel" type="Label" parent="SlotPanel/MarginContainer/VBoxContainer"]
+visible = false
 layout_mode = 2
-text = "(10)"
-horizontal_alignment = 1
+text = "-"

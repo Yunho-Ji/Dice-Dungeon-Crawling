@@ -34,20 +34,23 @@ func _gui_input(event: InputEvent):
 func show_stats(character: Character):
 	print("DEBUG: StatusPopup: show_stats called for character: ", character.name)
 	print("DEBUG: StatusPopup: Character instance ID: ", character.get_instance_id())
-	if character.stats_manager and character.stats_manager.character_stats:
-		for stat_key in character.stats_manager.character_stats.get_all_stat_keys():
-			var stat = character.stats_manager.get_stat(stat_key)
-			if stat:
-				print("DEBUG: StatusPopup:   ", stat.key, ": base=", stat.base_value, ", current=", stat.current_value, ", computed=", stat.computed_value)
-	else:
-		printerr("ERROR: StatusPopup: Character's stats_manager or character_stats is invalid.")
+	
+	if not character.current_stats:
+		printerr("ERROR: StatusPopup: Character's current_stats is invalid.")
+		return
+		
+	# 디버그 출력
+	for stat_key in character.current_stats.get_all_stat_keys():
+		var stat = character.current_stats.get_stat(stat_key)
+		if stat:
+			print("DEBUG: StatusPopup:   ", stat.key, ": base=", stat.base_value, ", current=", stat.current_value, ", computed=", stat.computed_value)
 	
 	# 이전 스탯 정보 삭제
 	for child in stats_grid.get_children():
 		child.queue_free()
 
 	# 새로운 스탯 정보 추가
-	for stat in character.stats_manager.get_all_stats():
+	for stat in character.current_stats.get_all_stats():
 		var stat_name = STAT_NAMES.get(stat.key, stat.key) # 표시 이름이 없으면 키 자체를 사용
 		var value_text = "-"
 
@@ -64,8 +67,6 @@ func show_stats(character: Character):
 		label.text = "%s: %s" % [stat_name, value_text]
 		label.add_theme_color_override("font_color", Color.WHITE)
 		stats_grid.add_child(label)
-
-
 
 	# 활성 상태 효과 정보 추가
 	if not character.active_status_effects.is_empty():

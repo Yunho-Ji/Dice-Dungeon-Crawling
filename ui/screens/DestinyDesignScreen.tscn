@@ -1,6 +1,28 @@
-[gd_scene load_steps=2 format=3 uid="uid://rgdcm18nf3jm"]
+[gd_scene load_steps=5 format=3 uid="uid://rgdcm18nf3jm"]
 
 [ext_resource type="Script" uid="uid://nwpqwmr7dti6" path="res://ui/screens/DestinyDesignScreen.gd" id="1_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0.12, 0.13, 0.2, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ExpBG"]
+bg_color = Color(0.05, 0.05, 0.1, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ExpFill"]
+bg_color = Color(0.2, 0.6, 1, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.4, 0.8, 1, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
 
 [node name="DestinyDesignScreen" type="Control"]
 layout_mode = 3
@@ -11,53 +33,164 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_script")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="Background" type="Panel" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
-layout_mode = 2
-size_flags_vertical = 3
-size_flags_stretch_ratio = 0.68
+[node name="DiceArena" type="Node2D" parent="."]
 
-[node name="PanelA" type="PanelContainer" parent="VBoxContainer/HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-size_flags_stretch_ratio = 0.25
+[node name="Walls" type="StaticBody2D" parent="DiceArena"]
 
-[node name="StatSlotsContainer" type="GridContainer" parent="VBoxContainer/HBoxContainer/PanelA"]
-layout_mode = 2
-columns = 2
+[node name="WallTop" type="CollisionShape2D" parent="DiceArena/Walls"]
 
-[node name="PanelB" type="PanelContainer" parent="VBoxContainer/HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.75
+[node name="WallBottom" type="CollisionShape2D" parent="DiceArena/Walls"]
 
-[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/HBoxContainer/PanelB"]
-layout_mode = 2
+[node name="WallLeft" type="CollisionShape2D" parent="DiceArena/Walls"]
 
-[node name="DiceResultsContainer" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/PanelB/VBoxContainer"]
-layout_mode = 2
+[node name="WallRight" type="CollisionShape2D" parent="DiceArena/Walls"]
 
-[node name="RollDiceButton" type="Button" parent="VBoxContainer/HBoxContainer/PanelB/VBoxContainer"]
-layout_mode = 2
-text = "주사위 굴리기"
+[node name="UI_Layer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
-[node name="PanelC" type="PanelContainer" parent="VBoxContainer"]
-layout_mode = 2
-size_flags_vertical = 3
-size_flags_stretch_ratio = 0.32
+[node name="Lines" type="Control" parent="UI_Layer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/PanelC"]
-layout_mode = 2
+[node name="Zone1_Header" type="Control" parent="UI_Layer"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 60.0
+grow_horizontal = 2
+
+[node name="ExpGauge" type="ProgressBar" parent="UI_Layer/Zone1_Header"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -10.0
+offset_right = 300.0
+offset_bottom = 10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_ExpBG")
+theme_override_styles/fill = SubResource("StyleBoxFlat_ExpFill")
+value = 45.0
+show_percentage = false
+
+[node name="Zone1_Exp" type="Label" parent="UI_Layer/Zone1_Header"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 18
+text = "COMBAT EXPERIENCE: 450 / 1000"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Zone3_Stats" type="Control" parent="UI_Layer"]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_top = 60.0
+offset_right = 250.0
+offset_bottom = -60.0
+grow_vertical = 2
+
+[node name="StatSlotsContainer" type="GridContainer" parent="UI_Layer/Zone3_Stats"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -115.0
+offset_top = -200.0
+offset_right = 115.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 15
+columns = 3
+
+[node name="Zone4_Slots" type="VBoxContainer" parent="UI_Layer"]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = 60.0
+offset_bottom = -60.0
+grow_horizontal = 0
+grow_vertical = 2
 alignment = 1
 
-[node name="CloseButton" type="Button" parent="VBoxContainer/PanelC/HBoxContainer"]
+[node name="DiceSlotsContainer" type="VBoxContainer" parent="UI_Layer/Zone4_Slots"]
 layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Zone5_Gauge" type="ProgressBar" parent="UI_Layer"]
+visible = false
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -60.0
+offset_bottom = -30.0
+grow_horizontal = 2
+grow_vertical = 0
+show_percentage = false
+
+[node name="RollButton" type="Button" parent="UI_Layer"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -100.0
+offset_top = -50.0
+offset_right = 100.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 20
+text = "주사위 굴리기"
+
+[node name="CloseButton" type="Button" parent="UI_Layer"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -60.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = 50.0
+grow_horizontal = 0
 text = "닫기"

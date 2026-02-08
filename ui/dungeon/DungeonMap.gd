@@ -8,6 +8,7 @@ signal node_activated(node_id: String)
 @onready var path_container: Node2D = $PathContainer
 @onready var info_label: Label = $InfoLabel
 @onready var enter_dungeon_button: Button = $EnterDungeonButton
+@onready var close_button: Button = $CloseButton
 @onready var completion_label: Label = $CompletionLabel
 
 # Data from MapManager - This will be refreshed in _on_visibility_changed
@@ -33,6 +34,9 @@ func _ready():
 	selected_target_node_id = ""
 	enter_dungeon_button.disabled = true
 	enter_dungeon_button.pressed.connect(_on_enter_dungeon_button_pressed)
+	
+	if close_button:
+		close_button.pressed.connect(_on_close_button_pressed)
 	
 	_create_player_marker()
 	
@@ -306,3 +310,17 @@ func _on_node_selected(target_node_id: String):
 func _on_enter_dungeon_button_pressed():
 	print("DEBUG: 'Enter Dungeon' button pressed. selected_target_node_id: '", selected_target_node_id, "'. Button disabled state: ", enter_dungeon_button.disabled)
 	emit_signal("node_activated", selected_target_node_id)
+
+# [신규] 닫기 버튼 클릭 시 지도 화면을 닫고 전투 HUD로 복구
+func _on_close_button_pressed():
+	print("DEBUG: DungeonMap: Close button pressed.")
+	var map_mgr = get_node_or_null("/root/MapManager")
+	if map_mgr and map_mgr.has_method("hide_dungeon_map"):
+		map_mgr.hide_dungeon_map()
+	else:
+		# Fallback: 만약 MapManager를 찾지 못할 경우의 안전장치
+		var game_mgr = get_node_or_null("/root/GameManager")
+		if game_mgr and game_mgr.ui_manager:
+			game_mgr.ui_manager.show_screen(game_mgr.ui_manager.Screen.BATTLE_HUD)
+		else:
+			queue_free()

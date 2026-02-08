@@ -9,35 +9,38 @@ enum Screen { NONE, DESTINY_DESIGN, BATTLE_HUD, INVENTORY, DUNGEON_MAP, END_OF_D
 @export var end_of_dungeon_screen_scene: PackedScene # New export for the end of dungeon screen
 @export var advantage_label_scene: PackedScene
 
-@onready var advantage_container = $AdvantageContainer
-@onready var battle_hud = $BattleHUD
+# [수정] 자식 노드를 선택적으로 참조 (마을 등 HUD가 없는 곳에서도 작동하도록)
+@onready var advantage_container = get_node_or_null("AdvantageContainer")
+@onready var battle_hud = get_node_or_null("BattleHUD")
 @onready var game_manager: GameManager = get_node("/root/GameManager") as GameManager
 
 var screen_nodes: Dictionary = {}
 var current_screen: Screen = Screen.NONE
 
 func _ready():
-	screen_nodes[Screen.BATTLE_HUD] = battle_hud
+	# [신규] 전역 참조 등록
+	game_manager.ui_manager = self
 	
-	# BattleHUD 시그널 연결
-	battle_hud.destiny_design_opened.connect(_on_destiny_design_opened)
-	battle_hud.map_requested.connect(get_node("/root/MapManager").show_dungeon_map)
-	battle_hud.start_combat_requested.connect(game_manager.handle_start_combat)
-	
-	# GameManager 시그널 연결
-	game_manager.battle_started.connect(_on_battle_started)
-	game_manager.battle_ended.connect(_on_battle_ended)
-	
-	# 전투 관련 시그널을 GameManager에 직접 연결
-	battle_hud.attack_stance_selected.connect(game_manager.handle_attack_stance)
-	battle_hud.defense_stance_selected.connect(game_manager.handle_defense_stance)
-	battle_hud.dodge_stance_selected.connect(game_manager.handle_dodge_stance)
-	battle_hud.skill_1_used.connect(game_manager.use_skill_1)
-	battle_hud.skill_2_used.connect(game_manager.use_skill_2)
-
-	show_screen(Screen.BATTLE_HUD) # Start with battle hud
+	if battle_hud:
+		screen_nodes[Screen.BATTLE_HUD] = battle_hud
+		# BattleHUD 시그널 연결
+		battle_hud.destiny_design_opened.connect(_on_destiny_design_opened)
+		battle_hud.map_requested.connect(get_node("/root/MapManager").show_dungeon_map)
+		battle_hud.start_combat_requested.connect(game_manager.handle_start_combat)
+		
+		# 전투 관련 시그널을 GameManager에 직접 연결
+		battle_hud.attack_stance_selected.connect(game_manager.handle_attack_stance)
+		battle_hud.defense_stance_selected.connect(game_manager.handle_defense_stance)
+		battle_hud.dodge_stance_selected.connect(game_manager.handle_dodge_stance)
+		battle_hud.skill_1_used.connect(game_manager.use_skill_1)
+		battle_hud.skill_2_used.connect(game_manager.use_skill_2)
+		
+		show_screen(Screen.BATTLE_HUD) # HUD가 있으면 HUD부터 표시
+	else:
+		show_screen(Screen.NONE)
 
 func show_screen(screen_type: Screen, instance: Node = null):
+# ... (이하 동일) ...
 	# Hide the current screen
 	if current_screen != Screen.NONE and screen_nodes.has(current_screen):
 		var current_screen_node = screen_nodes[current_screen]
@@ -48,6 +51,10 @@ func show_screen(screen_type: Screen, instance: Node = null):
 			screen_nodes.erase(current_screen)
 
 	current_screen = screen_type
+
+	# [수정] NONE 상태라면 새로운 화면을 표시하지 않고 즉시 종료
+	if screen_type == Screen.NONE:
+		return
 
 	# Show the new screen
 	if not screen_nodes.has(screen_type):
@@ -61,6 +68,11 @@ func show_screen(screen_type: Screen, instance: Node = null):
 					new_screen_instance.closed.connect(_on_destiny_design_closed)
 					if game_manager.has_method("handle_dice_roll_request"):
 						new_screen_instance.dice_roll_requested.connect(game_manager.handle_dice_roll_request)
+				Screen.INVENTORY:
+					if inventory_screen_scene:
+						new_screen_instance = inventory_screen_scene.instantiate()
+						if new_screen_instance.has_signal("closed"):
+							new_screen_instance.closed.connect(_on_inventory_closed)
 				Screen.END_OF_DUNGEON_OPTIONS:
 					new_screen_instance = end_of_dungeon_screen_scene.instantiate()
 					new_screen_instance.return_to_town_requested.connect(game_manager.handle_return_to_town)
@@ -84,24 +96,29 @@ func show_end_of_dungeon_options():
 
 # --- GameManager 시그널 핸들러 ---
 func _on_battle_started():
-	battle_hud.set_destiny_button_enabled(false)
-	# Hide both buttons when combat starts
-	if battle_hud.map_button: battle_hud.map_button.visible = false
-	if battle_hud.start_combat_button: battle_hud.start_combat_button.visible = false
+	if battle_hud:
+		battle_hud.set_destiny_button_enabled(false)
+		# Hide both buttons when combat starts
+		if battle_hud.map_button: battle_hud.map_button.visible = false
+		if battle_hud.start_combat_button: battle_hud.start_combat_button.visible = false
 
 func _on_battle_ended(win: bool):
-	if win:
-		battle_hud.set_destiny_button_enabled(true)
-		battle_hud.show_map_button()
-	else: # 패배 시
-		battle_hud.set_destiny_button_enabled(false)
+	if battle_hud:
+		if win:
+			battle_hud.set_destiny_button_enabled(true)
+			battle_hud.show_map_button()
+		else: # 패배 시
+			battle_hud.set_destiny_button_enabled(false)
 
 # --- BattleHUD 시그널 핸들러 ---
 func _on_inventory_opened():
 	show_screen(Screen.INVENTORY)
 
 func _on_inventory_closed():
-	show_screen(Screen.BATTLE_HUD)
+	if game_manager.current_game_phase == GameManager.GamePhase.TOWN:
+		show_screen(Screen.NONE)
+	else:
+		show_screen(Screen.BATTLE_HUD)
 
 func _on_destiny_design_opened():
 	show_screen(Screen.DESTINY_DESIGN)

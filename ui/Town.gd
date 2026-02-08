@@ -57,9 +57,51 @@ func _on_town_closing_time_reached():
 	closing_message_label.visible = true
 
 func _on_start_expedition_button_pressed():
+
 	print("원정 시작 버튼 클릭: 지도로 이동")
+
 	scene_manager.go_to_map()
 
+
+
 func _on_inventory_button_pressed():
-	print("가방 버튼 클릭: 인벤토리 화면 표시")
-	InventoryScreen.show_screen()
+
+
+
+	print("마을: 가방 화면 호출")
+
+
+
+	var gm = get_node("/root/GameManager")
+
+
+
+	if gm.ui_manager:
+
+
+
+		gm.ui_manager.show_screen(UIManager.Screen.INVENTORY)
+
+
+
+	else:
+
+
+
+		# UIManager가 없을 경우 오토로드된 InventoryScreen을 직접 호출하는 폴백 로직
+
+
+
+		if get_node_or_null("/root/InventoryScreen"):
+
+
+
+			get_node("/root/InventoryScreen").show_screen()
+
+
+
+		else:
+
+
+
+			printerr("Town: UIManager와 InventoryScreen 오토로드를 모두 찾을 수 없습니다.")

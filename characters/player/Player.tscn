@@ -1,7 +1,6 @@
-[gd_scene load_steps=6 format=3 uid="uid://crgb64xoea06b"]
+[gd_scene load_steps=5 format=3 uid="uid://crgb64xoea06b"]
 
 [ext_resource type="Script" uid="uid://gq1fmv4xiyhd" path="res://characters/player/Player.gd" id="1_player_base_script"]
-[ext_resource type="Script" uid="uid://b3s6hftg66a4i" path="res://core/MyStatsManager.gd" id="3_xoccb"]
 [ext_resource type="Script" uid="uid://kukc5jf2pxgg" path="res://resources/stats/MyCharacterStats.gd" id="4_awrgq"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0rwas"]
@@ -36,6 +35,3 @@ horizontal_alignment = 1
 [node name="AttackTimer" type="Timer" parent="."]
 wait_time = 0.3
 
-[node name="MyStatsManager" type="Node" parent="."]
-script = ExtResource("3_xoccb")
-character_stats = SubResource("Resource_4oy4f")

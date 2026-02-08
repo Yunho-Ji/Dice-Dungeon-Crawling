@@ -133,6 +133,18 @@ func show_dungeon_map():
 
 	update_dungeon_progress_hud()
 
+# [신규] 지도 화면을 닫고 월드 요소를 다시 표시
+func hide_dungeon_map():
+	print("DEBUG: MapManager: hide_dungeon_map called.")
+	_get_main_scene_nodes()
+	
+	if is_instance_valid(player_node): player_node.visible = true
+	if is_instance_valid(enemy_node): enemy_node.visible = true
+	if is_instance_valid(stage_info_hud): stage_info_hud.visible = true
+	
+	if is_instance_valid(ui_manager):
+		ui_manager.show_screen(UIManager.Screen.BATTLE_HUD)
+
 func _on_dungeon_node_activated(node_id: String):
 	print("DEBUG: MapManager: Node activated: ", node_id)
 	
@@ -144,6 +156,11 @@ func _on_dungeon_node_activated(node_id: String):
 	player_run_state.CurrentDepth = selected_node.depth
 	print("DEBUG: MapManager: player_run_state updated. CurrentNodeID: ", player_run_state.CurrentNodeID, ", CurrentDepth: ", player_run_state.CurrentDepth)
 	
+	# [신규] 탐험 보너스: 5개 노드 방문마다 주사위 굴림 기회 부여
+	if player_run_state.VisitedNodeIDs.size() > 0 and player_run_state.VisitedNodeIDs.size() % 5 == 0:
+		get_node("/root/DiceManager").enable_roll()
+		print("DEBUG: MapManager: 탐험 보너스! 5번째 노드 방문으로 주사위 굴림 기회 획득.")
+	
 	# Debugging next_node_ids of the newly activated node
 	if dungeon_data.nodes.has(player_run_state.CurrentNodeID):
 		var current_player_node: DungeonNode = dungeon_data.nodes[player_run_state.CurrentNodeID]
@@ -152,9 +169,9 @@ func _on_dungeon_node_activated(node_id: String):
 	update_dungeon_progress_hud()
 	print("DEBUG: MapManager: update_dungeon_progress_hud called.")
 
-	# Tell UIManager to switch back to the battle screen
-	ui_manager.show_screen(UIManager.Screen.BATTLE_HUD)
-	print("DEBUG: MapManager: UIManager requested to show BATTLE_HUD.")
+	# [수정] 월드 요소 복구가 포함된 함수 호출
+	hide_dungeon_map()
+	print("DEBUG: MapManager: hide_dungeon_map through node activation.")
 	
 	# Tell GameManager to prepare the battle
 	if dungeon_data.nodes.has(node_id):

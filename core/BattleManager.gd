@@ -11,7 +11,7 @@ func _ready():
 	# _ready()는 Main.gd에서 add_child될 때 호출됩니다.
 	# 초기에는 _process()를 비활성화합니다.
 	set_process(false)
-	print("--- BattleManager.gd: 초기화 완료 ---\
+	print("--- BattleManager.gd: 초기화 완료 ---
 ")
 
 # 전투 시작 함수 (GameManager에서 호출)
@@ -38,9 +38,9 @@ func start_battle(p: Character, e: Character, gm: Node):
 # _process 함수는 전투가 진행 중일 때만 활성화됩니다.
 func _process(_delta: float):
 	# 게임 종료 조건 확인
-	if player_node.stats_manager.get_stat("health").current_value <= 0:
+	if player_node.current_stats.get_stat("health").current_value <= 0:
 		_handle_battle_end(false) # 패배
-	elif enemy_node.stats_manager.get_stat("health").current_value <= 0:
+	elif enemy_node.current_stats.get_stat("health").current_value <= 0:
 		_handle_battle_end(true) # 승리
 
 # 전투 종료 처리 함수 (GameManager에 결과 전달)
@@ -94,7 +94,7 @@ func prepare_battle(node: DungeonNode, p_player: Character, p_enemy: Character, 
 	p_enemy.is_boss = is_boss # Correctly set the enemy's is_boss property
 	p_enemy.set_level(p_stage, p_battle_count, hp_multiplier)
 	p_enemy.position = Vector2(800, 300)
-	print("DEBUG: BattleManager: Enemy stats set: HP:", p_enemy.stats_manager.get_stat("health").computed_value)
+	print("DEBUG: BattleManager: Enemy stats set: HP:", p_enemy.current_stats.get_stat("health").computed_value)
 
 	# Reset characters
 	# if p_player.has_method("reset_for_next_battle"): p_player.reset_for_next_battle()
@@ -121,12 +121,12 @@ func set_player_stance(new_stance: Character.Stance):
 		printerr("BattleManager: player_node가 유효하지 않아 스탠스를 설정할 수 없습니다.")
 
 func _print_character_stats(char: Character):
-	if not is_instance_valid(char) or not char.stats_manager:
+	if not is_instance_valid(char) or not char.current_stats:
 		print("DEBUG: 캐릭터 또는 스탯 매니저가 유효하지 않습니다.")
 		return
 
 	print("DEBUG: 캐릭터: ", char.name)
-	var stats = char.stats_manager.character_stats
+	var stats = char.current_stats
 	if not stats:
 		print("DEBUG: 스탯이 로드되지 않았습니다.")
 		return

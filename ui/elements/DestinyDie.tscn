@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://c4v5sm3o501uu"]
+
+[ext_resource type="Script" uid="uid://cc20wbxgo02j5" path="res://ui/elements/DestinyDie.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://ui/elements/DiceVisual.tscn" id="2_visual"]
+
+[node name="DestinyDie" type="Control"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_script")
+
+[node name="DiceVisual" parent="." instance=ExtResource("2_visual")]
+position = Vector2(32, 32)

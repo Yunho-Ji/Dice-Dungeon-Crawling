@@ -12,7 +12,6 @@
 [ext_resource type="Texture2D" uid="uid://d217g34pxll2f" path="res://assets/sprites/characters/novice/Idle/idle3.png" id="10_2mc3f"]
 [ext_resource type="Texture2D" uid="uid://r3u8iawcbeuc" path="res://assets/sprites/characters/novice/Idle/idle4.png" id="11_rpc32"]
 [ext_resource type="Texture2D" uid="uid://bea8ccsx4linp" path="res://assets/sprites/characters/novice/Idle/idle5.png" id="12_0fuau"]
-[ext_resource type="Script" uid="uid://b3s6hftg66a4i" path="res://core/MyStatsManager.gd" id="14_qlggn"]
 [ext_resource type="Script" uid="uid://kukc5jf2pxgg" path="res://resources/stats/MyCharacterStats.gd" id="15_b5l11"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0rwas"]
@@ -98,6 +97,3 @@ horizontal_alignment = 1
 [node name="AttackTimer" type="Timer" parent="."]
 wait_time = 0.3
 
-[node name="MyStatsManager" type="Node" parent="."]
-script = ExtResource("14_qlggn")
-character_stats = SubResource("Resource_dh4k4")

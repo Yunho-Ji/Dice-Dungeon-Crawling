@@ -20,13 +20,21 @@ aseprite_executable_path="C:/Program Files (x86)/Steam/steamapps/common/Aseprite
 
 [autoload]
 
+SignalBus="*res://core/SignalBus.gd"
+DataManager="*res://core/DataManager.gd"
+PlatformManager="*res://core/PlatformManager.gd"
+SaveManager="*res://core/SaveManager.gd"
 GameManager="*res://core/GameManager.gd"
-DiceManager="*res://core/DiceManager.gd"
 SceneManager="*res://core/SceneManager.gd"
-TownManager="*res://core/TownManager.gd"
+StatManager="*res://core/StatManager.gd"
+StatusManager="*res://core/StatusManager.gd"
+DiceManager="*res://core/DiceManager.gd"
+EconomyManager="*res://core/EconomyManager.gd"
 PlayerManager="*res://core/PlayerManager.gd"
-MapManager="*res://core/MapManager.gd"
 InventoryManager="*res://core/InventoryManager.gd"
+MapManager="*res://core/MapManager.gd"
+TownManager="*res://core/TownManager.gd"
+DifficultyManager="*res://core/DifficultyManager.gd"
 Apeloot="*res://addons/apeloot/inventory/Apeloot.gd"
 InventoryScreen="*res://ui/screens/InventoryScreen.tscn"
 

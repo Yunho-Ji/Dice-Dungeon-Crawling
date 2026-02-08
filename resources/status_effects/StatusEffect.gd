@@ -15,13 +15,13 @@ func apply_effect(character: Character):
 	_is_active = true
 	for modifier in data.modifiers:
 		# MyStatModifier에 target_stat_key가 있으므로 직접 적용
-		character.stats_manager.add_modifier(modifier.target_stat_key, modifier)
+		character.current_stats.get_stat(modifier.target_stat_key).add_modifier(modifier)
 
 func remove_effect(character: Character):
 	if not _is_active or not data: return
 	_is_active = false
 	for modifier in data.modifiers:
-		character.stats_manager.remove_modifier(modifier.target_stat_key, modifier)
+		character.current_stats.get_stat(modifier.target_stat_key).remove_modifier(modifier)
 
 func update_duration(delta: float) -> bool:
 	if not data or data.duration == 0.0: return true # 데이터가 없거나 무한 지속 시간

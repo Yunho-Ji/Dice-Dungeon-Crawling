@@ -1,0 +1,24 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://ui/elements/DiceVisual.gd" id="1_script"]
+[ext_resource type="Shader" path="res://resources/shaders/dice_recolor.gdshader" id="2_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
+shader = ExtResource("2_shader")
+
+[node name="DiceVisualElement" type="Control"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_script")
+
+[node name="DiceBase" type="Sprite2D" parent="."]
+material = SubResource("ShaderMaterial_1")
+centered = false
+hframes = 7
+
+[node name="DiceNumber" type="Sprite2D" parent="."]
+centered = false
+hframes = 7
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]

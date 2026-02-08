@@ -14,6 +14,7 @@ var current_stance: Stance = Stance.ATTACK # 현재 스탠스
 var active_status_effects: Array[StatusEffect] = [] # 활성 상태 효과 (버프, 디버프, DOT 등)
 var character_data: CharacterData # 캐릭터의 기본 데이터를 담을 변수
 var _stat_signals_connected: bool = false # 스탯 신호 연결 여부 플래그
+var current_stats: MyCharacterStats # 실제 런타임 스탯 데이터 (MyStatsManager 대체)
 
 func initialize(data: CharacterData):
 	self.character_data = data
@@ -21,17 +22,13 @@ func initialize(data: CharacterData):
 	print("DEBUG: Character.gd: Initializing with CharacterData: ", data.character_name)
 	
 	if data and data.base_stats:
-		stats_manager.character_stats = data.base_stats.duplicate(true)
+		current_stats = data.base_stats.duplicate(true)
 		print("DEBUG: Character.gd: Stats initialized from CharacterData.")
 	else:
 		printerr("ERROR: Character.gd: Invalid CharacterData or base_stats provided for initialization.")
 
 	# 초기화 후 스탯 라벨 업데이트 등 필요한 작업 수행
 	update_hp_label()
-
-#const BuffA_Data = preload("res://resources/status_effects/data/BuffA_Data.tres")
-
-
 
 func set_stance(new_stance: Stance):
 	current_stance = new_stance
@@ -69,9 +66,6 @@ func remove_status_effect(effect: StatusEffect):
 		active_status_effects.erase(effect)
 		print(name, "에게서 상태 효과 제거: ", effect.get_effect_name())
 
-@onready var stats_manager: MyStatsManager = $MyStatsManager # Reference to the new stat manager
-
-
 @onready var action_gauge_bar = $ProgressBar
 @onready var hp_label = $Label
 
@@ -87,11 +81,13 @@ func _ready():
 	hp_label.position = Vector2(-32, 20)
 
 func _process(delta: float):
-	if stats_manager.get_stat("health").computed_value <= 0:
+	if not current_stats: return
+	
+	if current_stats.get_stat("health").computed_value <= 0:
 		action_gauge_bar.value = 0
 		action_gauge = 0.0
 		return
-	if target == null or not is_instance_valid(target) or target.stats_manager.get_stat("health").computed_value <= 0:
+	if target == null or not is_instance_valid(target) or target.current_stats.get_stat("health").computed_value <= 0:
 		action_gauge_bar.value = 0
 		action_gauge = 0.0
 		return
@@ -106,7 +102,7 @@ func _process(delta: float):
 
 	# 방어 태세 중에는 행동 게이지가 차오르지 않음 (유지)
 	if current_stance != Stance.DEFENSE:
-		action_gauge += stats_manager.get_stat("attack_speed").computed_value * delta
+		action_gauge += current_stats.get_stat("attack_speed").computed_value * delta
 	
 	action_gauge_bar.value = action_gauge
 
@@ -180,6 +176,8 @@ func _on_input_event(_viewport: Node, _event: InputEvent, _shape_idx: int):
 	
 
 func take_damage(amount: int):
+	if not current_stats: return
+
 	print("DEBUG: take_damage called. Amount: ", amount, ", is_guarding: ", is_guarding)
 	var damage_reduction = 0.0
 	var retained_gauge = 0.0 
@@ -208,41 +206,43 @@ func take_damage(amount: int):
 		action_gauge = retained_gauge
 		action_gauge_bar.value = action_gauge # UI 즉시 갱신
 
-	var final_damage = max(0, amount - stats_manager.get_stat("defense").computed_value)
+	var final_damage = max(0, amount - current_stats.get_stat("defense").computed_value)
 	final_damage = int(final_damage * (1.0 - damage_reduction))
 
-	stats_manager.get_stat("health").current_value -= final_damage
-	stats_manager.get_stat("health").current_value = max(0, stats_manager.get_stat("health").current_value)
+	current_stats.get_stat("health").current_value -= final_damage
+	current_stats.get_stat("health").current_value = max(0, current_stats.get_stat("health").current_value)
 
 	update_hp_label()
 	emit_signal("damage_taken", final_damage, global_position)
 	
-	print(name, "가 ", final_damage, " 대미지를 받았습니다. 남은 HP: ", stats_manager.get_stat("health").current_value)
+	print(name, "가 ", final_damage, " 대미지를 받았습니다. 남은 HP: ", current_stats.get_stat("health").current_value)
 
-	if stats_manager.get_stat("health").current_value <= 0:
+	if current_stats.get_stat("health").current_value <= 0:
 		print(name, " 사망!")
 		set_process(false)
 
 
 func update_hp_label():
+	if not current_stats: return
 	print("DEBUG: update_hp_label called by signal system!")
-	hp_label.text = "HP: " + str(stats_manager.get_stat("health").current_value) + "/" + str(stats_manager.get_stat("health").computed_value)
+	hp_label.text = "HP: " + str(current_stats.get_stat("health").current_value) + "/" + str(current_stats.get_stat("health").computed_value)
 
 func attack(target_node: CharacterBody2D):
-	#print(name, "가 ", target_node.name, "에게 공격합니다! 공격력: ", stats_manager.get_stat("attack_power").computed_value)
-	target_node.take_damage(stats_manager.get_stat("attack_power").computed_value)
+	if not current_stats: return
+	#print(name, "가 ", target_node.name, "에게 공격합니다! 공격력: ", current_stats.get_stat("attack_power").computed_value)
+	target_node.take_damage(current_stats.get_stat("attack_power").computed_value)
 
 
 func update_stats_from_player_manager(player_mgr: PlayerManager):
 	if player_mgr and player_mgr.current_player_stats:
 		# Synchronize the character's local stats with the PlayerManager's session stats.
-		stats_manager.character_stats.sync_from(player_mgr.current_player_stats)
+		current_stats.sync_from(player_mgr.current_player_stats)
 
 		print("DEBUG: Character.gd: Stats updated from PlayerManager.current_player_stats for ", name)
 		
 		# Connect stat signals for real-time UI updates, only once.
 		if not _stat_signals_connected:
-			for stat in stats_manager.get_all_stats():
+			for stat in current_stats.get_all_stats():
 				if stat and not stat.value_changed.is_connected(update_hp_label):
 					stat.value_changed.connect(update_hp_label)
 			_stat_signals_connected = true
@@ -253,40 +253,34 @@ func update_stats_from_player_manager(player_mgr: PlayerManager):
 		printerr("ERROR: Character.gd: PlayerManager or current_player_stats not valid for updating stats.")
 
 func set_level(p_stage: int, p_battle_count: int, hp_multiplier: float):
+	if not current_stats: return
 	print("DEBUG: set_level function called for '", name, "'")
-	# TODO: This clears ALL modifiers. A more robust system would identify and
-	# remove only the modifiers from a previous set_level call.
-	for stat_key in stats_manager.character_stats.get_all_stat_keys():
-		var stat = stats_manager.get_stat(stat_key)
+	
+	# 초기화: 기존 Modifier 제거
+	for stat_key in current_stats.get_all_stat_keys():
+		var stat = current_stats.get_stat(stat_key)
 		if stat:
-			stat.clear_modifiers()
+			StatManager.clear_modifiers(stat) # StatManager 사용
 
 	# Health scaling
-	var health_stat = stats_manager.get_stat("health")
+	var health_stat = current_stats.get_stat("health")
 	if health_stat:
 		var hp_bonus = int(health_stat.base_value * (hp_multiplier - 1.0))
-		var health_modifier = MyStatModifier.new()
-		health_modifier.operation = MyStatModifier.Operation.ADD
-		health_modifier.value = hp_bonus
-		health_stat.add_modifier(health_modifier)
+		StatManager.add_modifier(health_stat, hp_bonus, MyStatModifier.Operation.ADD, "LevelScaling")
 		
 		# After scaling, reset current HP to the new max HP
 		health_stat.current_value = health_stat.computed_value
 
 	# Attack scaling
-	var attack_stat = stats_manager.get_stat("attack_power")
+	var attack_stat = current_stats.get_stat("attack_power")
 	if attack_stat:
-		var attack_modifier = MyStatModifier.new()
-		attack_modifier.operation = MyStatModifier.Operation.ADD
-		attack_modifier.value = p_stage # This is probably too low, but we're fixing the architecture
-		attack_stat.add_modifier(attack_modifier)
+		# p_stage 값은 임시 로직입니다.
+		StatManager.add_modifier(attack_stat, p_stage, MyStatModifier.Operation.ADD, "LevelScaling")
 		attack_stat.current_value = attack_stat.computed_value
 
 	# Defense scaling
-	var defense_stat = stats_manager.get_stat("defense")
+	var defense_stat = current_stats.get_stat("defense")
 	if defense_stat:
-		var defense_modifier = MyStatModifier.new()
-		defense_modifier.operation = MyStatModifier.Operation.ADD
-		defense_modifier.value = p_battle_count # Also probably too low
-		defense_stat.add_modifier(defense_modifier)
+		StatManager.add_modifier(defense_stat, p_battle_count, MyStatModifier.Operation.ADD, "LevelScaling")
+	
 	update_hp_label()

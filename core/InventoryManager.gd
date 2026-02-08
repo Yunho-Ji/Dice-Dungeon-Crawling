@@ -7,6 +7,16 @@ extends Node
 # 골드 관리 및 금화 더미 로직
 # =============================================================================
 
+func _ready() -> void:
+	# EconomyManager에 골드 검증 로직 주입 (의존성 역전)
+	if EconomyManager:
+		EconomyManager.gold_validator = self.calculate_allowed_gold
+
+func _exit_tree() -> void:
+	# 안전하게 연결 해제
+	if EconomyManager and EconomyManager.gold_validator == self.calculate_allowed_gold:
+		EconomyManager.gold_validator = Callable()
+
 # 플레이어의 골드 변경 요청을 처리하고, 인벤토리 상황에 맞춰 실제 적용 가능한 골드량을 반환합니다.
 # projected_gold: 변경 후 예상되는 총 골드량
 func calculate_allowed_gold(current_gold: int, projected_gold: int) -> int:

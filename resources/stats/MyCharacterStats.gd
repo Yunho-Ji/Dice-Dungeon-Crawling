@@ -87,3 +87,14 @@ func apply_dice_to_stat(stat_name: String, value: int):
 		print(stat_name, "에 ", value, " 추가. 현재 값: ", stat.computed_value)
 	else:
 		print("알 수 없는 스탯: ", stat_name)
+
+# [신규] 모든 스탯의 주사위 보너스(Modifiers) 제거
+# 운명 설계 단계에서 재분배를 위해 기존 강화 수치를 초기화할 때 사용
+func remove_all_modifiers():
+	var all_stats = get_all_stats()
+	for stat in all_stats:
+		if stat and stat.has_method("clear_modifiers"):
+			# MyStat에 정의된 공식 메서드를 통해 수정자 제거 및 신호 발생
+			stat.clear_modifiers()
+			# 현재 값(current_value)도 베이스 수치로 동기화
+			stat.current_value = stat.base_value
