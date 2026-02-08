@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://byb34d40xkc11"]
+[gd_scene load_steps=5 format=3 uid="uid://byb34d40xkc11"]
 
 [ext_resource type="Script" uid="uid://dni0feyt1bs7x" path="res://ui/screens/InventoryScreen.gd" id="1_inv_script"]
 [ext_resource type="Script" uid="uid://dfrl4e0x3aw7k" path="res://addons/apeloot/inventory/grid_inventory/inventory_interface.gd" id="2_inventory_script"]
+[ext_resource type="PackedScene" uid="uid://c3ov6txoccv0v" path="res://addons/apeloot/inventory/item_slot/item_slot.tscn" id="3_slot_scene"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
 bg_color = Color(0.18, 0.2, 0.25, 1)
@@ -49,23 +50,11 @@ theme_override_constants/separation = 15
 layout_mode = 2
 alignment = 1
 
-[node name="GoldLabel" type="Label" parent="CenterContainer/MainPanel/VBox/Header"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.843137, 0, 1)
-theme_override_font_sizes/font_size = 18
-text = "0 G"
-
-[node name="DebugGoldButton" type="Button" parent="CenterContainer/MainPanel/VBox/Header"]
-custom_minimum_size = Vector2(40, 20)
-layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "+1K"
-
 [node name="Title" type="Label" parent="CenterContainer/MainPanel/VBox/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 24
-text = "가방"
+text = "소지품 및 장비"
 horizontal_alignment = 1
 
 [node name="CloseButton" type="Button" parent="CenterContainer/MainPanel/VBox/Header"]
@@ -73,7 +62,63 @@ custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
 text = "X"
 
-[node name="InventoryInterface" type="PanelContainer" parent="CenterContainer/MainPanel/VBox"]
+[node name="MainHBox" type="HBoxContainer" parent="CenterContainer/MainPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 40
+
+[node name="EquipmentSection" type="VBoxContainer" parent="CenterContainer/MainPanel/VBox/MainHBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection"]
+layout_mode = 2
+text = "장착 장비"
+horizontal_alignment = 1
+
+[node name="SlotsGrid" type="GridContainer" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection"]
+layout_mode = 2
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 2
+
+[node name="HeadSlot" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
+layout_mode = 2
+
+[node name="TopSlot" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
+layout_mode = 2
+
+[node name="BottomSlot" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
+layout_mode = 2
+
+[node name="ShoesSlot" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
+layout_mode = 2
+
+[node name="LeftHandSlot" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
+layout_mode = 2
+
+[node name="RightHandSlot" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
+layout_mode = 2
+
+[node name="Acc1" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
+layout_mode = 2
+
+[node name="Acc2" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
+layout_mode = 2
+
+[node name="Acc3" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
+layout_mode = 2
+
+[node name="Acc4" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
+layout_mode = 2
+
+[node name="InventorySection" type="VBoxContainer" parent="CenterContainer/MainPanel/VBox/MainHBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/MainPanel/VBox/MainHBox/InventorySection"]
+layout_mode = 2
+text = "가방"
+horizontal_alignment = 1
+
+[node name="InventoryInterface" type="PanelContainer" parent="CenterContainer/MainPanel/VBox/MainHBox/InventorySection"]
 custom_minimum_size = Vector2(240, 180)
 layout_mode = 2
 script = ExtResource("2_inventory_script")
@@ -81,19 +126,11 @@ id = "player_inventory"
 slot_count = 12
 columns = 4
 
-[node name="EventPopup" type="Panel" parent="."]
+[node name="Footer" type="HBoxContainer" parent="CenterContainer/MainPanel/VBox"]
+layout_mode = 2
+alignment = 2
 
-[node name="TitleLabel" type="Label" parent="EventPopup"]
-layout_mode = 0
-
-[node name="DescriptionLabel" type="RichTextLabel" parent="EventPopup"]
-layout_mode = 0
-
-[node name="Option1Button" type="Button" parent="EventPopup"]
-layout_mode = 0
-
-[node name="Option2Button" type="Button" parent="EventPopup"]
-layout_mode = 0
-
-[node name="ResultLabel" type="Label" parent="EventPopup"]
-layout_mode = 0
+[node name="GoldLabel" type="Label" parent="CenterContainer/MainPanel/VBox/Footer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.843137, 0, 1)
+text = "소지 골드: 0 G"

@@ -8,20 +8,54 @@ var town_manager # TownManager 싱글톤 인스턴스를 저장할 변수
 @onready var start_expedition_button = $StartExpeditionButton
 @onready var scene_manager: SceneManager = get_node("/root/SceneManager")
 
+@onready var player_name_label = $PlayerInfoPanel/HBox/VBox_Basic/PlayerName
+@onready var level_info_label = $PlayerInfoPanel/HBox/VBox_Basic/LevelInfo
+@onready var stats_label = $PlayerInfoPanel/HBox/VBox_Stats/StatsLabel
+@onready var gold_label = $PlayerInfoPanel/HBox/VBox_Stats/GoldLabel
+
 func _ready():
-	# 싱글톤 인스턴스를 가져옵니다.
+	# 싱글톤 인스턴스들을 가져옵니다.
 	town_manager = get_node("/root/TownManager")
+	var player_manager = get_node("/root/PlayerManager")
+	var economy_manager = get_node("/root/EconomyManager")
 
 	# 인스턴스를 통해 시그널에 연결합니다.
 	town_manager.time_updated.connect(_on_time_updated)
 	town_manager.town_closing_time_reached.connect(_on_town_closing_time_reached)
 	start_expedition_button.pressed.connect(_on_start_expedition_button_pressed)
 	
+	# [신규] 플레이어 데이터 업데이트
+	_update_player_info()
+	if economy_manager.has_signal("gold_changed"):
+		economy_manager.gold_changed.connect(func(_val): _update_player_info())
+	
 	# 인스턴스를 통해 함수를 호출합니다.
 	_on_time_updated(town_manager.get_current_time_string())
 
 	for button in location_buttons.get_children():
 		button.pressed.connect(Callable(self, "_on_location_button_pressed").bind(button.name))
+
+func _update_player_info():
+	var pm = get_node("/root/PlayerManager")
+	var em = get_node("/root/EconomyManager")
+	
+	# 캐릭터 클래스 및 레벨 정보
+	player_name_label.text = "플레이어 (%s)" % pm.player_data.character_name
+	level_info_label.text = "LV. %d (EXP: %d / %d)" % [1, 0, 100] # 레벨 시스템 연동 예정
+	
+	# 스탯 정보 (최종 합산 수치 반영)
+	if pm.current_player_stats:
+		var stats = pm.current_player_stats
+		stats_label.text = "HP: %d / ATK: %d / DEF: %d" % [
+			stats.get_stat("health").computed_value,
+			stats.get_stat("attack_power").computed_value,
+			stats.get_stat("defense").computed_value
+		]
+	else:
+		stats_label.text = "스탯 정보를 불러올 수 없습니다."
+	
+	# 골드 정보
+	gold_label.text = "소지 골드: %d G" % em.get_gold()
 
 func _on_time_updated(time_string: String):
 	time_display_label.text = time_string

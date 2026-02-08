@@ -1,116 +1,76 @@
 # InventoryScreen.gd
-# 화면 설명: 플레이어의 인벤토리를 표시하는 UI입니다.
-# '가방' 버튼을 누르면 표시되며, 아이템을 확인하고 사용할 수 있습니다.
+# 화면 설명: 플레이어의 인벤토리 및 장비를 표시하는 UI입니다.
 extends CanvasLayer
 
 # 인벤토리가 닫힐 때 발생하는 시그널입니다.
 signal inventory_closed
 
-var inventory_interface: GridInventory = null
+# --- 노드 참조 ---
+@onready var main_panel = $CenterContainer/MainPanel
+@onready var inventory_interface = $CenterContainer/MainPanel/VBox/MainHBox/InventorySection/InventoryInterface
+@onready var gold_label = $CenterContainer/MainPanel/VBox/Footer/GoldLabel
+@onready var close_button = $CenterContainer/MainPanel/VBox/Header/CloseButton
 
-# =============================================================================
-# Godot 내장 함수 (Built-in Godot Functions)
-# =============================================================================
+# 장비 슬롯 참조
+@onready var head_slot = $CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid/HeadSlot
+@onready var top_slot = $CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid/TopSlot
+@onready var bottom_slot = $CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid/BottomSlot
+@onready var shoes_slot = $CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid/ShoesSlot
+@onready var left_hand_slot = $CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid/LeftHandSlot
+@onready var right_hand_slot = $CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid/RightHandSlot
+@onready var acc_slots = [
+	$CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid/Acc1,
+	$CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid/Acc2,
+	$CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid/Acc3,
+	$CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid/Acc4
+]
 
 func _ready():
 	print("DEBUG: InventoryScreen _ready called.")
 	
-	# SignalBus 연결: 골드 변화 감지
+	# 시그널 연결
+	close_button.pressed.connect(_on_close_button_pressed)
 	SignalBus.connect("gold_changed", _on_gold_changed)
 	
-	# 노드 경로: CenterContainer -> MainPanel -> VBox
-	var vbox = $CenterContainer/MainPanel/VBox
-	
-	if not vbox:
-		printerr("ERROR: VBox container not found!")
-		return
-		
-	# InventoryInterface 찾기
-	if vbox.has_node("InventoryInterface"):
-		inventory_interface = vbox.get_node("InventoryInterface")
-		print("DEBUG: InventoryInterface node linked.")
-	else:
-		printerr("ERROR: InventoryInterface node NOT found.")
-
-	# 헤더 영역 노드 연결
-	var header = vbox.get_node("Header")
-	
-	# 닫기 버튼 연결
-	if header and header.has_node("CloseButton"):
-		header.get_node("CloseButton").pressed.connect(_on_close_button_pressed)
-	
-	# 디버그 골드 버튼 연결 및 표시 설정
-	if header and header.has_node("DebugGoldButton"):
-		var debug_btn = header.get_node("DebugGoldButton")
-		debug_btn.pressed.connect(_on_debug_gold_button_pressed)
-		debug_btn.visible = true # 테스트를 위해 항상 표시 (나중에 제거)
-	
+	_setup_equipment_slots()
 	hide_screen()
 
-# =============================================================================
-# 공개 함수 (Public Methods)
-# =============================================================================
+# 장비 슬롯 구분용 초기 설정
+func _setup_equipment_slots():
+	head_slot.tooltip_text = "머리"
+	top_slot.tooltip_text = "상의"
+	bottom_slot.tooltip_text = "하의"
+	shoes_slot.tooltip_text = "신발"
+	left_hand_slot.tooltip_text = "왼손 (무기/방패)"
+	right_hand_slot.tooltip_text = "오른손 (무기/방패)"
+	for i in range(acc_slots.size()):
+		acc_slots[i].tooltip_text = "장신구 %d" % (i + 1)
 
 func show_screen():
 	print("InventoryScreen: 화면 표시")
 	self.visible = true
-	
-	if not inventory_interface:
-		printerr("ERROR: inventory_interface is null.")
-		return
-		
 	update_gold_display()
-
-	# 테스트용 아이템 생성 제거 (Clean Start)
-	# if inventory_interface.items.size() == 0:
-	# 	_test_inventory()
-
-func update_gold_display(gold_amount: int = -1):
-	var header = $CenterContainer/MainPanel/VBox/Header
-	if header and header.has_node("GoldLabel"):
-		# 인자가 없으면 현재 골드 조회
-		if gold_amount == -1:
-			gold_amount = EconomyManager.get_gold()
-		
-		header.get_node("GoldLabel").text = str(gold_amount) + " G"
+	_refresh_equipment_visuals()
 
 func hide_screen():
-	print("InventoryScreen: 화면 숨김")
 	self.visible = false
 
-# =============================================================================
-# 내부 함수 (Private Methods)
-# =============================================================================
+func update_gold_display(gold_amount: int = -1):
+	if gold_amount == -1:
+		gold_amount = EconomyManager.get_gold()
+	gold_label.text = "소지 골드: %d G" % gold_amount
 
-func _test_inventory():
-	print("InventoryScreen: 테스트 아이템 생성 중...")
-	# Apeloot에 정의된 아이템들을 랜덤하게 몇 개 추가해봅니다.
-	var test_items = ["steak", "pickaxe", "ketchup", "glasses"]
-	for i in range(5):
-		var item_id = test_items.pick_random()
-		var item = inventory_interface.spawn_item(item_id)
-		# 자동 배치 시도
-		if not inventory_interface.try_fit_and_place(item):
-			item.queue_free() # 배치 실패 시 제거
-			print("InventoryScreen: 아이템 배치 실패 - " + item_id)
-		else:
-			print("InventoryScreen: 아이템 배치 성공 - " + item_id)
+# [신규] 장비 슬롯 시각화 업데이트
+func _refresh_equipment_visuals():
+	var pm = get_node("/root/PlayerManager")
+	# 현재 PlayerManager의 equipment 데이터를 바탕으로 슬롯의 아이콘 등을 업데이트합니다.
+	# (Apeloot 연동 로직 추가 예정)
+	pass
 
-# =============================================================================
-# 시그널 핸들러 (Signal Handlers)
-# =============================================================================
-
+# --- 시그널 핸들러 ---
 func _on_gold_changed(new_gold: int, _delta: int):
-	# SignalBus를 통해 골드가 변경되면 자동 업데이트
 	update_gold_display(new_gold)
 
-func _on_debug_gold_button_pressed():
-	print("DEBUG: +1000 Gold added via button.")
-	# EconomyManager 직접 사용
-	EconomyManager.add_gold(1000)
-	# 업데이트는 SignalBus가 처리하므로 수동 호출 불필요
-
 func _on_close_button_pressed():
-	# 닫기 버튼이 눌리면 화면을 숨기고 시그널을 보냅니다.
 	hide_screen()
 	emit_signal("inventory_closed")

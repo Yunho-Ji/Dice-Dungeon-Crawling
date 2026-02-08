@@ -7,6 +7,13 @@
 [ext_resource type="PackedScene" uid="uid://dungeon_end_screen" path="res://ui/screens/EndOfDungeonScreen.tscn" id="5_end_of_dungeon_scene"]
 [ext_resource type="PackedScene" path="res://ui/screens/AdvantageLabel.tscn" id="6_advantage_label_scene"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ExpBG"]
+bg_color = Color(0, 0, 0, 0.5)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
 [node name="Town" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -23,7 +30,53 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.2, 0.3, 0.4, 1)
+color = Color(0.12, 0.15, 0.2, 1)
+
+[node name="PlayerInfoPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 80.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ExpBG")
+
+[node name="HBox" type="HBoxContainer" parent="PlayerInfoPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_right = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 30
+
+[node name="VBox_Basic" type="VBoxContainer" parent="PlayerInfoPanel/HBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="PlayerName" type="Label" parent="PlayerInfoPanel/HBox/VBox_Basic"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "플레이어 (Novice)"
+
+[node name="LevelInfo" type="Label" parent="PlayerInfoPanel/HBox/VBox_Basic"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+text = "LV. 1 (EXP: 0 / 100)"
+
+[node name="VBox_Stats" type="VBoxContainer" parent="PlayerInfoPanel/HBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="StatsLabel" type="Label" parent="PlayerInfoPanel/HBox/VBox_Stats"]
+layout_mode = 2
+text = "HP: 100 / ATK: 10 / DEF: 5"
+
+[node name="GoldLabel" type="Label" parent="PlayerInfoPanel/HBox/VBox_Stats"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+text = "소지 골드: 0 G"
 
 [node name="TimeDisplay" type="Label" parent="."]
 layout_mode = 1
