@@ -31,7 +31,7 @@ var dice_instances: Array = []   # 오른쪽 슬롯의 UI 주사위들
 var physics_dice: Array = []     # 아레나의 물리 주사위들
 var arena_ui_dice: Array = []    # 아레나에 멈춘 후 교체된 UI 주사위들
 var roll_results: Array = []
-var target_stat_name: String = "" # [신규] 이번 세션에서 선택된 누적 대상 스탯
+var invested_stat_names: Array = [] # [수정] 이번 세션에서 이미 주사위가 투입된 스탯 목록
 var charge_power: float = 0.0
 var charge_speed: float = 150.0
 var charge_direction: int = 1
@@ -252,7 +252,7 @@ func _launch_dice():
 	current_phase = Phase.ROLLING
 	power_gauge.visible = false
 	roll_button.visible = false # [신규] 발사 즉시 버튼 숨김
-	target_stat_name = "" # [신규] 새로운 굴림 세션 시작 시 타겟 스탯 초기화
+	invested_stat_names.clear() # [수정] 새로운 굴림 세션 시작 시 투자 목록 초기화
 	
 	# [수정] 스탯은 누적 성장하는 개념이므로, 기존 보너스를 삭제(remove_all_modifiers)하지 않습니다.
 	# 대신 주사위 사용 상태만 초기화하여 새로운 주사위를 배치할 준비를 합니다.

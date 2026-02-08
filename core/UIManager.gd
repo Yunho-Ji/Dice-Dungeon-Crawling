@@ -21,6 +21,10 @@ func _ready():
 	# [신규] 전역 참조 등록
 	game_manager.ui_manager = self
 	
+	# [복구] GameManager 시그널 연결
+	game_manager.battle_started.connect(_on_battle_started)
+	game_manager.battle_ended.connect(_on_battle_ended)
+	
 	if battle_hud:
 		screen_nodes[Screen.BATTLE_HUD] = battle_hud
 		# BattleHUD 시그널 연결

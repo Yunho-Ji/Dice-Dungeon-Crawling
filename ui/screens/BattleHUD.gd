@@ -28,16 +28,17 @@ func _ready():
 	$BattleControls/Skill2Button.pressed.connect(_on_skill_2_button_pressed)
 	# $InventoryButton.pressed.connect(_on_inventory_button_pressed) # Connected in editor
 	
-	# if destiny_design_button: destiny_design_button.pressed.connect(_on_destiny_design_button_pressed)
-	# if map_button: map_button.pressed.connect(_on_map_button_pressed)
-	# if start_combat_button: start_combat_button.pressed.connect(_on_start_combat_button_pressed)
+	# [수정] 버튼 시그널 명시적 연결
+	if map_button: map_button.pressed.connect(_on_map_button_pressed)
+	if start_combat_button: start_combat_button.pressed.connect(_on_start_combat_button_pressed)
+	if destiny_design_button: destiny_design_button.pressed.connect(_on_destiny_design_button_pressed)
 	
 	# InventoryScreen Autoload에 inventory_opened 시그널 연결
 	inventory_opened.connect(InventoryScreen.show_screen)
 
 	# Initially hide both buttons
-	map_button.visible = false
-	start_combat_button.visible = false
+	if map_button: map_button.visible = false
+	if start_combat_button: start_combat_button.visible = false
 
 func set_destiny_button_enabled(is_enabled: bool):
 	if is_instance_valid(destiny_design_button):

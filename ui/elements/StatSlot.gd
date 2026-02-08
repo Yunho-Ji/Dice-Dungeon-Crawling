@@ -34,10 +34,10 @@ func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 	if not (data is Dictionary and data.has("type") and data.type == "dice"):
 		return false
 	
-	# [수정] 1회 1스탯 누적 규칙 적용
+	# [수정] 중복 투자 금지 규칙: 이미 주사위가 투입된 스탯은 차단
 	var screen = _get_design_screen()
-	if screen and screen.target_stat_name != "" and screen.target_stat_name != stat_name:
-		return false # 이미 다른 스탯이 선택됨
+	if screen and stat_name in screen.invested_stat_names:
+		return false # 이 스탯은 이번 세션에서 이미 사용됨
 		
 	return true
 
@@ -50,10 +50,11 @@ func _drop_data(_at_position: Vector2, data: Variant):
 		dice_modifier.target_stat_key = stat_name
 		current_stat_value.add_modifier(dice_modifier)
 		
-		# [신규] 이번 세션의 누적 타겟으로 이 스탯을 고정
+		# [수정] 이번 세션의 투자 완료 목록에 이 스탯 추가
 		var screen = _get_design_screen()
 		if screen:
-			screen.target_stat_name = stat_name
+			if not stat_name in screen.invested_stat_names:
+				screen.invested_stat_names.append(stat_name)
 		
 		# [수정] 데이터 삭제 대신 '사용됨' 상태로 플래그 업데이트
 		if get_node("/root/DiceManager").has_method("mark_dice_as_used"):
