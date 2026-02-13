@@ -117,19 +117,32 @@ func calculate_item_position(item, center_slot, global=true):
 
 # 저장된 상태로부터 그리드 재구성
 func reconstruct_grid_from_states(saved_states):
-	for item in items:
+	for item in items.duplicate(): # 안전하게 순회하며 제거
 		remove_item(item)
 	items.clear()
 	item_states.clear()
+	
 	for slot in grid.get_children():
 		slot.full = false
+		slot.occupying_item = null
+		
 	for state in saved_states:
-		var item = spawn_item(state.id, state.stack_count)
-		for prop in item.saved_props:
-			item.set(prop, state.get(prop))
-		mark_slots_as_full(item, state.previous_center_slot)
-		items.append(item)
-		item_states.append(state)
+		var item = spawn_item(state.id, state.get("stack_count", 1))
+		
+		# 속성 복구
+		if state.has("instance_id"): item.instance_id = state.instance_id
+		if state.has("orientation"): item.orientation = state.orientation
+		if state.has("rarity"): item.rarity = state.rarity
+		if state.has("stats"): item.stats = state.stats
+		if state.has("price"): item.price = state.price
+		
+		# 그리드 배치 (시각적 및 논리적)
+		var center_slot = state.get("previous_center_slot", -1)
+		if center_slot != -1:
+			snap_item_to_grid(item, center_slot)
+		else:
+			# 슬롯 정보가 없으면 자동 배치 시도
+			try_fit_and_place(item)
 
 # 아이템 생성
 func spawn_item(item_id, stack_count = 1):

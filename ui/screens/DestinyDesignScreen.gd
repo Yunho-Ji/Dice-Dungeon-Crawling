@@ -154,8 +154,17 @@ func _initialize_stat_slots():
 	for child in stat_slots_container.get_children():
 		child.queue_free()
 		
+	var stats_obj = null
 	if game_manager.player_node and game_manager.player_node.current_stats:
-		var stats_obj = game_manager.player_node.current_stats
+		stats_obj = game_manager.player_node.current_stats
+	else:
+		# [신규] 마을 등 캐릭터 노드가 없는 환경에서의 폴백
+		var pm = get_node_or_null("/root/PlayerManager")
+		if pm and pm.current_player_stats:
+			stats_obj = pm.current_player_stats
+			print("DestinyDesignScreen: PlayerManager의 세션 스탯을 참조합니다.")
+
+	if stats_obj:
 		var stat_keys = stats_obj.get_all_stat_keys()
 		for s_name in stat_keys:
 			var stat_res = stats_obj.get_stat(s_name)
@@ -184,10 +193,12 @@ func _spawn_initial_dice_in_slots():
 # 슬롯의 주사위를 클릭했을 때 재굴림 처리
 func _on_slot_dice_input(event, die_node):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		# 이미 사용된(is_used: true) 경우에만 재굴림 가능하도록 설정하거나 
-		# 혹은 주사위가 아직 아레나에 없을 때(0.3 투명도 상태) 재굴림 시도
-		if die_node.modulate.a < 1.0:
-			reroll_dice(die_node)
+		# 주사위가 아직 굴려지지 않은 상태(modulate.a == 1.0이고 굴리기 전) 혹은 특정 조건에서만 재굴림 허용
+		# 현재는 '이미 굴려진 결과물'과 '굴리기 전 슬롯'이 섞여있어 혼동이 올 수 있음.
+		# 단순 클릭만으로는 재굴림되지 않도록 주석 처리하거나 조건을 엄격하게 변경.
+		if current_phase == Phase.IDLE and dice_manager.can_roll() and die_node.modulate.a == 1.0:
+			# reroll_dice(die_node) # 의도치 않은 재굴림 방지를 위해 일단 비활성화 (드래그 앤 드롭에 집중)
+			pass
 
 # 단일 주사위 재굴림 로직 (Zone 4 -> Zone 2)
 func reroll_dice(die_node):

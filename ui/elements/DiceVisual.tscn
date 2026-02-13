@@ -18,4 +18,5 @@ material = SubResource("ShaderMaterial_1")
 hframes = 7
 
 [node name="DiceNumber" type="Sprite2D" parent="."]
+material = SubResource("ShaderMaterial_1")
 hframes = 7

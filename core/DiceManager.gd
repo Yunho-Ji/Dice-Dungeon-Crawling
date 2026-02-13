@@ -37,7 +37,9 @@ func add_pending_reward(dice_sides: int):
 func confirm_reward(reward_index: int):
 	if reward_index < 0 or reward_index >= pending_rewards.size(): return
 	var new_sides = pending_rewards[reward_index]
-	if replace_lowest_dice(new_sides) != -1:
+	var old_sides = replace_lowest_dice(new_sides)
+	if old_sides != -1:
+		print("DiceManager: 주사위 교체 완료 (D", old_sides, " -> D", new_sides, ")")
 		pending_rewards.remove_at(reward_index)
 
 func can_roll() -> bool:
@@ -45,7 +47,8 @@ func can_roll() -> bool:
 
 func enable_roll():
 	can_roll_new_dice = true
-	needs_redistribution = true # [중요] 새로운 기회 획득 시 재분배 권한 활성화
+	needs_redistribution = true
+	print("DiceManager: 주사위 굴리기 권한이 활성화되었습니다.")
 
 func add_dice_to_pool(dice_sides: int):
 	player_dice_pool.append(dice_sides)

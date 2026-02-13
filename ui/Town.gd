@@ -18,6 +18,15 @@ func _ready():
 	town_manager = get_node("/root/TownManager")
 	var player_manager = get_node("/root/PlayerManager")
 	var economy_manager = get_node("/root/EconomyManager")
+	var gm = get_node("/root/GameManager")
+	
+	# [중요] 마을의 UIManager를 전역 참조로 등록하여 다른 매니저들이 접근 가능하게 함
+	if has_node("UIManager"):
+		gm.ui_manager = $UIManager
+		print("Town: GameManager.ui_manager가 마을 UIManager로 교체되었습니다.")
+	
+	# [신규] 마을 페이즈 설정
+	gm.current_game_phase = GameManager.GamePhase.TOWN
 
 	# 인스턴스를 통해 시그널에 연결합니다.
 	town_manager.time_updated.connect(_on_time_updated)
@@ -99,43 +108,7 @@ func _on_start_expedition_button_pressed():
 
 
 func _on_inventory_button_pressed():
-
-
-
 	print("마을: 가방 화면 호출")
-
-
-
 	var gm = get_node("/root/GameManager")
-
-
-
 	if gm.ui_manager:
-
-
-
 		gm.ui_manager.show_screen(UIManager.Screen.INVENTORY)
-
-
-
-	else:
-
-
-
-		# UIManager가 없을 경우 오토로드된 InventoryScreen을 직접 호출하는 폴백 로직
-
-
-
-		if get_node_or_null("/root/InventoryScreen"):
-
-
-
-			get_node("/root/InventoryScreen").show_screen()
-
-
-
-		else:
-
-
-
-			printerr("Town: UIManager와 InventoryScreen 오토로드를 모두 찾을 수 없습니다.")

@@ -90,6 +90,7 @@ const items := {
 		"rarity": Rarity.COMMON,
 		"pattern": "3x1",
 		"merge": true,
+		"equip_type": "none"
 	},
 	"pickaxe": {
 		"name": "Pickaxe",
@@ -98,6 +99,7 @@ const items := {
 		"rarity": Rarity.COMMON,
 		"pattern": "T",
 		"merge": true,
+		"equip_type": "weapon"
 	},
 	"ketchup": {
 		"name": "Ketchup",
@@ -105,6 +107,7 @@ const items := {
 		"price": 10,
 		"rarity": Rarity.UNCOMMON,
 		"stack": 66,
+		"equip_type": "none"
 	},
 	"glasses": {
 		"name": "Glasses?",
@@ -113,6 +116,70 @@ const items := {
 		"rarity": Rarity.COMMON,
 		"pattern": "diagonal",
 		"merge": true,
+		"equip_type": "accessory"
+	},
+	"rusty_sword": {
+		"name": "녹슨 검",
+		"desc": "금방이라도 부러질 것 같은 검입니다. 그래도 맨손보다는 낫습니다.",
+		"price": 100,
+		"rarity": Rarity.COMMON,
+		"pattern": "1x2",
+		"equip_type": "weapon",
+		"stats": {"atk": 2}
+	},
+	"wooden_shield": {
+		"name": "나무 방패",
+		"desc": "가벼운 목재로 만든 방패입니다.",
+		"price": 80,
+		"rarity": Rarity.COMMON,
+		"pattern": "2x2",
+		"equip_type": "shield",
+		"stats": {"def": 2}
+	},
+	"leather_top": {
+		"name": "가죽 상의",
+		"desc": "질긴 가죽으로 만든 기본적인 갑옷입니다.",
+		"price": 150,
+		"rarity": Rarity.COMMON,
+		"pattern": "2x2",
+		"equip_type": "top",
+		"stats": {"def": 3, "hp": 5}
+	},
+	"leather_cap": {
+		"name": "가죽 모자",
+		"desc": "머리를 보호하기 위한 간단한 모자입니다.",
+		"price": 80,
+		"rarity": Rarity.COMMON,
+		"pattern": "1x1",
+		"equip_type": "head",
+		"stats": {"def": 1}
+	},
+	"leather_pants": {
+		"name": "가죽 바지",
+		"desc": "활동성이 좋은 가죽 바지입니다.",
+		"price": 120,
+		"rarity": Rarity.COMMON,
+		"pattern": "2x2",
+		"equip_type": "bottom",
+		"stats": {"def": 2, "hp": 2}
+	},
+	"leather_boots": {
+		"name": "가죽 장화",
+		"desc": "단단한 가죽으로 만든 장화입니다.",
+		"price": 90,
+		"rarity": Rarity.COMMON,
+		"pattern": "1x2",
+		"equip_type": "shoes",
+		"stats": {"def": 1, "spd": 2}
+	},
+	"iron_ring": {
+		"name": "철 반지",
+		"desc": "평범한 철제 반지입니다. 왠지 행운이 따를 것 같습니다.",
+		"price": 200,
+		"rarity": Rarity.UNCOMMON,
+		"pattern": "1x1",
+		"equip_type": "accessory",
+		"stats": {"luck": 1}
 	},
 	"gold_pile_small": {
 		"name": "금화 더미",
@@ -122,6 +189,7 @@ const items := {
 		"pattern": "2x2",
 		"is_gold": true,
 		"is_cursed": true,
+		"equip_type": "none"
 	},
 	"gold_pile_medium": {
 		"name": "무너지는 금화 더미",
@@ -131,6 +199,7 @@ const items := {
 		"pattern": "3x3",
 		"is_gold": true,
 		"is_cursed": true,
+		"equip_type": "none"
 	},
 	"gold_pile_large": {
 		"name": "탐욕의 금화 산",
@@ -140,5 +209,6 @@ const items := {
 		"pattern": "4x4",
 		"is_gold": true,
 		"is_cursed": true,
+		"equip_type": "none"
 	},
 }

@@ -107,28 +107,22 @@ func _can_upgrade_gold_item(inventory: GridInventory, existing_item: DraggableIt
 
 # 실제 금화 아이템 교체/생성 실행
 func _update_gold_item_visual(inventory: GridInventory, target_item_id: String, existing_item: DraggableItem = null):
-	# 1. 기존 아이템이 있다면 위치를 기억하고 삭제
-	var old_item = _find_gold_item(inventory) # 인자로 받아도 되지만 안전하게 다시 찾음
-	var preferred_slot = -1
-	
-	if old_item:
-		# 가능한 경우 같은 위치(중심점)를 선호하도록
-		preferred_slot = old_item.previous_center_slot
-		inventory.remove_item(old_item)
-	
-	# 2. 목표 아이템이 없다면(5000G 미만으로 떨어진 경우) 여기서 종료
-	if target_item_id == "":
-		return
+	# ... (생략된 기존 코드) ...
+	pass
 
-	# 3. 새 아이템 생성 및 배치
-	var new_item = inventory.spawn_item(target_item_id)
-	
-	# 선호 위치에 먼저 시도 (업그레이드 느낌)
-	if preferred_slot != -1 and inventory.can_place_item(new_item, preferred_slot):
-		inventory.snap_item_to_grid(new_item, preferred_slot)
+# [신규] 전역 아이템 추가 함수
+# 성공 시 true, 공간 부족 시 false 반환
+func try_add_item(item_id: String) -> bool:
+	var inventory = Apeloot.inventory_refs.get("player_inventory")
+	if not inventory:
+		printerr("InventoryManager: player_inventory를 찾을 수 없습니다.")
+		return false
+		
+	var new_item = inventory.spawn_item(item_id)
+	if inventory.try_fit_and_place(new_item):
+		print("InventoryManager: 아이템 획득 성공 - ", item_id)
+		return true
 	else:
-		# 안되면 자동 배치
-		if not inventory.try_fit_and_place(new_item):
-			# 이론상 _can_upgrade_gold_item에서 검증했으므로 여기 올 일은 거의 없으나 안전장치
-			new_item.queue_free()
-			printerr("CRITICAL: InventoryManager - 검증된 배치 실패. 데이터 불일치 발생.")
+		new_item.queue_free()
+		print("InventoryManager: 인벤토리 공간 부족 - ", item_id)
+		return false

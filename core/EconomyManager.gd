@@ -40,6 +40,10 @@ func spend_gold(amount: int) -> bool:
 func has_gold(amount: int) -> bool:
 	return current_gold >= amount
 
+# 골드 강제 설정 (로드 및 초기화용)
+func set_gold(amount: int):
+	_set_gold(amount)
+
 # 내부적으로 골드 설정 및 시그널 발생
 func _set_gold(new_amount: int):
 	var delta = new_amount - current_gold

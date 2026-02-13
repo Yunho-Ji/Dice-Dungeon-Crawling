@@ -10,6 +10,9 @@ var action_gauge: float = 0.0
 var target: CharacterBody2D
 var ui_manager: Node
 var is_in_battle: bool = false
+var is_acting: bool = false # 현재 행동(공격 모션 등) 수행 중 여부
+var is_selected: bool = false # 현재 선택된 타겟인지 여부
+var is_player: bool = false # 플레이어 여부
 var current_stance: Stance = Stance.ATTACK # 현재 스탠스
 var active_status_effects: Array[StatusEffect] = [] # 활성 상태 효과 (버프, 디버프, DOT 등)
 var character_data: CharacterData # 캐릭터의 기본 데이터를 담을 변수
@@ -18,6 +21,7 @@ var current_stats: MyCharacterStats # 실제 런타임 스탯 데이터 (MyStats
 
 func initialize(data: CharacterData):
 	self.character_data = data
+	is_player = (name == "Player")
 	# 중요: 리소스 공유 문제를 피하기 위해 스탯 리소스를 복제합니다.
 	print("DEBUG: Character.gd: Initializing with CharacterData: ", data.character_name)
 	
@@ -29,6 +33,14 @@ func initialize(data: CharacterData):
 
 	# 초기화 후 스탯 라벨 업데이트 등 필요한 작업 수행
 	update_hp_label()
+
+func set_selected(selected: bool):
+	is_selected = selected
+	# 시각적 피드백: 선택 시 밝게 표시
+	if is_selected:
+		modulate = Color(1.5, 1.5, 1.5)
+	else:
+		modulate = Color(1, 1, 1)
 
 func set_stance(new_stance: Stance):
 	current_stance = new_stance
@@ -83,11 +95,11 @@ func _ready():
 func _process(delta: float):
 	if not current_stats: return
 	
-	if current_stats.get_stat("health").computed_value <= 0:
+	if current_stats.get_stat("health").current_value <= 0:
 		action_gauge_bar.value = 0
 		action_gauge = 0.0
 		return
-	if target == null or not is_instance_valid(target) or target.current_stats.get_stat("health").computed_value <= 0:
+	if target == null or not is_instance_valid(target) or target.current_stats.get_stat("health").current_value <= 0:
 		action_gauge_bar.value = 0
 		action_gauge = 0.0
 		return
@@ -100,8 +112,8 @@ func _process(delta: float):
 	for effect in effects_to_remove:
 		remove_status_effect(effect)
 
-	# 방어 태세 중에는 행동 게이지가 차오르지 않음 (유지)
-	if current_stance != Stance.DEFENSE:
+	# 방어 태세 중이거나 행동(모션) 중일 때는 행동 게이지가 차오르지 않음
+	if current_stance != Stance.DEFENSE and not is_acting:
 		action_gauge += current_stats.get_stat("attack_speed").computed_value * delta
 	
 	action_gauge_bar.value = action_gauge
@@ -121,19 +133,23 @@ func perform_stance_action():
 
 func perform_attack_action():
 	if target and is_instance_valid(target):
+		is_acting = true # 행동 시작
+		action_gauge = 0.0 # 게이지 즉시 비움 (충전은 아직 안됨)
+		action_gauge_bar.value = action_gauge
 		attack(target)
 	else:
 		print(name, " 공격할 대상이 없습니다.")
-	
-	# 공격은 항상 게이지 전체 소모
-	action_gauge = 0.0
-	action_gauge_bar.value = action_gauge
+		# 타겟이 없어도 게이지를 소모하고 행동을 마친 것으로 처리
+		action_gauge = 0.0
+		action_gauge_bar.value = action_gauge
+		finish_action()
 
 var is_guarding: bool = false
 var is_perfect_guarding: bool = false
 
 func perform_defense_action():
 	# 선불제 방어: 즉시 비용 지불하고 태세 돌입
+	# 방어는 '상태'이므로 is_acting을 쓰지 않고 _process의 stance 체크로 게이지를 유지함
 	var upfront_cost = 15.0
 	action_gauge = max(0.0, action_gauge - upfront_cost)
 	is_guarding = true
@@ -145,6 +161,7 @@ func perform_defense_action():
 const STATPOWDEBUFF_Data = preload("res://resources/status_effects/data/STATPOWDEBUFF_Data.tres")
 
 func perform_evade_action():
+	is_acting = true # 행동 시작
 	print(name, " 회피 행동 시작 (게이지: ", action_gauge, "%)")
 	var gauge_percentage = action_gauge
 	var success_chance: float = 0.0
@@ -170,9 +187,22 @@ func perform_evade_action():
 		
 	action_gauge = max(0.0, action_gauge - consumption)
 	action_gauge_bar.value = action_gauge
+	finish_action() # 회피는 현재 별도 애니메이션이 없으므로 즉시 종료
 
-func _on_input_event(_viewport: Node, _event: InputEvent, _shape_idx: int):
-	pass
+func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int):
+	if event is InputEventMouseButton and event.pressed:
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			# 마우스 왼쪽 클릭: 타겟팅 처리 (플레이어가 아닌 적 캐릭터를 클릭했을 때)
+			if not is_player and is_in_battle:
+				var battle_manager = GameManager.battle_manager
+				if battle_manager and battle_manager.has_method("set_player_target"):
+					battle_manager.set_player_target(self)
+					print("Targeting: ", name)
+
+		elif event.button_index == MOUSE_BUTTON_RIGHT:
+			# 마우스 오른쪽 클릭: 정보 팝업 표시 (적/아군 공통)
+			if GameManager.ui_manager and GameManager.ui_manager.has_method("show_character_info"):
+				GameManager.ui_manager.show_character_info(self)
 	
 
 func take_damage(amount: int):
@@ -219,6 +249,7 @@ func take_damage(amount: int):
 
 	if current_stats.get_stat("health").current_value <= 0:
 		print(name, " 사망!")
+		visible = false # [수정] 시각적으로 즉시 숨김
 		set_process(false)
 
 
@@ -231,6 +262,24 @@ func attack(target_node: CharacterBody2D):
 	if not current_stats: return
 	#print(name, "가 ", target_node.name, "에게 공격합니다! 공격력: ", current_stats.get_stat("attack_power").computed_value)
 	target_node.take_damage(current_stats.get_stat("attack_power").computed_value)
+	
+	# 플레이어가 아닌 경우(애니메이션 미연동 상태) 즉시 종료 처리
+	if not is_player:
+		finish_action()
+
+func finish_action():
+	is_acting = false
+	# print(name, " 행동 완료. 게이지 획득 재개.")
+
+## 전투 시작/준비 시 상태를 깨끗하게 초기화
+func reset_battle_state():
+	action_gauge = 0.0
+	if action_gauge_bar: action_gauge_bar.value = 0.0
+	is_acting = false
+	is_guarding = false
+	is_perfect_guarding = false
+	current_stance = Stance.ATTACK
+	# print(name, " 전투 상태 초기화 완료.")
 
 
 func update_stats_from_player_manager(player_mgr: PlayerManager):

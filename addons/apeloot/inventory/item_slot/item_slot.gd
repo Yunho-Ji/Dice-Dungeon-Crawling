@@ -9,14 +9,15 @@ var anim_player : AnimationPlayer:
 		return $AnimationPlayer
 		
 # 부모 인벤토리 참조 및 설정
-var parent_inventory : GridInventory:
+var parent_inventory: # 타입을 제거하여 유연성 확보
 	set(val):
 		parent_inventory = val
+		if not val: return
 		# 부모 인벤토리의 배경 텍스처가 있으면 슬롯 배경 설정
-		if val.slot_background:
+		if "slot_background" in val and val.slot_background:
 			$Background.texture = val.slot_background
 		# 부모 인벤토리의 아이콘 텍스처가 있으면 슬롯 아이콘 설정
-		if val.slot_icon:
+		if "slot_icon" in val and val.slot_icon:
 			$Icon.texture = val.slot_icon
 			
 # 슬롯을 점유하는 아이템 참조 및 설정
@@ -68,8 +69,15 @@ func _get_drag_data(_at_position):
 # GUI 입력 이벤트 처리
 func _on_gui_input(event: InputEvent):
 	# 마우스 왼쪽 버튼 클릭 시 슬롯 클릭 신호 발생
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		slotClicked.emit(slot_id)
+	if event is InputEventMouseButton and event.pressed:
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			slotClicked.emit(slot_id)
+		elif event.button_index == MOUSE_BUTTON_RIGHT:
+			# 우클릭 시 아이템 버리기 (확인 절차 없이 즉시 삭제 - 테스트 편의성)
+			if occupying_item:
+				print("DEBUG: ItemSlot: 아이템 버리기 요청 - ", occupying_item.id)
+				parent_inventory.remove_item(occupying_item)
+				hide_tooltip()
 
 # 드롭 데이터 수락 가능 여부 확인
 func _can_drop_data(at_position: Vector2, data: Variant) -> bool:

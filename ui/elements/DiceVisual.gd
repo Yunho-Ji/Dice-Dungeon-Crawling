@@ -69,32 +69,46 @@ func sync_frame(frame_idx: int):
 	var f = clampi(frame_idx, 0, 6)
 	base.frame = f
 	
-	if number.texture:
-		# 정지 프레임(6)에서만 숫자를 표시
-		if f == 6:
-			var face_index = 0
-			if current_sides == 20: face_index = (current_value - 1) % 5
-			elif current_sides == 12: face_index = (current_value - 1) % 6
-			elif current_sides == 10: face_index = (current_value - 1) % 5
-			else: face_index = current_value - 1
-			
-			face_index = clampi(face_index, 0, number.vframes - 1)
-			number.frame = face_index * 7 + f
-			
-			# [수정] 고스트 현상 방지: 숫자 에셋이 몸체를 포함하므로 기본 몸체는 숨김
-			number.visible = true
-			base.visible = false
-		else:
-			number.visible = false
-			base.visible = true
+	if f == 6 and number.texture:
+		# 정지 프레임(6): 숫자 표시 모드
+		var face_index = 0
+		if current_sides == 20: face_index = (current_value - 1) % 5
+		elif current_sides == 12: face_index = (current_value - 1) % 6
+		elif current_sides == 10: face_index = (current_value - 1) % 5
+		else: face_index = current_value - 1
+		
+		face_index = clampi(face_index, 0, number.vframes - 1)
+		number.frame = face_index * 7 + f
+		
+		# 밝기 중첩 방지: 숫자 에셋에 몸체가 포함되어 있으므로 Base는 숨김
+		number.visible = true
+		base.visible = false
+	else:
+		# 구르기 프레임(0~5): 몸체만 표시
+		number.visible = false
+		base.visible = true
 
-# 구르기 프레임 동기화 (랜덤 숫자 표시용 -> 눈 숨김으로 변경)
-func sync_rolling_frame(frame_idx: int):
-	var f = clampi(frame_idx, 0, 5) # 구르기 프레임은 0~5
+# 구르기 프레임 동기화 (순차 번호 매핑 지원)
+func sync_rolling_frame(frame_idx: int, show_number: bool = false):
+	var f = clampi(frame_idx, 0, 6)
 	base.frame = f
-	base.visible = true # [중요] 구르는 동안 몸체는 반드시 보여야 함
-	# 제작자 에셋 의도에 따라 구르는 동안은 숫자를 숨김
-	number.visible = false
+	
+	if show_number and number.texture:
+		var face_index = 0
+		if current_sides == 20: face_index = (current_value - 1) % 5
+		elif current_sides == 12: face_index = (current_value - 1) % 6
+		elif current_sides == 10: face_index = (current_value - 1) % 5
+		else: face_index = current_value - 1
+		
+		face_index = clampi(face_index, 0, number.vframes - 1)
+		number.frame = face_index * 7 + f
+		number.visible = true
+		# 밝기 중첩 방지
+		if f == 6: base.visible = false
+		else: base.visible = true
+	else:
+		number.visible = false
+		base.visible = true
 
 # 구르기 상태 설정 (숫자를 숨기지 않고 계속 업데이트하도록 함)
 func set_rolling(is_rolling: bool):

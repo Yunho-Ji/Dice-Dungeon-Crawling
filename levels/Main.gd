@@ -74,9 +74,17 @@ func start_game_deferred():
 	print("DEBUG:   player_manager valid: ", is_instance_valid(player_manager)) # New line
 	game_manager.initialize_game_scene(player_node, enemy_node, battle_manager, ui_manager, stage_info_hud_instance, scene_manager, player_manager)
 
-	# Generate dungeon if needed, then show the map
-	get_node("/root/MapManager").generate_dungeon_if_needed()
-	get_node("/root/MapManager").show_dungeon_map()
+	# 던전 생성 및 초기 시퀀스 결정
+	var map_manager = get_node("/root/MapManager")
+	var was_new_dungeon = map_manager.should_generate_new_dungeon
+	map_manager.generate_dungeon_if_needed()
+	
+	if was_new_dungeon:
+		# 새 던전이면 운명 설계부터 시작
+		game_manager.start_dungeon_initial_sequence()
+	else:
+		# 이미 진행 중인 던전(추가 탐험 등)이면 지도 표시
+		map_manager.show_dungeon_map()
 
 	print("--- Main.gd: 게임 시작 지연 호출 완료 ---\
 ")

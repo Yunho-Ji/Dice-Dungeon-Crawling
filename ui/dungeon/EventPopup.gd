@@ -122,7 +122,10 @@ func _handle_altar_logic():
 	var player = get_node("/root/GameManager").player_node
 	if player and player.current_stats:
 		var atk = player.current_stats.get_stat("attack_power")
-		if atk: atk.base_value += 3
+		if atk:
+			# 영구 보너스이므로 베이스 수치를 올리고 신호 발생을 위해 수동 업데이트 호출
+			atk.base_value += 3
+			player.update_hp_label() # UI 갱신 유도
 	_end_event()
 
 func _handle_sanctuary_logic():
@@ -132,8 +135,12 @@ func _handle_sanctuary_logic():
 	result_label.text = ">> 성스러운 빛이 상처를 치유합니다. (HP 회복)"
 	result_label.modulate = Color.SKY_BLUE
 	var player = get_node("/root/GameManager").player_node
-	if player:
-		player.current_health = mini(player.max_health, player.current_health + 40)
+	if player and player.current_stats:
+		var hp_stat = player.current_stats.get_stat("health")
+		if hp_stat:
+			# 현재 체력을 최대 체력(computed_value)을 넘지 않게 40 회복
+			hp_stat.current_value = mini(hp_stat.computed_value, hp_stat.current_value + 40)
+			player.update_hp_label() # UI 갱신
 	_end_event()
 
 func _handle_trap_logic():
@@ -169,36 +176,41 @@ func _handle_treasure_logic():
 func _play_dice_animation():
 	dice_visual_node.visible = true
 	dice_visual_node.setup(20, 1, Color("e67e22"))
-	# [연출] 구르기 시작 시 숫자 숨김 (회전 애니메이션 강조)
 	dice_visual_node.set_rolling(true)
 	
-	var duration = 1.5 
+	var duration = 1.2 # 총 지속 시간 살짝 단축
 	var elapsed = 0.0
-	var timer = 0.0
+	var current_frame = 0
 	
+	# 1. 가속/감속 루프 (무작위 눈금 표시 및 프레임 순환)
 	while elapsed < duration:
 		var delta = get_process_delta_time()
 		elapsed += delta
-		timer += delta
 		
-		var current_interval = lerp(0.05, 0.2, elapsed / duration)
+		# 감속 효과를 위해 인터벌 계산
+		var current_interval = lerp(0.04, 0.15, elapsed / duration)
 		
-		if timer >= current_interval:
-			timer = 0.0
-			var temp_roll = randi_range(1, 20)
-			result_label.text = "🎲 [ %d ]" % temp_roll
-			
-			# [수정] 이제 렉 걱정 없이 구르는 동안에도 숫자를 실시간 매핑합니다!
-			if dice_visual_node:
-				dice_visual_node.current_value = temp_roll
-				dice_visual_node._update_number_texture() # 고속 캐시로 매핑
-				dice_visual_node.sync_rolling_frame(randi() % 6)
-			
-			# [사운드] 눈금 변화 시점 (틱!)
-			# sfx_player.stream = load("res://assets/audio/sfx/dice_tick.wav")
-			# sfx_player.play()
+		# 프레임 순차 증가 (0~5 루프)
+		current_frame = (current_frame + 1) % 6
 		
-		await get_tree().process_frame
+		var temp_roll = randi_range(1, 20)
+		result_label.text = "🎲 [ %d ]" % temp_roll
+		
+		if dice_visual_node:
+			dice_visual_node.current_value = temp_roll
+			dice_visual_node._update_number_texture()
+			dice_visual_node.sync_rolling_frame(current_frame, true) # 숫자와 함께 순차 프레임 표시
+		
+		await get_tree().create_timer(current_interval).timeout
+	
+	# 2. [중요] 마지막 7프레임 시퀀스 완주 (0 -> 6 정지)
+	print("Dice: Finalizing 7-frame sequence...")
+	for f in range(0, 7):
+		if dice_visual_node:
+			dice_visual_node.sync_rolling_frame(f, true)
+		await get_tree().create_timer(0.05).timeout
+	
+	# 최종 결과값은 루프 밖에서 _set_dice_final_result가 처리하도록 설계됨
 
 func _set_dice_final_result(val: int):
 	# [연출] 정지 시 숫자 다시 표시 및 최종 값 설정

@@ -26,9 +26,19 @@ func _gui_input(event: InputEvent):
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			dragging = event.pressed
+			accept_event()
 	
-		if event is InputEventMouseMotion and dragging:
-			position += event.relative
+	if event is InputEventMouseMotion and dragging:
+		global_position += event.relative
+		_clamp_to_viewport()
+		accept_event()
+
+func _clamp_to_viewport():
+	var viewport_rect = get_viewport_rect()
+	var panel_size = size
+	
+	global_position.x = clamp(global_position.x, 0, viewport_rect.size.x - panel_size.x)
+	global_position.y = clamp(global_position.y, 0, viewport_rect.size.y - panel_size.y)
 
 # 캐릭터의 스탯을 받아서 UI에 표시하는 함수
 func show_stats(character: Character):
@@ -56,12 +66,10 @@ func show_stats(character: Character):
 
 		# 체력과 마력은 현재/최대 값으로 표시
 		if stat.key == "health" or stat.key == "current_mp":
-			value_text = "%s/%s" % [stat.current_value, stat.computed_value]
+			value_text = "%s / %s" % [stat.current_value, stat.computed_value]
 		else:
-			if stat.current_value != stat.computed_value:
-				value_text = "%s (%s)" % [stat.current_value, stat.computed_value] # Current (Computed)
-			else:
-				value_text = str(stat.computed_value) # Just Computed (which is equal to current)
+			# 그 외 모든 스탯(공격력, 방어력 등)은 보너스가 모두 합산된 최종 수치만 표기
+			value_text = str(stat.computed_value)
 
 		var label = Label.new()
 		label.text = "%s: %s" % [stat_name, value_text]

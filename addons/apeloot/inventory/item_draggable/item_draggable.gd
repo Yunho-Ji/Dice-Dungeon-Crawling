@@ -77,6 +77,8 @@ func set_stack_label(val):
 		$StackLabel.text = ""
 
 func generate_unique_id() -> String:
+	if PlatformManager.has_method("generate_uuid"):
+		return PlatformManager.generate_uuid()
 	return str(get_instance_id())
 
 func get_max_stack() -> int:

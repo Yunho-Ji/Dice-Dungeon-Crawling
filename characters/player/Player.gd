@@ -13,13 +13,6 @@ func _ready():
 	super._ready()
 	position = initial_position # 초기 위치 설정
 
-func _process(delta: float):
-	if target == null or not is_instance_valid(target) or target.current_stats.get_stat("health").computed_value <= 0:
-		action_gauge_bar.value = 0
-		action_gauge = 0.0
-		return
-	super._process(delta) # Character의 _process 로직 호출
-
 func attack(_target_node: CharacterBody2D):
 	# 이 함수는 하위 클래스에서 오버라이드하여 애니메이션을 재생하고,
 	# 공격 플래그를 리셋하는 역할을 합니다.

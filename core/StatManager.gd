@@ -18,10 +18,12 @@ func add_modifier(stat: MyStat, value: float, operation: int, source: String = "
 	# SignalBus를 통해 변경 알림
 	SignalBus.emit_signal("stat_changed", null, stat.key, stat.computed_value)
 
-func remove_modifier(stat: MyStat, value: float, operation: int):
-	# 값을 기준으로 찾아서 지우는 것은 위험할 수 있으므로, 
-	# 실제 구현 시에는 Modifier 객체 자체를 관리하거나 ID를 부여하는 것이 좋습니다.
-	pass 
+func remove_modifier(stat: MyStat, modifier: MyStatModifier):
+	if not stat or not modifier: return
+	
+	stat.remove_modifier(modifier)
+	# SignalBus를 통해 변경 알림
+	SignalBus.emit_signal("stat_changed", null, stat.key, stat.computed_value)
 
 func clear_modifiers(stat: MyStat):
 	if stat:

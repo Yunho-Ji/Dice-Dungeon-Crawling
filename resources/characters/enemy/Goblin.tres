@@ -65,5 +65,6 @@ resistance = SubResource("Resource_b5dy2")
 
 [resource]
 script = ExtResource("3_2mevr")
+uid = ""
 character_name = "Goblin"
 base_stats = SubResource("Resource_hsdxp")

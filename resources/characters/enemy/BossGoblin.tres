@@ -75,5 +75,6 @@ metadata/_custom_type_script = "uid://kukc5jf2pxgg"
 
 [resource]
 script = ExtResource("3_i1v4o")
+uid = ""
 character_name = "Boss Goblin"
 base_stats = SubResource("Resource_yqntg")

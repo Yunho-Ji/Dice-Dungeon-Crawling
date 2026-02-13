@@ -47,9 +47,11 @@ func _on_animation_finished():
 	if animated_sprite_2d.animation == "Attack01":
 		animated_sprite_2d.play("Idle")
 		
+		# [수정] 전투 종료 직후라도 플래그는 반드시 해제해야 다음 전투가 정상 작동함
+		finish_action()
+		
 		if not is_in_battle: return
-
-		print("공격 애니메이션 완료, Idle로 전환 및 게이지 초기화")
+		print("공격 애니메이션 완료, Idle로 전환 및 게이지 획득 재개")
 	super._on_animation_finished()
 
 func _on_visibility_changed():
