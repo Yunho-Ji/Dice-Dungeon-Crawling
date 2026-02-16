@@ -12,10 +12,8 @@ var is_in_inn: bool = false # 여관에 있는지 여부
 
 # 여관(Inn)에서 호출할 저장 함수
 func save_game_at_inn(slot_id: int = 1) -> bool:
-	if not is_in_inn:
-		print("SaveManager: 여관이 아닌 곳에서는 저장할 수 없습니다.")
-		return false
-	
+	# 여관 로직이 UI에서 제어되므로 로그만 남깁니다.
+	print("SaveManager: 여관에서 저장을 시도합니다.")
 	return _execute_save(slot_id)
 
 func _execute_save(slot_id: int) -> bool:

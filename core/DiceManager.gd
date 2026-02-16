@@ -51,14 +51,43 @@ func enable_roll():
 	print("DiceManager: 주사위 굴리기 권한이 활성화되었습니다.")
 
 func add_dice_to_pool(dice_sides: int):
-	player_dice_pool.append(dice_sides)
-	player_dice_pool.sort()
+	if player_dice_pool.size() < 4:
+		player_dice_pool.append(dice_sides)
+		player_dice_pool.sort()
+		print("DiceManager: 주사위 추가 (D", dice_sides, "). 현재 풀: ", player_dice_pool)
+	else:
+		replace_lowest_dice(dice_sides)
 
 func replace_lowest_dice(new_sides: int) -> int:
-	if player_dice_pool.is_empty(): return -1
-	var old_sides = player_dice_pool[0]
-	player_dice_pool[0] = new_sides
-	player_dice_pool.sort()
+	if player_dice_pool.is_empty():
+		add_dice_to_pool(new_sides)
+		return 0
+	
+	# 주사위 풀이 아직 차지 않았다면 추가 처리
+	if player_dice_pool.size() < 4:
+		add_dice_to_pool(new_sides)
+		return 0
+
+	# 1. 실제 최하위 주사위 인덱스 찾기 (정렬 상태와 무관하게 안전하게 검색)
+	var min_val = player_dice_pool[0]
+	var min_idx = 0
+	for i in range(1, player_dice_pool.size()):
+		if player_dice_pool[i] < min_val:
+			min_val = player_dice_pool[i]
+			min_idx = i
+	
+	# 2. 안전 장치: 새로 얻은 주사위가 기존 최하위보다 낮으면 교체하지 않음
+	if new_sides <= min_val:
+		print("DiceManager: 교체 불필요 (새 D", new_sides, " <= 기존 최하위 D", min_val, ")")
+		return -1
+
+	# 3. 교체 및 정렬
+	var old_sides = player_dice_pool[min_idx]
+	player_dice_pool[min_idx] = new_sides
+	player_dice_pool.sort() # 시각적 일관성을 위해 오름차순 정렬 유지
+	
+	print("DiceManager: 최하위 주사위 교체 성공! (D", old_sides, " -> D", new_sides, ")")
+	print("DiceManager: 현재 주사위 풀: ", player_dice_pool)
 	return old_sides
 
 func get_player_dice_pool() -> Array:

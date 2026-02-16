@@ -44,8 +44,21 @@ func advance_time_to_next_milestone():
 		_update_current_time_from_index()
 		update_time_display()
 		check_dungeon_penalties()
+		return true
 	else:
 		print("마을 시간: 더 이상 진행할 수 있는 시간이 없습니다. (최대치 도달)")
+		return false
+
+# [신규] 특정 시설 이용 시 시간 소모
+func spend_time_for_facility():
+	return advance_time_to_next_milestone()
+
+# [신규] 다음 날로 넘기기 (여관 전용)
+func reset_to_next_day():
+	current_time_index = 0
+	_update_current_time_from_index()
+	update_time_display()
+	print("마을 시간: 새로운 하루가 시작되었습니다.")
 
 func set_time_by_minutes(minutes: int):
 	current_time_minutes = minutes

@@ -143,6 +143,7 @@ const items := {
 		"rarity": Rarity.COMMON,
 		"pattern": "2x2",
 		"equip_type": "top",
+		"armor_type": "light",
 		"stats": {"def": 3, "hp": 5}
 	},
 	"leather_cap": {
@@ -152,6 +153,7 @@ const items := {
 		"rarity": Rarity.COMMON,
 		"pattern": "1x1",
 		"equip_type": "head",
+		"armor_type": "light",
 		"stats": {"def": 1}
 	},
 	"leather_pants": {
@@ -161,6 +163,7 @@ const items := {
 		"rarity": Rarity.COMMON,
 		"pattern": "2x2",
 		"equip_type": "bottom",
+		"armor_type": "light",
 		"stats": {"def": 2, "hp": 2}
 	},
 	"leather_boots": {
@@ -170,6 +173,7 @@ const items := {
 		"rarity": Rarity.COMMON,
 		"pattern": "1x2",
 		"equip_type": "shoes",
+		"armor_type": "light",
 		"stats": {"def": 1, "spd": 2}
 	},
 	"iron_ring": {
@@ -180,6 +184,26 @@ const items := {
 		"pattern": "1x1",
 		"equip_type": "accessory",
 		"stats": {"luck": 1}
+	},
+	"iron_plate": {
+		"name": "강철 흉갑",
+		"desc": "두꺼운 강철판으로 만든 흉갑입니다. 매우 무겁지만 든든합니다.",
+		"price": 300,
+		"rarity": Rarity.UNCOMMON,
+		"pattern": "2x2",
+		"equip_type": "top",
+		"armor_type": "heavy",
+		"stats": {"def": 8}
+	},
+	"wizard_robe": {
+		"name": "마법사의 로브",
+		"desc": "마력이 깃든 부드러운 천으로 만든 옷입니다.",
+		"price": 250,
+		"rarity": Rarity.UNCOMMON,
+		"pattern": "2x2",
+		"equip_type": "top",
+		"armor_type": "cloth",
+		"stats": {"mp": 20, "int": 5}
 	},
 	"gold_pile_small": {
 		"name": "금화 더미",

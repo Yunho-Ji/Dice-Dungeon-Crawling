@@ -99,29 +99,16 @@ func _on_start_combat_button_pressed():
 	emit_signal("start_combat_requested")
 
 func _on_character_damage_taken(amount: int, position: Vector2, is_player_character: bool):
-
 	if not damage_popup_scene:
-
 		printerr("BattleHUD: damage_popup_scene is not set!")
-
 		return
 
-
-
 	var popup_instance = damage_popup_scene.instantiate()
-
 	add_child(popup_instance)
-
 	
-
 	# [수정] 복수 공격 시 데미지 숫자가 겹치지 않도록 무작위 오프셋 추가
-
 	var random_offset = Vector2(randf_range(-30, 30), randf_range(-20, 20))
-
 	var final_position = position + random_offset
-
 	
-
 	popup_instance.set_damage_text(amount, is_player_character)
-
 	popup_instance.set_start_position(final_position)

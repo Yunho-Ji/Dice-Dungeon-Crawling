@@ -12,7 +12,9 @@ const STAT_NAMES = {
 	"attack_speed": "공격 속도",
 	"recovery_power": "회복력",
 	"luck": "행운",
-	"resistance": "저항"
+	"resistance": "저항",
+	"intelligence": "지능",
+	"agility": "민첩"
 }
 
 # 드래그 상태를 추적하기 위한 변수
@@ -61,7 +63,10 @@ func show_stats(character: Character):
 
 	# 새로운 스탯 정보 추가
 	for stat in character.current_stats.get_all_stats():
-		var stat_name = STAT_NAMES.get(stat.key, stat.key) # 표시 이름이 없으면 키 자체를 사용
+		if not STAT_NAMES.has(stat.key):
+			continue # 허가되지 않은 스탯은 건너뜀
+			
+		var stat_name = STAT_NAMES.get(stat.key, stat.key)
 		var value_text = "-"
 
 		# 체력과 마력은 현재/최대 값으로 표시

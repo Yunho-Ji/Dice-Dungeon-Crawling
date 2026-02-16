@@ -103,10 +103,17 @@ func sync_rolling_frame(frame_idx: int, show_number: bool = false):
 		face_index = clampi(face_index, 0, number.vframes - 1)
 		number.frame = face_index * 7 + f
 		number.visible = true
-		# 밝기 중첩 방지
-		if f == 6: base.visible = false
-		else: base.visible = true
+		
+		# [수정] 구르는 동안(0~5)에는 베이스(몸체)를 항상 보여주어 애니메이션이 끊기지 않게 합니다.
+		# 최종 정지 프레임(6)에서만 베이스를 숨겨 숫자 에셋과의 겹침 및 밝기 중첩을 방지합니다.
+		if f == 6:
+			base.visible = false
+		else:
+			base.visible = true
+		
+		number.visible = true
 	else:
+		# 숫자가 없는 경우(또는 안 보여주는 경우)에만 베이스(몸체)를 보여줍니다.
 		number.visible = false
 		base.visible = true
 

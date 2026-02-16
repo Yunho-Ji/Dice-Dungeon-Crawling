@@ -42,6 +42,12 @@ const ZONE_5_H = 60
 const ZONE_3_W = 250
 const ZONE_4_W = 200
 
+# [신규] 투자 가능한 8종 핵심 스탯 정의
+const INVESTABLE_STATS = [
+	"health", "attack_power", "defense", "attack_speed", 
+	"current_mp", "recovery_power", "luck", "resistance"
+]
+
 func _ready():
 	close_button.pressed.connect(_on_close_button_pressed)
 	roll_button.button_down.connect(_on_roll_button_down)
@@ -165,8 +171,8 @@ func _initialize_stat_slots():
 			print("DestinyDesignScreen: PlayerManager의 세션 스탯을 참조합니다.")
 
 	if stats_obj:
-		var stat_keys = stats_obj.get_all_stat_keys()
-		for s_name in stat_keys:
+		# [수정] 모든 스탯이 아닌, INVESTABLE_STATS에 정의된 8종만 노출합니다.
+		for s_name in INVESTABLE_STATS:
 			var stat_res = stats_obj.get_stat(s_name)
 			if stat_res:
 				var slot = StatSlotScene.instantiate()
@@ -348,4 +354,27 @@ func _on_draw_lines():
 	ui_lines.draw_line(Vector2(w - ZONE_4_W, ZONE_1_H), Vector2(w - ZONE_4_W, h - ZONE_5_H), color, width)
 
 func _on_close_button_pressed():
+	# [수정] 주사위가 굴러가는 중(ROLLING)에 닫을 경우, 결과를 강제로 확정하여 증발 방지
+	if current_phase == Phase.ROLLING:
+		_force_finalize_rolls()
 	emit_signal("closed")
+
+# [신규] 굴림 강제 종료 및 결과 저장 (닫기 버튼 대응)
+func _force_finalize_rolls():
+	print("DestinyDesignScreen: 화면이 닫히기 전 주사위 결과를 강제 확정합니다.")
+	# 아직 멈추지 않은 물리 주사위들에 대해 랜덤 결과 생성하여 DiceManager에 보존
+	for pd in physics_dice:
+		if is_instance_valid(pd):
+			var sides = pd.dice_sides if "dice_sides" in pd else 6
+			var final_val = randi_range(1, sides)
+			
+			dice_manager.last_roll_results.append({
+				"sides": sides,
+				"value": final_val,
+				"is_used": false
+			})
+			pd.queue_free()
+	
+	physics_dice.clear()
+	# 이미 멈춰서 UI로 바뀐 주사위들은 on_physics_die_stopped에서 이미 DiceManager에 추가됨
+	current_phase = Phase.IDLE

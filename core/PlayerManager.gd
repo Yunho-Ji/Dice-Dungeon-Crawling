@@ -20,6 +20,13 @@ var equipment: Dictionary = {
 # [신규] 장비로 인한 스탯 수정자 저장 (slot_key -> Array[MyStatModifier])
 var equipment_modifiers: Dictionary = {}
 
+# [신규] 방어구 유형별 장착 개수
+var armor_counts: Dictionary = {
+	"cloth": 0,
+	"light": 0,
+	"heavy": 0
+}
+
 # [신규] 아이템 장착 함수
 func equip_item(slot_key: String, item_data: Dictionary):
 	if equipment.has(slot_key):
@@ -29,6 +36,7 @@ func equip_item(slot_key: String, item_data: Dictionary):
 			
 		equipment[slot_key] = item_data
 		_apply_equipment_stats(slot_key, item_data, true)
+		_update_armor_counts() # 방어구 카운트 갱신
 		print("DEBUG: ", slot_key, " 부위에 ", item_data.get("name", "아이템"), " 장착 완료.")
 
 # [신규] 아이템 해제 함수
@@ -37,7 +45,23 @@ func unequip_item(slot_key: String):
 		var item_data = equipment[slot_key]
 		_apply_equipment_stats(slot_key, item_data, false)
 		equipment[slot_key] = null
+		_update_armor_counts() # 방어구 카운트 갱신
 		print("DEBUG: ", slot_key, " 부위 장비 해제 완료.")
+
+# [신규] 방어구 유형 카운트 갱신
+func _update_armor_counts():
+	armor_counts = {"cloth": 0, "light": 0, "heavy": 0}
+	for slot in equipment.keys():
+		var item = equipment[slot]
+		if item and item.has("armor_type"):
+			var type = item["armor_type"]
+			if armor_counts.has(type):
+				armor_counts[type] += 1
+	
+	# 플레이어 노드가 있다면 즉시 동기화
+	var game_manager = get_node_or_null("/root/GameManager")
+	if game_manager and is_instance_valid(game_manager.player_node):
+		game_manager.player_node.sync_armor_profile(armor_counts)
 
 # [신규] 장비 스탯 반영 로직
 func _apply_equipment_stats(slot_key: String, item_data: Dictionary, is_equipping: bool):
@@ -81,6 +105,8 @@ func _map_item_stat_to_player_stat(item_stat_key: String) -> String:
 		"spd", "speed": return "attack_speed"
 		"mp", "mana": return "current_mp"
 		"luck": return "luck"
+		"int", "intelligence": return "intelligence"
+		"agi", "agility": return "agility"
 	return ""
 # 기존 코드 호환성을 위해 래퍼 함수를 제공합니다.
 

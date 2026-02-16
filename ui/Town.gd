@@ -70,24 +70,51 @@ func _on_time_updated(time_string: String):
 	time_display_label.text = time_string
 
 func _on_location_button_pressed(button_name: String):
-	# 인스턴스를 통해 함수와 상수를 사용합니다.
-	if button_name == "InnButton" and town_manager.get_current_time_minutes() >= town_manager.RETURN_TIME_MINUTES:
-		town_manager.set_time_by_minutes(town_manager.RESET_TIME_MINUTES)
-		print("여관 방문: 세이브 및 회복 기능 구현 예정. 시간 AM 11:00으로 초기화.")
-	else:
-		town_manager.advance_time_to_next_milestone()
-		print("Visited ", button_name, ". Time advanced to next milestone.")
-
+	print("DEBUG: Town: Location clicked - ", button_name)
+	
 	match button_name:
 		"InnButton":
-			pass
+			_open_inn_screen()
+		"GeneralStoreButton":
+			_open_shop_screen()
 		"BlacksmithButton":
 			print("대장간 방문: 장비 개선/수리 기능 구현 예정")
+			if town_manager.spend_time_for_facility():
+				print("Time advanced.")
 		"TavernButton":
 			print("선술집 방문: 현상금 수주/버프 기능 구현 예정")
-		"PrayerHouseButton":			print("기도원 방문: 주사위 축복 기능 구현 예정")
-		"GeneralStoreButton":
-			print("잡화점 방문: 아이템 매매 기능 구현 예정")
+			if town_manager.spend_time_for_facility():
+				print("Time advanced.")
+		"PrayerHouseButton":
+			print("기도원 방문: 주사위 축복 기능 구현 예정")
+			if town_manager.spend_time_for_facility():
+				print("Time advanced.")
+
+func _open_inn_screen():
+	var inn_script = load("res://ui/screens/TownInnScreen.gd")
+	var inn_screen = PanelContainer.new()
+	inn_screen.set_script(inn_script)
+	add_child(inn_screen)
+	
+	# 화면 중앙 배치
+	inn_screen.set_anchors_preset(Control.PRESET_CENTER)
+	inn_screen.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	inn_screen.grow_vertical = Control.GROW_DIRECTION_BOTH
+	
+	inn_screen.closed.connect(func(): _update_player_info())
+
+func _open_shop_screen():
+	var shop_script = load("res://ui/screens/TownShopScreen.gd")
+	var shop_screen = PanelContainer.new()
+	shop_screen.set_script(shop_script)
+	add_child(shop_screen)
+	
+	# 화면 중앙 배치
+	shop_screen.set_anchors_preset(Control.PRESET_CENTER)
+	shop_screen.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	shop_screen.grow_vertical = Control.GROW_DIRECTION_BOTH
+	
+	shop_screen.closed.connect(func(): _update_player_info())
 
 func _on_town_closing_time_reached():
 	print("마을 마감 시간 도달: 여관을 제외한 모든 장소 폐쇄")

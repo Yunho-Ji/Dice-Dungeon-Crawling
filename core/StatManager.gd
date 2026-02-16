@@ -78,3 +78,35 @@ func calculate_mitigation(damage: int, defender_stats: MyCharacterStats) -> int:
 	var def = defender_stats.get_stat("defense").computed_value
 	# 예시 공식: 방어력 1당 데미지 1 감소 (최소 데미지 1 보장)
 	return max(1, damage - def)
+
+# --------------------------------------------------------------------------
+# Destiny Design Stat Mechanics (운명 설계 스탯 메커니즘)
+# --------------------------------------------------------------------------
+
+## 방어력 스탯에 따른 퍼펙트 가드(PG) 범위 확장 값 계산
+func calculate_pg_extension(defense_points: int) -> float:
+	var extension: float = 0.0
+	
+	if defense_points <= 12:
+		extension = defense_points * 1.5
+	elif defense_points <= 25:
+		extension = (12 * 1.5) + (defense_points - 12) * 0.5
+	else:
+		extension = (12 * 1.5) + (13 * 0.5) + (defense_points - 25) * 0.1
+		
+	return extension
+
+## 회복력 스탯에 따른 전투 후 자동 회복 비율(%) 계산
+func calculate_recovery_percentage(recovery_points: int) -> float:
+	var percentage: float = 0.0
+	
+	if recovery_points <= 20:
+		percentage = recovery_points * 0.01 # 포인트당 1%
+	elif recovery_points <= 40:
+		percentage = 0.20 + (recovery_points - 20) * 0.005 # 포인트당 0.5%
+	else:
+		# 임계점 근처 완화 로직 (필요시 추가)
+		percentage = 0.30 + (recovery_points - 40) * 0.002 # 예시: 40포인트 이후 완만하게 상승
+		
+	# 절대 상한선 (Max 50%)
+	return min(0.50, percentage)

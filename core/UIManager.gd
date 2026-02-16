@@ -171,5 +171,9 @@ func _on_destiny_design_closed():
 
 func _on_loot_offer_closed():
 	if game_manager.current_game_phase == GameManager.GamePhase.BATTLE_END:
-		# 전리품 획득 후 다시 전투 HUD 상태(지도 이동 가능 등)로 복구
-		show_screen(Screen.BATTLE_HUD)
+		# [신규] 보스전이었다면 결과 화면 표시
+		if game_manager.current_battle_node_type == "boss":
+			show_end_of_dungeon_options()
+		else:
+			# 일반 전투였다면 HUD 상태로 복구
+			show_screen(Screen.BATTLE_HUD)

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ProjectileData" load_steps=3 format=3 uid="uid://bt5n65da7g462"]
+
+[ext_resource type="Script" uid="uid://bt0j7pbyjy77i" path="res://resources/combat/ProjectileData.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://characters/player/archer/Fx/Arrow.tscn" id="2_scene"]
+
+[resource]
+script = ExtResource("1_script")
+name = "Archer Arrow"
+projectile_scene = ExtResource("2_scene")
+speed = 850.0
+damage_multiplier = 1.0

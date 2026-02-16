@@ -82,16 +82,10 @@ func generate_dungeon_if_needed():
 			if not node_id in player_run_state.VisitedNodeIDs:
 				player_run_state.VisitedNodeIDs.append(node_id)
 
-		# 시작 노드 재설정 (첫 번째 시작 노드로 가정 - 안정성 우선)
-		var start_node_id = ""
-		for node in dungeon_data.nodes.values():
-			if node.node_type == "start":
-				start_node_id = node.node_id
-				break
-		player_run_state.CurrentNodeID = start_node_id
-		# 시작 노드는 항상 방문한 것으로 처리
-		if not player_run_state.CurrentNodeID in player_run_state.VisitedNodeIDs:
-			player_run_state.VisitedNodeIDs.append(player_run_state.CurrentNodeID)
+		# [수정] 시작 노드를 자동으로 할당하지 않고 비워두어 사용자가 선택하게 함
+		player_run_state.CurrentNodeID = ""
+		print("DEBUG: MapManager: Additional exploration mode. Waiting for entrance selection.")
+
 		player_run_state.CurrentDepth = 0
 
 		# transformed_nodes 정보를 바탕으로 맵 재구성
@@ -161,46 +155,51 @@ func hide_dungeon_map():
 		ui_manager.show_screen(UIManager.Screen.BATTLE_HUD)
 
 func _on_dungeon_node_activated(node_id: String):
-	print("DEBUG: MapManager: Node activated: ", node_id)
+	print("DEBUG: MapManager: Node activation sequence started for: ", node_id)
 	
-	# Update game state
+	if not dungeon_data.nodes.has(node_id):
+		printerr("ERROR: MapManager: Node ID '" + node_id + "' not found in dungeon data!")
+		return
+		
 	var selected_node: DungeonNode = dungeon_data.nodes[node_id]
-	print("DEBUG: MapManager: selected_node: ", selected_node.node_id, ", type: ", selected_node.node_type, ", depth: ", selected_node.depth)
-	player_run_state.CurrentNodeID = node_id
-	player_run_state.VisitedNodeIDs.append(node_id)
-	player_run_state.CurrentDepth = selected_node.depth
-	print("DEBUG: MapManager: player_run_state updated. CurrentNodeID: ", player_run_state.CurrentNodeID, ", CurrentDepth: ", player_run_state.CurrentDepth)
+	print("DEBUG: MapManager: Node details - Type: ", selected_node.node_type, ", Depth: ", selected_node.depth)
 	
-	# [신규] 탐험 보너스: 5개 노드 방문마다 주사위 굴림 기회 부여
+	# [수정] 월드 요소 복구가 포함된 함수 호출
+	hide_dungeon_map()
+	print("DEBUG: MapManager: Dungeon map hidden.")
+	
+	# Tell GameManager to prepare the battle
+	if is_instance_valid(game_manager):
+		# Grant dice roll if the node is a special type (Rule #2)
+		if selected_node.node_type == "rest" or selected_node.node_type == "shop" or selected_node.node_type == "special":
+			var dice_mgr = get_node_or_null("/root/DiceManager")
+			if dice_mgr:
+				dice_mgr.enable_roll()
+				print("DEBUG: MapManager: 특수 노드 주사위 기회 부여 완료.")
+
+		print("DEBUG: MapManager: Calling game_manager.prepare_dungeon_battle...")
+		game_manager.prepare_dungeon_battle(selected_node)
+	else:
+		printerr("ERROR: MapManager: game_manager is invalid!")
+
+# [신규] 노드 클리어 처리 (전투 승리 또는 이벤트 완료 시 호출)
+func clear_node(node_id: String):
+	if not dungeon_data.nodes.has(node_id):
+		return
+		
+	var node_data: DungeonNode = dungeon_data.nodes[node_id]
+	player_run_state.CurrentNodeID = node_id
+	if not node_id in player_run_state.VisitedNodeIDs:
+		player_run_state.VisitedNodeIDs.append(node_id)
+	player_run_state.CurrentDepth = node_data.depth
+	
+	# [이동] 탐험 보너스: 5개 노드 방문마다 주사위 굴림 기회 부여
 	if player_run_state.VisitedNodeIDs.size() > 0 and player_run_state.VisitedNodeIDs.size() % 5 == 0:
 		get_node("/root/DiceManager").enable_roll()
 		print("DEBUG: MapManager: 탐험 보너스! 5번째 노드 방문으로 주사위 굴림 기회 획득.")
-	
-	# Debugging next_node_ids of the newly activated node
-	if dungeon_data.nodes.has(player_run_state.CurrentNodeID):
-		var current_player_node: DungeonNode = dungeon_data.nodes[player_run_state.CurrentNodeID]
-		print("DEBUG: MapManager: Newly activated node next_node_ids: ", current_player_node.next_node_ids)
-
+		
 	update_dungeon_progress_hud()
-	print("DEBUG: MapManager: update_dungeon_progress_hud called.")
-
-	# [수정] 월드 요소 복구가 포함된 함수 호출
-	hide_dungeon_map()
-	print("DEBUG: MapManager: hide_dungeon_map through node activation.")
-	
-	# Tell GameManager to prepare the battle
-	if dungeon_data.nodes.has(node_id):
-		# Grant dice roll if the node is a special type (Rule #2)
-		if selected_node.node_type == "rest" or selected_node.node_type == "shop" or selected_node.node_type == "special":
-			get_node("/root/DiceManager").enable_roll()
-			print("DEBUG: MapManager: 특수 노드 도착! 주사위 굴림 기회가 부여됩니다.")
-
-		game_manager.prepare_dungeon_battle(selected_node)
-		print("DEBUG: MapManager: game_manager.prepare_dungeon_battle called.")
-	else:
-		printerr("ERROR: MapManager: Node ID '" + node_id + "' not found in dungeon data!")
-		game_manager.prepare_dungeon_battle(null) # Fallback
-		print("DEBUG: MapManager: game_manager.prepare_dungeon_battle called with null.")
+	print("DEBUG: MapManager: Node cleared: ", node_id)
 
 func update_dungeon_progress_hud():
 	if not is_instance_valid(stage_info_hud):

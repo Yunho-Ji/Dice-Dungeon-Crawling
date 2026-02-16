@@ -83,6 +83,10 @@ func _handle_battle_end(win: bool):
 	
 	set_process(false)
 
+	# 승리 시 회복력(Recovery) 기반 자동 회복 처리
+	if win and is_instance_valid(player_node):
+		_apply_post_battle_recovery()
+
 	player_node.set_process(false)
 	player_node.is_in_battle = false
 	
@@ -93,6 +97,28 @@ func _handle_battle_end(win: bool):
 
 	if game_manager:
 		game_manager.handle_battle_end(win)
+
+func _apply_post_battle_recovery():
+	var stats = player_node.current_stats
+	var hp_stat = stats.get_stat("health")
+	var recovery_stat = stats.get_stat("recovery_power")
+	
+	if not hp_stat or not recovery_stat: return
+	
+	var max_hp = hp_stat.computed_value
+	var current_hp = hp_stat.current_value
+	var missing_hp = max_hp - current_hp
+	
+	if missing_hp <= 0: return
+	
+	# StatManager를 통한 회복 비율 계산
+	var recovery_rate = StatManager.calculate_recovery_percentage(recovery_stat.computed_value)
+	var recovery_amount = int(missing_hp * recovery_rate)
+	
+	if recovery_amount > 0:
+		hp_stat.current_value = min(max_hp, current_hp + recovery_amount)
+		player_node.update_hp_label()
+		print("BattleManager: 전투 후 회복력 발동! +", recovery_amount, " HP 회복 (비율: ", recovery_rate * 100, "%)")
 
 func prepare_battle(node: DungeonNode, p_player: Character, p_enemies: Array[Character], p_stage: int, p_battle_count: int, p_ui_manager: UIManager, p_stage_info_hud: Control):
 	print("DEBUG: BattleManager: prepare_battle called.")

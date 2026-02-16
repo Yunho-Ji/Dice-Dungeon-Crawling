@@ -9,6 +9,12 @@ class_name MyCharacterStats
 @export var recovery_power: MyIntStat = MyIntStat.new() # Added recovery_power
 @export var luck: MyIntStat = MyIntStat.new() # Added luck
 @export var resistance: MyIntStat = MyIntStat.new() # Added resistance
+@export var intelligence: MyIntStat = MyIntStat.new() # 지능 (MP 재생, 마법 데미지)
+@export var agility: MyIntStat = MyIntStat.new() # 민첩 (회피 리스크 완화, 빗겨맞음)
+@export var shield: MyIntStat = MyIntStat.new() # 보호막 (기능적 스탯)
+@export var motion_speed: MyStat = MyStat.new() # 모션 속도 (기능적 스탯, 기본값 1.0)
+@export var piercing: MyStat = MyStat.new() # 방어 관통력 (0.0 ~ 1.0)
+@export var true_damage: MyStat = MyStat.new() # 트루 데미지 비율 (0.0 ~ 1.0, 보호막/방어 무시)
 
 func _init():
 	health.key = "health"
@@ -19,6 +25,15 @@ func _init():
 	recovery_power.key = "recovery_power" # Added key for recovery_power
 	luck.key = "luck" # Added key for luck
 	resistance.key = "resistance" # Added key for resistance
+	intelligence.key = "intelligence"
+	agility.key = "agility"
+	shield.key = "shield"
+	motion_speed.key = "motion_speed"
+	motion_speed.base_value = 1.0 # 기본 속도 100%
+	piercing.key = "piercing"
+	piercing.base_value = 0.0 # 기본 방어 관통 0%
+	true_damage.key = "true_damage"
+	true_damage.base_value = 0.0 # 기본 트루 데미지 0%
 
 func get_stat(key: String) -> MyStat:
 	match key:
@@ -30,13 +45,19 @@ func get_stat(key: String) -> MyStat:
 		"recovery_power": return recovery_power
 		"luck": return luck # Added luck
 		"resistance": return resistance # Added resistance
+		"intelligence": return intelligence
+		"agility": return agility
+		"shield": return shield
+		"motion_speed": return motion_speed
+		"piercing": return piercing
+		"true_damage": return true_damage
 	return null
 
 func get_all_stats() -> Array[MyStat]:
-	return [health, attack_power, defense, attack_speed, current_mp, recovery_power, luck, resistance] # Added luck and resistance # Added recovery_power
+	return [health, attack_power, defense, attack_speed, current_mp, recovery_power, luck, resistance, intelligence, agility, shield, motion_speed, piercing, true_damage]
 
 func get_all_stat_keys() -> Array[String]:
-	return ["health", "attack_power", "defense", "attack_speed", "current_mp", "recovery_power", "luck", "resistance"]
+	return ["health", "attack_power", "defense", "attack_speed", "current_mp", "recovery_power", "luck", "resistance", "intelligence", "agility", "shield", "motion_speed", "piercing", "true_damage"]
 
 # Ensures a true deep copy of this resource is created.
 func _duplicate(deep: bool = false) -> Resource:
@@ -52,6 +73,12 @@ func _duplicate(deep: bool = false) -> Resource:
 		new_instance.recovery_power = recovery_power.clone()
 		new_instance.luck = luck.clone()
 		new_instance.resistance = resistance.clone()
+		new_instance.intelligence = intelligence.clone()
+		new_instance.agility = agility.clone()
+		new_instance.shield = shield.clone()
+		new_instance.motion_speed = motion_speed.clone()
+		new_instance.piercing = piercing.clone()
+		new_instance.true_damage = true_damage.clone()
 	else:
 		# For a shallow copy, just assign the references
 		new_instance.health = health
@@ -62,6 +89,12 @@ func _duplicate(deep: bool = false) -> Resource:
 		new_instance.recovery_power = recovery_power
 		new_instance.luck = luck
 		new_instance.resistance = resistance
+		new_instance.intelligence = intelligence
+		new_instance.agility = agility
+		new_instance.shield = shield
+		new_instance.motion_speed = motion_speed
+		new_instance.piercing = piercing
+		new_instance.true_damage = true_damage
 	
 	return new_instance
 

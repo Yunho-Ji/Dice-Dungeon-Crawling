@@ -248,6 +248,12 @@ func _update_button_states():
 		var player_node: DungeonNode = dungeon_data.nodes[current_node_id]
 		_current_reachable_ids = player_node.next_node_ids.duplicate()
 		print("DEBUG: Reachable IDs from ", current_node_id, ": ", _current_reachable_ids)
+	else:
+		# [신규] 현재 위치가 없으면 (입구 선택 단계), 모든 'start' 노드를 도달 가능 목록에 추가
+		for node_id in dungeon_data.nodes:
+			if dungeon_data.nodes[node_id].node_type == "start":
+				_current_reachable_ids.append(node_id)
+		print("DEBUG: No current position. Available start nodes: ", _current_reachable_ids)
 
 	for node_visual in node_container.get_children():
 		var button = node_visual.find_child("SelectButton")
@@ -308,6 +314,10 @@ func _on_node_selected(target_node_id: String):
 		enter_dungeon_button.disabled = true
 
 func _on_enter_dungeon_button_pressed():
+	if dungeon_data.nodes.has(selected_target_node_id):
+		var node_data = dungeon_data.nodes[selected_target_node_id]
+		print("DungeonMap: Activating node ", selected_target_node_id, " of type ", node_data.node_type)
+	
 	print("DEBUG: 'Enter Dungeon' button pressed. selected_target_node_id: '", selected_target_node_id, "'. Button disabled state: ", enter_dungeon_button.disabled)
 	emit_signal("node_activated", selected_target_node_id)
 
