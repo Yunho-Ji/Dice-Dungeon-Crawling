@@ -99,14 +99,14 @@ func _apply_equipment_stats(slot_key: String, item_data: Dictionary, is_equippin
 # 아이템 데이터의 스탯 키를 시스템 스탯 키로 매핑
 func _map_item_stat_to_player_stat(item_stat_key: String) -> String:
 	match item_stat_key.to_lower():
-		"atk", "attack": return "attack_power"
-		"def", "defense": return "defense"
-		"hp", "health": return "health"
-		"spd", "speed": return "attack_speed"
-		"mp", "mana": return "current_mp"
-		"luck": return "luck"
-		"int", "intelligence": return "intelligence"
-		"agi", "agility": return "agility"
+		"atk", "attack", "attack_power": return "atk"
+		"vit", "vitality", "health": return "vit"
+		"spd", "speed", "attack_speed": return "spd"
+		"int", "intelligence", "int_stat": return "int_stat"
+		"agi", "agility": return "agi"
+		"res", "resistance": return "res"
+		"spi", "spirit": return "spi"
+		"rec", "recovery", "recovery_power": return "rec"
 	return ""
 # 기존 코드 호환성을 위해 래퍼 함수를 제공합니다.
 

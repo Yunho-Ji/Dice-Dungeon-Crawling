@@ -4,67 +4,67 @@
 [ext_resource type="Script" uid="uid://kukc5jf2pxgg" path="res://resources/stats/MyCharacterStats.gd" id="2_k0pr3"]
 [ext_resource type="Script" uid="uid://cron4d6nve5cs" path="res://resources/character_data/CharacterData.gd" id="3_2mevr"]
 
-[sub_resource type="Resource" id="Resource_vwd6k"]
+[sub_resource type="Resource" id="Resource_agi"]
 script = ExtResource("1_g4ctb")
-key = "attack_power"
+key = "agi"
+base_value = 12
+current_value = 12
+
+[sub_resource type="Resource" id="Resource_atk"]
+script = ExtResource("1_g4ctb")
+key = "atk"
 base_value = 8
 current_value = 8
 
-[sub_resource type="Resource" id="Resource_2seee"]
+[sub_resource type="Resource" id="Resource_int"]
 script = ExtResource("1_g4ctb")
-key = "attack_speed"
-base_value = 90
-current_value = 90
-
-[sub_resource type="Resource" id="Resource_46vkh"]
-script = ExtResource("1_g4ctb")
-key = "current_mp"
-base_value = 0
-current_value = 0
-
-[sub_resource type="Resource" id="Resource_6a5eq"]
-script = ExtResource("1_g4ctb")
-key = "defense"
+key = "int_stat"
 base_value = 2
 current_value = 2
 
-[sub_resource type="Resource" id="Resource_r8h7d"]
+[sub_resource type="Resource" id="Resource_rec"]
 script = ExtResource("1_g4ctb")
-key = "health"
-base_value = 50
-current_value = 50
+key = "rec"
+base_value = 1
+current_value = 1
 
-[sub_resource type="Resource" id="Resource_ub4jn"]
+[sub_resource type="Resource" id="Resource_res"]
 script = ExtResource("1_g4ctb")
-key = "luck"
-base_value = 0
-current_value = 0
+key = "res"
+base_value = 2
+current_value = 2
 
-[sub_resource type="Resource" id="Resource_8g0v3"]
+[sub_resource type="Resource" id="Resource_spd"]
 script = ExtResource("1_g4ctb")
-key = "recovery_power"
-base_value = 0
-current_value = 0
+key = "spd"
+base_value = 110
+current_value = 110
 
-[sub_resource type="Resource" id="Resource_b5dy2"]
+[sub_resource type="Resource" id="Resource_spi"]
 script = ExtResource("1_g4ctb")
-key = "resistance"
-base_value = 0
-current_value = 0
+key = "spi"
+base_value = 2
+current_value = 2
 
-[sub_resource type="Resource" id="Resource_hsdxp"]
+[sub_resource type="Resource" id="Resource_vit"]
+script = ExtResource("1_g4ctb")
+key = "vit"
+base_value = 4
+current_value = 4
+
+[sub_resource type="Resource" id="Resource_new_stats"]
 script = ExtResource("2_k0pr3")
-health = SubResource("Resource_r8h7d")
-attack_power = SubResource("Resource_vwd6k")
-defense = SubResource("Resource_6a5eq")
-attack_speed = SubResource("Resource_2seee")
-current_mp = SubResource("Resource_46vkh")
-recovery_power = SubResource("Resource_8g0v3")
-luck = SubResource("Resource_ub4jn")
-resistance = SubResource("Resource_b5dy2")
+agi = SubResource("Resource_agi")
+vit = SubResource("Resource_vit")
+int_stat = SubResource("Resource_int")
+atk = SubResource("Resource_atk")
+spd = SubResource("Resource_spd")
+res = SubResource("Resource_res")
+spi = SubResource("Resource_spi")
+rec = SubResource("Resource_rec")
 
 [resource]
 script = ExtResource("3_2mevr")
 uid = ""
 character_name = "Goblin"
-base_stats = SubResource("Resource_hsdxp")
+base_stats = SubResource("Resource_new_stats")

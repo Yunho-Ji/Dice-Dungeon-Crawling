@@ -101,7 +101,7 @@ func _handle_battle_end(win: bool):
 func _apply_post_battle_recovery():
 	var stats = player_node.current_stats
 	var hp_stat = stats.get_stat("health")
-	var recovery_stat = stats.get_stat("recovery_power")
+	var recovery_stat = stats.get_stat("rec")
 	
 	if not hp_stat or not recovery_stat: return
 	
@@ -111,16 +111,18 @@ func _apply_post_battle_recovery():
 	
 	if missing_hp <= 0: return
 	
-	# StatManager를 통한 회복 비율 계산
+	# StatManager를 통한 회복 비율 계산 (Recovery Power 수치 기반)
 	var recovery_rate = StatManager.calculate_recovery_percentage(recovery_stat.computed_value)
 	var recovery_amount = int(missing_hp * recovery_rate)
 	
 	if recovery_amount > 0:
 		hp_stat.current_value = min(max_hp, current_hp + recovery_amount)
 		player_node.update_hp_label()
-		print("BattleManager: 전투 후 회복력 발동! +", recovery_amount, " HP 회복 (비율: ", recovery_rate * 100, "%)")
+		print("BattleManager: 전투 후 회복력(REC) 발동! +", recovery_amount, " HP 회복 (비율: ", recovery_rate * 100, "%)")
 
 func prepare_battle(node: DungeonNode, p_player: Character, p_enemies: Array[Character], p_stage: int, p_battle_count: int, p_ui_manager: UIManager, p_stage_info_hud: Control):
+# ... (기존 코드 유지) ...
+
 	print("DEBUG: BattleManager: prepare_battle called.")
 	enemies = p_enemies
 	player_node = p_player # player_node 저장 확인
@@ -206,11 +208,8 @@ func _print_character_stats(char: Character):
 
 	print("DEBUG: 캐릭터: ", char.name)
 	var stats = char.current_stats
-	if not stats:
-		print("DEBUG: 스탯이 로드되지 않았습니다.")
-		return
-
-	var stat_keys = ["health", "attack_power", "defense"] # 주요 스탯만 출력
+	
+	var stat_keys = ["health", "atk", "vit", "agi", "spd", "res"] # 주요 스탯 출력
 	for key in stat_keys:
 		var stat = stats.get_stat(key)
 		if stat:

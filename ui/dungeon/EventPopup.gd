@@ -25,7 +25,7 @@ const DiceVisualScene = preload("res://ui/elements/DiceVisual.tscn")
 
 var trap_difficulty: int = 15
 var player_agility: int = 0
-var agility_bonus: int = 0
+var trap_bonus: int = 0
 var trap_damage: int = 10
 var dice_visual_node: Node2D = null
 
@@ -65,7 +65,7 @@ func setup_event(type: EventType, difficulty: int = 15, damage: int = 10, bonus:
 	current_event_type = type
 	trap_difficulty = difficulty
 	trap_damage = damage
-	agility_bonus = bonus
+	trap_bonus = bonus
 	
 	# 팝업 가시성 강제 활성화
 	self.visible = true
@@ -85,7 +85,7 @@ func setup_event(type: EventType, difficulty: int = 15, damage: int = 10, bonus:
 			title_label.text = "위험한 함정"
 			desc_label.text = "[center]교묘하게 설치된 함정입니다.\n(난이도 DC: %d)[/center]" % trap_difficulty
 			btn_force.text = "강행 돌파 (HP -%d)" % trap_damage
-			btn_disarm.text = "해제 시도 (1d20 + SPD %d)" % agility_bonus
+			btn_disarm.text = "해제 시도 (1d20 + 보정 %d)" % trap_bonus
 		
 		EventType.TREASURE:
 			title_label.text = "오래된 보물상자"
@@ -142,10 +142,10 @@ func _handle_altar_logic():
 	result_label.modulate = Color.CRIMSON
 	var player = get_node("/root/GameManager").player_node
 	if player and player.current_stats:
-		var atk = player.current_stats.get_stat("attack_power")
-		if atk:
+		var atk_stat = player.current_stats.get_stat("atk")
+		if atk_stat:
 			# 영구 보너스이므로 베이스 수치를 올리고 신호 발생을 위해 수동 업데이트 호출
-			atk.base_value += 3
+			atk_stat.base_value += 3
 			player.update_hp_label() # UI 갱신 유도
 	_end_event()
 
@@ -167,9 +167,9 @@ func _handle_sanctuary_logic():
 func _handle_trap_logic():
 	var dice_roll = randi_range(1, 20)
 	await _play_dice_animation(dice_roll)
-	var total = dice_roll + agility_bonus
+	var total = dice_roll + trap_bonus
 	_set_dice_final_result(dice_roll)
-	var result_text = "주사위: %d + 보정: %d = 합계: %d\n" % [dice_roll, agility_bonus, total]
+	var result_text = "주사위: %d + 보정: %d = 합계: %d\n" % [dice_roll, trap_bonus, total]
 	if total >= trap_difficulty:
 		result_text += ">> 성공! 함정을 무력화했습니다."
 		result_label.modulate = Color.GREEN

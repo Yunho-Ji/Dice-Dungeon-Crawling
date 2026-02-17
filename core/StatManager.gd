@@ -67,36 +67,54 @@ func _apply_modifier(current_value: float, modifier: MyStatModifier) -> float:
 # --------------------------------------------------------------------------
 # Derived Calculation Formulas (2차 스탯)
 # --------------------------------------------------------------------------
-# 예: 힘(Strength) 기반 데미지 계산
-func calculate_damage(attacker_stats: MyCharacterStats, skill_multiplier: float) -> int:
-	var base_atk = attacker_stats.get_stat("attack_power").computed_value
-	# 여기에 치명타, 속성 보정 등 복잡한 공식을 추가합니다.
-	return int(base_atk * skill_multiplier)
 
-# 예: 방어력 기반 데미지 감소
+# [수정] 마비노기 스타일 데미지 계산 (기반 마련)
+func calculate_damage(attacker_stats: MyCharacterStats, skill_multiplier: float) -> int:
+	var base_atk = attacker_stats.get_stat("atk").computed_value
+	
+	# 향후 무기 시스템 연동 시 Min/Max/Balance 반영 예정
+	# 현재는 기초 공격력을 Max로 간주하고 밸런스에 따라 하방 결정
+	var max_dmg = base_atk
+	var min_dmg = int(max_dmg * 0.2) # 기본 최소 데미지 20%
+	var balance = 0.5 # 기본 밸런스 50%
+	
+	# 밸런스 로직 시뮬레이션: 밸런스가 높을수록 Max에 가까운 난수 발생
+	var rng = RandomNumberGenerator.new()
+	rng.randomize()
+	
+	var final_atk = max_dmg
+	if rng.randf() > balance:
+		final_atk = rng.randi_range(min_dmg, max_dmg)
+		
+	return int(final_atk * skill_multiplier)
+
+# [수정] 방어력(Defense) 및 저항(Resistance) 기반 피해 감소
 func calculate_mitigation(damage: int, defender_stats: MyCharacterStats) -> int:
+	# 방어구 수치 (Defense)
 	var def = defender_stats.get_stat("defense").computed_value
-	# 예시 공식: 방어력 1당 데미지 1 감소 (최소 데미지 1 보장)
+	# 저항 수치 (Resistance): 물리 관통 등에 대한 저항력으로 사용 가능
+	
+	# 예시 공식: (대미지 - 방어력) 방식 유지하되 최소 데미지 1 보장
 	return max(1, damage - def)
 
 # --------------------------------------------------------------------------
 # Destiny Design Stat Mechanics (운명 설계 스탯 메커니즘)
 # --------------------------------------------------------------------------
 
-## 방어력 스탯에 따른 퍼펙트 가드(PG) 범위 확장 값 계산
-func calculate_pg_extension(defense_points: int) -> float:
+## 저항(RES) 스탯에 따른 퍼펙트 가드(PG) 범위 확장 값 계산
+func calculate_pg_extension(resistance_points: int) -> float:
 	var extension: float = 0.0
 	
-	if defense_points <= 12:
-		extension = defense_points * 1.5
-	elif defense_points <= 25:
-		extension = (12 * 1.5) + (defense_points - 12) * 0.5
+	if resistance_points <= 12:
+		extension = resistance_points * 1.5
+	elif resistance_points <= 25:
+		extension = (12 * 1.5) + (resistance_points - 12) * 0.5
 	else:
-		extension = (12 * 1.5) + (13 * 0.5) + (defense_points - 25) * 0.1
+		extension = (12 * 1.5) + (13 * 0.5) + (resistance_points - 25) * 0.1
 		
 	return extension
 
-## 회복력 스탯에 따른 전투 후 자동 회복 비율(%) 계산
+## 회복력(REC) 스탯에 따른 전투 후 자동 회복 비율(%) 계산
 func calculate_recovery_percentage(recovery_points: int) -> float:
 	var percentage: float = 0.0
 	
@@ -105,8 +123,6 @@ func calculate_recovery_percentage(recovery_points: int) -> float:
 	elif recovery_points <= 40:
 		percentage = 0.20 + (recovery_points - 20) * 0.005 # 포인트당 0.5%
 	else:
-		# 임계점 근처 완화 로직 (필요시 추가)
-		percentage = 0.30 + (recovery_points - 40) * 0.002 # 예시: 40포인트 이후 완만하게 상승
+		percentage = 0.30 + (recovery_points - 40) * 0.002 
 		
-	# 절대 상한선 (Max 50%)
 	return min(0.50, percentage)

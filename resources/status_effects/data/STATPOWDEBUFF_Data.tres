@@ -12,4 +12,4 @@ effect_name = "STAT_POW_DEBUFF"
 duration = 3.0
 modifiers = Array[ExtResource("1_my_stat_modifier")]([SubResource("2")])
 icon_path = ""
-description = "공격력 스탯 감소."
+description = "공격???�탯 감소."

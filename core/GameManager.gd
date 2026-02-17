@@ -307,6 +307,8 @@ func prepare_dungeon_battle(node: DungeonNode):
 			is_revisit = true
 
 	if current_battle_node_type == "start":
+		# [핵심] 시작 노드에서는 적을 절대 소환하지 않고 즉시 종료 처리
+		print("GameManager: 시작 노드에 진입했습니다. 전투가 없습니다.")
 		handle_battle_end(true, false)
 		return
 		
@@ -379,14 +381,39 @@ func _show_trap_event():
 	if not ui_manager: return
 	var popup = EVENT_POPUP_SCENE.instantiate()
 	ui_manager.add_child(popup)
-	var speed_bonus = 0
-	if player_node and player_node.current_stats: 
-		# [수정] 프로젝트 표준 명칭인 'attack_speed'를 사용
-		var stat = player_node.current_stats.get_stat("attack_speed")
-		if stat: speed_bonus = stat.computed_value
 	
-	# 난이도 15, 데미지 20, 보정치 적용
-	popup.setup_event(popup.EventType.TRAP, 15, 20, speed_bonus)
+	# [신규] 함정 유형 무작위 결정 (기획 명세 기반)
+	var trap_types = ["physical", "poison", "magic", "mental"]
+	var selected_type = trap_types.pick_random()
+	
+	var stat_key = "agi"
+	var trap_name = "물리 함정"
+	
+	match selected_type:
+		"physical": 
+			stat_key = "agi"
+			trap_name = "물리 함정 (낙석/화살)"
+		"poison": 
+			stat_key = "vit"
+			trap_name = "독/가스 함정"
+		"magic": 
+			stat_key = "int_stat"
+			trap_name = "마법 암호 함정"
+		"mental": 
+			stat_key = "spi"
+			trap_name = "정신적 공포 함정"
+
+	var bonus = 0
+	if player_node and player_node.current_stats: 
+		var stat = player_node.current_stats.get_stat(stat_key)
+		if stat:
+			# [공식] 스탯 10단위당 +1 보정치 (수치 * 0.1)
+			bonus = int(stat.computed_value * 0.1)
+	
+	popup.setup_event(popup.EventType.TRAP, 15, 20, bonus)
+	# 팝업 타이틀 및 설명 커스텀 (필요 시 EventPopup 내부에 trap_name 전달 로직 추가 가능)
+	popup.title_label.text = trap_name
+	
 	popup.event_completed.connect(_on_event_completed.bind(popup))
 
 func _show_treasure_event():

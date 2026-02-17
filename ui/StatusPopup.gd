@@ -5,16 +5,16 @@ extends PanelContainer
 
 # 스탯 이름과 표시 이름을 매핑합니다.
 const STAT_NAMES = {
+	"agi": "민첩 (AGI)",
+	"vit": "건강 (VIT)",
+	"int_stat": "지능 (INT)",
+	"atk": "공격력 (ATK)",
+	"spd": "공격속도 (SPD)",
+	"res": "저항 (RES)",
+	"spi": "정신 (SPI)",
+	"rec": "회복력 (REC)",
 	"health": "체력",
-	"current_mp": "마력",
-	"attack_power": "공격력",
-	"defense": "방어력",
-	"attack_speed": "공격 속도",
-	"recovery_power": "회복력",
-	"luck": "행운",
-	"resistance": "저항",
-	"intelligence": "지능",
-	"agility": "민첩"
+	"current_mp": "마력"
 }
 
 # 드래그 상태를 추적하기 위한 변수

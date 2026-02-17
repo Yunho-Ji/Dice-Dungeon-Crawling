@@ -15,4 +15,4 @@ effect_name = "STUN"
 duration = 1.0
 modifiers = [SubResource("2")]
 icon_path = ""
-description = "행동 게이지 정지."
+description = "?�동 게이지 ?��?."

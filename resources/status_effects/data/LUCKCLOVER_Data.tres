@@ -7,12 +7,12 @@
 script = ExtResource("1_my_stat_modifier")
 operation = 0
 value = 10.0
-target_stat_key = "LUCK"
+target_stat_key = "spi"
 
 [resource]
 script = ExtResource("1_status_effect_data")
-effect_name = "LUCK_CLOVER"
+effect_name = "spi_CLOVER"
 duration = 0.0
 modifiers = [SubResource("2")]
 icon_path = ""
-description = "행운 스탯 증가. (영구 지속)"
+description = "?�운 ?�탯 증�?. (?�구 지??"

@@ -4,77 +4,67 @@
 [ext_resource type="Script" uid="uid://kukc5jf2pxgg" path="res://resources/stats/MyCharacterStats.gd" id="2_j0n5o"]
 [ext_resource type="Script" uid="uid://cron4d6nve5cs" path="res://resources/character_data/CharacterData.gd" id="3_i1v4o"]
 
-[sub_resource type="Resource" id="Resource_3jkel"]
+[sub_resource type="Resource" id="Resource_agi"]
 script = ExtResource("1_3jkel")
-key = ""
+key = "agi"
+base_value = 20
+current_value = 20
+
+[sub_resource type="Resource" id="Resource_atk"]
+script = ExtResource("1_3jkel")
+key = "atk"
+base_value = 25
+current_value = 25
+
+[sub_resource type="Resource" id="Resource_int"]
+script = ExtResource("1_3jkel")
+key = "int_stat"
 base_value = 15
-current_value = 0
-metadata/_custom_type_script = "uid://b6il3r4uf7skt"
+current_value = 15
 
-[sub_resource type="Resource" id="Resource_j0n5o"]
+[sub_resource type="Resource" id="Resource_rec"]
 script = ExtResource("1_3jkel")
-key = ""
+key = "rec"
+base_value = 10
+current_value = 10
+
+[sub_resource type="Resource" id="Resource_res"]
+script = ExtResource("1_3jkel")
+key = "res"
+base_value = 15
+current_value = 15
+
+[sub_resource type="Resource" id="Resource_spd"]
+script = ExtResource("1_3jkel")
+key = "spd"
 base_value = 100
-current_value = 0
-metadata/_custom_type_script = "uid://b6il3r4uf7skt"
+current_value = 100
 
-[sub_resource type="Resource" id="Resource_i1v4o"]
+[sub_resource type="Resource" id="Resource_spi"]
 script = ExtResource("1_3jkel")
-key = ""
-base_value = 0
-current_value = 0
-metadata/_custom_type_script = "uid://b6il3r4uf7skt"
+key = "spi"
+base_value = 10
+current_value = 10
 
-[sub_resource type="Resource" id="Resource_qjpjc"]
+[sub_resource type="Resource" id="Resource_vit"]
 script = ExtResource("1_3jkel")
-key = ""
-base_value = 8
-current_value = 0
-metadata/_custom_type_script = "uid://b6il3r4uf7skt"
+key = "vit"
+base_value = 30
+current_value = 30
 
-[sub_resource type="Resource" id="Resource_gfj6w"]
-script = ExtResource("1_3jkel")
-key = ""
-base_value = 200
-current_value = 0
-metadata/_custom_type_script = "uid://b6il3r4uf7skt"
-
-[sub_resource type="Resource" id="Resource_n3oiv"]
-script = ExtResource("1_3jkel")
-key = ""
-base_value = 0
-current_value = 0
-metadata/_custom_type_script = "uid://b6il3r4uf7skt"
-
-[sub_resource type="Resource" id="Resource_s1k40"]
-script = ExtResource("1_3jkel")
-key = ""
-base_value = 0
-current_value = 0
-metadata/_custom_type_script = "uid://b6il3r4uf7skt"
-
-[sub_resource type="Resource" id="Resource_llodn"]
-script = ExtResource("1_3jkel")
-key = ""
-base_value = 0
-current_value = 0
-metadata/_custom_type_script = "uid://b6il3r4uf7skt"
-
-[sub_resource type="Resource" id="Resource_yqntg"]
-resource_local_to_scene = true
+[sub_resource type="Resource" id="Resource_new_stats"]
 script = ExtResource("2_j0n5o")
-health = SubResource("Resource_gfj6w")
-attack_power = SubResource("Resource_3jkel")
-defense = SubResource("Resource_qjpjc")
-attack_speed = SubResource("Resource_j0n5o")
-current_mp = SubResource("Resource_i1v4o")
-recovery_power = SubResource("Resource_s1k40")
-luck = SubResource("Resource_n3oiv")
-resistance = SubResource("Resource_llodn")
-metadata/_custom_type_script = "uid://kukc5jf2pxgg"
+agi = SubResource("Resource_agi")
+vit = SubResource("Resource_vit")
+int_stat = SubResource("Resource_int")
+atk = SubResource("Resource_atk")
+spd = SubResource("Resource_spd")
+res = SubResource("Resource_res")
+spi = SubResource("Resource_spi")
+rec = SubResource("Resource_rec")
 
 [resource]
 script = ExtResource("3_i1v4o")
 uid = ""
 character_name = "Boss Goblin"
-base_stats = SubResource("Resource_yqntg")
+base_stats = SubResource("Resource_new_stats")

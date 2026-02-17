@@ -42,10 +42,10 @@ const ZONE_5_H = 60
 const ZONE_3_W = 250
 const ZONE_4_W = 200
 
-# [신규] 투자 가능한 8종 핵심 스탯 정의
+# [수정] 투자 가능한 8종 핵심 스탯 정의 (DDC 리디자인 버전)
 const INVESTABLE_STATS = [
-	"health", "attack_power", "defense", "attack_speed", 
-	"current_mp", "recovery_power", "luck", "resistance"
+	"agi", "vit", "int_stat", "atk", 
+	"spd", "res", "spi", "rec"
 ]
 
 func _ready():

@@ -14,14 +14,14 @@ var current_stat_value: MyStat
 
 # 스탯 이름 약어 맵
 const STAT_ABBREVIATIONS = {
-	"health": "HP",
-	"attack_power": "ATK",
-	"defense": "DEF",
-	"attack_speed": "SPD",
-	"current_mp": "MP",
-	"recovery_power": "REC",
-	"luck": "LCK",
-	"resistance": "RES"
+	"agi": "AGI",
+	"vit": "VIT",
+	"int_stat": "INT",
+	"atk": "ATK",
+	"spd": "SPD",
+	"res": "RES",
+	"spi": "SPI",
+	"rec": "REC"
 }
 
 func _ready():
@@ -92,14 +92,15 @@ func update_display():
 	var display_name = STAT_ABBREVIATIONS.get(stat_name, stat_name.to_upper())
 	stat_name_label.text = display_name
 	
-	# 기본 수치 라벨은 숨기거나 보조 용도로만 사용 (사용자 요청: 합산 수치만 표기)
-	current_value_label.visible = false 
+	# 기본 수치 라벨은 숨기거나 보조 용도로만 사용
+	if is_instance_valid(current_value_label):
+		current_value_label.visible = false 
 	
 	if current_stat_value:
-		# 중앙의 큰 라벨에 합산된 최종 수치(computed_value)를 표기
-		assigned_value_label.text = str(current_stat_value.computed_value)
+		# [수정] 스탯 시스템의 최종 합산값(computed_value)을 가져옴
+		assigned_value_label.text = str(int(current_stat_value.computed_value))
 	else:
-		assigned_value_label.text = "N/A"
+		assigned_value_label.text = "0"
 	
 	# [수정] 주사위 보너스 적용 여부에 따른 색상 강조 (이번 세션에 투자된 스탯만 표시)
 	var is_invested_now = false

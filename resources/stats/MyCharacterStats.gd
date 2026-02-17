@@ -1,133 +1,109 @@
+# MyCharacterStats.gd
+# DDC 8유형 스탯 시스템 리디자인
 extends Resource
 class_name MyCharacterStats
 
+# 1. 기반 및 방어구 요구 스탯
+@export var agi: MyIntStat = MyIntStat.new() # 민첩 (AGI): 경갑 요구치 / 회피
+@export var vit: MyIntStat = MyIntStat.new() # 건강 (VIT): 중갑 요구치 / 최대 HP
+@export var int_stat: MyIntStat = MyIntStat.new() # 지능 (INT): 천옷 요구치 / 최대 MP
+
+# 2. 전투 실무 및 화력 스탯
+@export var atk: MyIntStat = MyIntStat.new() # 공격력 (ATK): 기초 공격력
+@export var spd: MyIntStat = MyIntStat.new() # 공격속도 (SPD): AP(행동 게이지) 속도
+
+# 3. 유지력 및 주도권 스탯
+@export var res: MyIntStat = MyIntStat.new() # 저항 (RES): 물리 저항 / AP 차감 저항
+@export var spi: MyIntStat = MyIntStat.new() # 정신 (SPI): 정신 저항 / MP 재생 / 주사위 자원
+@export var rec: MyIntStat = MyIntStat.new() # 회복력 (REC): HP 재생 / 포션 효율
+
+# --- 파생 및 특수 수치 (내부 참조용) ---
 @export var health: MyIntStat = MyIntStat.new()
-@export var attack_power: MyIntStat = MyIntStat.new()
-@export var defense: MyIntStat = MyIntStat.new()
-@export var attack_speed: MyIntStat = MyIntStat.new()
-@export var current_mp: MyIntStat = MyIntStat.new() # Assuming MP is also an IntStat
-@export var recovery_power: MyIntStat = MyIntStat.new() # Added recovery_power
-@export var luck: MyIntStat = MyIntStat.new() # Added luck
-@export var resistance: MyIntStat = MyIntStat.new() # Added resistance
-@export var intelligence: MyIntStat = MyIntStat.new() # 지능 (MP 재생, 마법 데미지)
-@export var agility: MyIntStat = MyIntStat.new() # 민첩 (회피 리스크 완화, 빗겨맞음)
-@export var shield: MyIntStat = MyIntStat.new() # 보호막 (기능적 스탯)
-@export var motion_speed: MyStat = MyStat.new() # 모션 속도 (기능적 스탯, 기본값 1.0)
-@export var piercing: MyStat = MyStat.new() # 방어 관통력 (0.0 ~ 1.0)
-@export var true_damage: MyStat = MyStat.new() # 트루 데미지 비율 (0.0 ~ 1.0, 보호막/방어 무시)
+@export var current_mp: MyIntStat = MyIntStat.new()
+@export var defense: MyIntStat = MyIntStat.new() # 방어구 합산용
 
 func _init():
+	_setup_keys()
+	# [신규] 건강(VIT)과 지능(INT) 변화 시 파생 스탯(HP/MP) 자동 업데이트 연결
+	vit.value_changed.connect(func(_val): update_derived_stats())
+	int_stat.value_changed.connect(func(_val): update_derived_stats())
+
+func _setup_keys():
+	agi.key = "agi"
+	vit.key = "vit"
+	int_stat.key = "int_stat"
+	atk.key = "atk"
+	spd.key = "spd"
+	res.key = "res"
+	spi.key = "spi"
+	rec.key = "rec"
 	health.key = "health"
-	attack_power.key = "attack_power"
-	defense.key = "defense"
-	attack_speed.key = "attack_speed"
 	current_mp.key = "current_mp"
-	recovery_power.key = "recovery_power" # Added key for recovery_power
-	luck.key = "luck" # Added key for luck
-	resistance.key = "resistance" # Added key for resistance
-	intelligence.key = "intelligence"
-	agility.key = "agility"
-	shield.key = "shield"
-	motion_speed.key = "motion_speed"
-	motion_speed.base_value = 1.0 # 기본 속도 100%
-	piercing.key = "piercing"
-	piercing.base_value = 0.0 # 기본 방어 관통 0%
-	true_damage.key = "true_damage"
-	true_damage.base_value = 0.0 # 기본 트루 데미지 0%
+	defense.key = "defense"
+
+# VIT/INT에 따른 HP/MP 업데이트 로직
+func update_derived_stats():
+	# 건강(VIT) 1당 최대 HP 10 증가 (기본 100)
+	var prev_max_hp = health.base_value
+	health.base_value = 100 + (vit.computed_value * 10)
+	
+	# 지능(INT) 1당 최대 MP 5 증가 (기본 50)
+	var prev_max_mp = current_mp.base_value
+	current_mp.base_value = 50 + (int_stat.computed_value * 5)
+	
+	# [핵심 수정] 초기화 시점(현재값이 0일 때) 현재 HP/MP를 최대치로 설정
+	if health.current_value == 0 or health.current_value > health.base_value:
+		health.current_value = health.base_value
+	if current_mp.current_value == 0 or current_mp.current_value > current_mp.base_value:
+		current_mp.current_value = current_mp.base_value
+	
+	# 시그널 발생을 통해 UI(Character.gd 등) 갱신 유도
+	health.emit_signal("value_changed", health.computed_value)
+	current_mp.emit_signal("value_changed", current_mp.computed_value)
 
 func get_stat(key: String) -> MyStat:
-	match key:
+	match key.to_lower():
+		"agi": return agi
+		"vit": return vit
+		"int", "int_stat": return int_stat
+		"atk", "attack_power": return atk
+		"spd", "attack_speed": return spd
+		"res", "resistance": return res
+		"spi", "spirit": return spi
+		"rec", "recovery_power": return rec
 		"health": return health
-		"attack_power": return attack_power
-		"defense": return defense
-		"attack_speed": return attack_speed
 		"current_mp": return current_mp
-		"recovery_power": return recovery_power
-		"luck": return luck # Added luck
-		"resistance": return resistance # Added resistance
-		"intelligence": return intelligence
-		"agility": return agility
-		"shield": return shield
-		"motion_speed": return motion_speed
-		"piercing": return piercing
-		"true_damage": return true_damage
+		"defense": return defense
 	return null
 
-func get_all_stats() -> Array[MyStat]:
-	return [health, attack_power, defense, attack_speed, current_mp, recovery_power, luck, resistance, intelligence, agility, shield, motion_speed, piercing, true_damage]
+func get_all_stats() -> Array:
+	return [agi, vit, int_stat, atk, spd, res, spi, rec, health, current_mp]
 
-func get_all_stat_keys() -> Array[String]:
-	return ["health", "attack_power", "defense", "attack_speed", "current_mp", "recovery_power", "luck", "resistance", "intelligence", "agility", "shield", "motion_speed", "piercing", "true_damage"]
+func get_all_stat_keys() -> Array:
+	return ["agi", "vit", "int_stat", "atk", "spd", "res", "spi", "rec"]
 
-# Ensures a true deep copy of this resource is created.
-func _duplicate(deep: bool = false) -> Resource:
+func clone() -> MyCharacterStats:
 	var new_instance = MyCharacterStats.new()
-
-	# Manually copy/duplicate the stat properties
-	if deep:
-		new_instance.health = health.clone()
-		new_instance.attack_power = attack_power.clone()
-		new_instance.defense = defense.clone()
-		new_instance.attack_speed = attack_speed.clone()
-		new_instance.current_mp = current_mp.clone()
-		new_instance.recovery_power = recovery_power.clone()
-		new_instance.luck = luck.clone()
-		new_instance.resistance = resistance.clone()
-		new_instance.intelligence = intelligence.clone()
-		new_instance.agility = agility.clone()
-		new_instance.shield = shield.clone()
-		new_instance.motion_speed = motion_speed.clone()
-		new_instance.piercing = piercing.clone()
-		new_instance.true_damage = true_damage.clone()
-	else:
-		# For a shallow copy, just assign the references
-		new_instance.health = health
-		new_instance.attack_power = attack_power
-		new_instance.defense = defense
-		new_instance.attack_speed = attack_speed
-		new_instance.current_mp = current_mp
-		new_instance.recovery_power = recovery_power
-		new_instance.luck = luck
-		new_instance.resistance = resistance
-		new_instance.intelligence = intelligence
-		new_instance.agility = agility
-		new_instance.shield = shield
-		new_instance.motion_speed = motion_speed
-		new_instance.piercing = piercing
-		new_instance.true_damage = true_damage
-	
+	new_instance.agi = agi.clone()
+	new_instance.vit = vit.clone()
+	new_instance.int_stat = int_stat.clone()
+	new_instance.atk = atk.clone()
+	new_instance.spd = spd.clone()
+	new_instance.res = res.clone()
+	new_instance.spi = spi.clone()
+	new_instance.rec = rec.clone()
+	new_instance.update_derived_stats()
 	return new_instance
 
-func sync_from(source_stats: MyCharacterStats):
-	if not source_stats:
-		printerr("ERROR: MyCharacterStats: Source stats for sync_from is null.")
-		return
-	
-	for stat_key in get_all_stat_keys():
-		var source_stat = source_stats.get_stat(stat_key)
-		var target_stat = get_stat(stat_key)
-		
-		if source_stat and target_stat:
-			target_stat.sync_from(source_stat)
-		else:
-			printerr("ERROR: MyCharacterStats: Failed to sync stat '", stat_key, "'. Source or target stat is null.")
-
-func apply_dice_to_stat(stat_name: String, value: int):
-	var stat = get_stat(stat_name)
-	if stat:
-		stat.base_value += value # Direct modification of base_value
-		stat.current_value += value # Also update current_value
-		print(stat_name, "에 ", value, " 추가. 현재 값: ", stat.computed_value)
-	else:
-		print("알 수 없는 스탯: ", stat_name)
-
-# [신규] 모든 스탯의 주사위 보너스(Modifiers) 제거
-# 운명 설계 단계에서 재분배를 위해 기존 강화 수치를 초기화할 때 사용
-func remove_all_modifiers():
-	var all_stats = get_all_stats()
-	for stat in all_stats:
-		if stat and stat.has_method("clear_modifiers"):
-			# MyStat에 정의된 공식 메서드를 통해 수정자 제거 및 신호 발생
-			stat.clear_modifiers()
-			# 현재 값(current_value)도 베이스 수치로 동기화
-			stat.current_value = stat.base_value
+# 다른 stats 객체로부터 값을 동기화
+func sync_from(other: MyCharacterStats):
+	if not other: return
+	agi.base_value = other.agi.base_value
+	vit.base_value = other.vit.base_value
+	int_stat.base_value = other.int_stat.base_value
+	atk.base_value = other.atk.base_value
+	spd.base_value = other.spd.base_value
+	res.base_value = other.res.base_value
+	spi.base_value = other.spi.base_value
+	rec.base_value = other.rec.base_value
+	update_derived_stats()
