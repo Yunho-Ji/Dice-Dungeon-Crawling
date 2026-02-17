@@ -8,8 +8,18 @@ signal itemUpgraded
 	set(val):
 		if val in Apeloot.items:
 			id = val
-			texture.texture = load(Apeloot.ITEM_ICONS_PATH + val + ".png")
-			var pattern = Apeloot.item_patterns[Apeloot.items[val]["pattern"]] if "pattern" in Apeloot.items[val] else Apeloot.item_patterns["1x1"]
+			var data = Apeloot.items[val]
+			var icon_file = data.get("icon", "")
+			if icon_file == "": icon_file = val + ".png"
+			
+			var full_path = Apeloot.ITEM_ICONS_PATH + icon_file
+			if FileAccess.file_exists(full_path):
+				texture.texture = load(full_path)
+			else:
+				# 파일이 없을 경우 폴백 (기존 방식 또는 로그)
+				texture.texture = load(Apeloot.ITEM_ICONS_PATH + val + ".png")
+			
+			var pattern = Apeloot.item_patterns[data["pattern"]] if "pattern" in data else Apeloot.item_patterns["1x1"]
 			
 			# 가로와 세로 크기를 패턴에 맞게 정확히 계산
 			var pattern_width = len(pattern[0])
@@ -37,7 +47,7 @@ var parent_inventory: GridInventory:
 				$ItemTexture.pivot_offset = $ItemTexture.custom_minimum_size/2
 				adjust_stack_label_pos()
 var texture: 
-	get():
+	get:
 		return $ItemTexture
 var previous_center_slot := -1
 var original_orientation := 0

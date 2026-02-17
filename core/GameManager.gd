@@ -286,6 +286,13 @@ func handle_retry():
 	scene_manager.go_to_main_menu()
 
 func prepare_dungeon_battle(node: DungeonNode):
+	# [수정] 이전 노드의 적 개체들을 즉시 제거하여 특수 노드 등에서 잔상이 남지 않게 함
+	for e in enemy_nodes:
+		if is_instance_valid(e):
+			e.queue_free()
+	enemy_nodes.clear()
+	enemy_node = null
+
 	if node:
 		current_battle_node_type = node.node_type
 		current_dungeon_node = node
@@ -320,12 +327,6 @@ func prepare_dungeon_battle(node: DungeonNode):
 			else:
 				_show_sanctuary_event()
 		return
-
-	for e in enemy_nodes:
-		if is_instance_valid(e):
-			e.queue_free()
-	enemy_nodes.clear()
-	enemy_node = null
 
 	var current_scene_root = get_tree().current_scene
 	var spawn_list = []
@@ -381,11 +382,14 @@ func _show_trap_event():
 	if not ui_manager: return
 	var popup = EVENT_POPUP_SCENE.instantiate()
 	ui_manager.add_child(popup)
-	var agi = 10
+	var speed_bonus = 0
 	if player_node and player_node.current_stats: 
-		var stat = player_node.current_stats.get_stat("agility")
-		if stat: agi = stat.computed_value
-	popup.setup_event(popup.EventType.TRAP, 15, 20, agi)
+		# [수정] 프로젝트 표준 명칭인 'attack_speed'를 사용
+		var stat = player_node.current_stats.get_stat("attack_speed")
+		if stat: speed_bonus = stat.computed_value
+	
+	# 난이도 15, 데미지 20, 보정치 적용
+	popup.setup_event(popup.EventType.TRAP, 15, 20, speed_bonus)
 	popup.event_completed.connect(_on_event_completed.bind(popup))
 
 func _show_treasure_event():
@@ -415,14 +419,13 @@ func _on_event_completed(popup_instance):
 
 func handle_return_to_town():
 	var map_manager = get_node("/root/MapManager")
-	if map_manager and selected_dungeon_id != 0:
-		var visited_node_ids = map_manager.get_current_dungeon_visited_node_ids()
-		if not permanently_discovered_nodes.has(selected_dungeon_id): permanently_discovered_nodes[selected_dungeon_id] = []
-		for node_id in visited_node_ids:
-			if not node_id in permanently_discovered_nodes[selected_dungeon_id]: permanently_discovered_nodes[selected_dungeon_id].append(node_id)
-	get_node("/root/MapManager").set_should_generate_new_dungeon(false, true) 
+	# 던전을 새로 생성하지 않고 기존 레이아웃(시드)을 보존함
+	if map_manager:
+		map_manager.set_should_generate_new_dungeon(false, true) 
+	
 	current_battle_count = 0
 	current_stage = 1
+	is_additional_exploration_mode = false
 	scene_manager.go_to_town(true)
 
 func update_player_node_stats():

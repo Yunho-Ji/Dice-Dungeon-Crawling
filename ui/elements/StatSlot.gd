@@ -44,17 +44,18 @@ func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 # 데이터 드롭 시 처리
 func _drop_data(_at_position: Vector2, data: Variant):
 	if current_stat_value:
+		# [수정] 리스트 추가를 먼저 수행 (update_display의 판단 근거를 먼저 마련)
+		var screen = _get_design_screen()
+		if screen:
+			if not stat_name in screen.invested_stat_names:
+				screen.invested_stat_names.append(stat_name)
+		
+		# 보너스 적용 (이 호출이 update_display()를 트리거함)
 		var dice_modifier = MyIntStatModifier.new()
 		dice_modifier.value = data.value
 		dice_modifier.operation = MyStatModifier.Operation.ADD
 		dice_modifier.target_stat_key = stat_name
 		current_stat_value.add_modifier(dice_modifier)
-		
-		# [수정] 이번 세션의 투자 완료 목록에 이 스탯 추가
-		var screen = _get_design_screen()
-		if screen:
-			if not stat_name in screen.invested_stat_names:
-				screen.invested_stat_names.append(stat_name)
 		
 		# [수정] 데이터 삭제 대신 '사용됨' 상태로 플래그 업데이트
 		if get_node("/root/DiceManager").has_method("mark_dice_as_used"):
@@ -100,17 +101,15 @@ func update_display():
 	else:
 		assigned_value_label.text = "N/A"
 	
-	# 주사위 보너스 적용 여부에 따른 색상 강조
-	var has_dice_modifier = false
-	if current_stat_value:
-		for modifier in current_stat_value.modifiers:
-			if modifier is MyIntStatModifier and modifier.target_stat_key == stat_name:
-				has_dice_modifier = true
-				break
+	# [수정] 주사위 보너스 적용 여부에 따른 색상 강조 (이번 세션에 투자된 스탯만 표시)
+	var is_invested_now = false
+	var screen = _get_design_screen()
+	if screen and "invested_stat_names" in screen:
+		is_invested_now = stat_name in screen.invested_stat_names
 	
-	if has_dice_modifier:
-		slot_panel.modulate = Color(0.7, 1.0, 0.7) # 강화됨: 초록빛
+	if is_invested_now:
+		slot_panel.modulate = Color(0.7, 1.0, 0.7) # 이번 세션에서 강화됨: 초록빛
 		assigned_value_label.add_theme_color_override("font_color", Color.YELLOW) # 강화된 수치 강조
 	else:
-		slot_panel.modulate = Color(1, 1, 1)
+		slot_panel.modulate = Color(1, 1, 1) # 평상시 또는 이전 세션 강화분은 기본 색상
 		assigned_value_label.remove_theme_color_override("font_color")

@@ -5,7 +5,7 @@ signal slotClicked(slotId)
 
 # 애니메이션 플레이어 노드 참조
 var anim_player : AnimationPlayer:
-	get():
+	get:
 		return $AnimationPlayer
 		
 # 부모 인벤토리 참조 및 설정

@@ -33,6 +33,7 @@ var _current_reachable_ids: Array = []
 func _ready():
 	selected_target_node_id = ""
 	enter_dungeon_button.disabled = true
+	enter_dungeon_button.visible = true # 항상 보이도록 설정
 	enter_dungeon_button.pressed.connect(_on_enter_dungeon_button_pressed)
 	
 	if close_button:
@@ -44,15 +45,21 @@ func _ready():
 	_draw_map()
 	_update_map_visuals()
 
-	# Center the camera on the player marker
+	# 카메라 센터링 로직 개선
+	var focus_pos = Vector2.ZERO
 	if dungeon_data.nodes.has(current_node_id):
-		var player_node_pos = dungeon_data.nodes[current_node_id].position
-		var screen_center = get_viewport_rect().size / 2.0
-		
-		var target_pos = screen_center - (player_node_pos * node_container.scale)
-		
-		node_container.position = target_pos
-		path_container.position = target_pos
+		focus_pos = dungeon_data.nodes[current_node_id].position
+	else:
+		# 현재 위치가 없으면 첫 번째 시작 노드 찾기
+		for node_id in dungeon_data.nodes:
+			if dungeon_data.nodes[node_id].node_type == "start":
+				focus_pos = dungeon_data.nodes[node_id].position
+				break
+	
+	var screen_center = get_viewport_rect().size / 2.0
+	var target_pos = screen_center - (focus_pos * node_container.scale)
+	node_container.position = target_pos
+	path_container.position = target_pos
 
 
 func _create_player_marker():
@@ -164,12 +171,21 @@ func _update_map_visuals():
 	var is_dev = is_dev_mode
 
 	if not is_dev:
+		# 이미 방문한 노드는 항상 보임
 		for node_id in player_run_state.VisitedNodeIDs:
 			visible_node_ids[node_id] = true
-		var vision_range = player_run_state.get("vision_range", 1)
-		var nodes_in_range = _get_nodes_in_range(current_node_id, vision_range)
-		for node_id in nodes_in_range:
-			visible_node_ids[node_id] = true
+			
+		# 현재 위치 기반 시야 확장
+		if dungeon_data.nodes.has(current_node_id):
+			var vision_range = player_run_state.get("vision_range", 1)
+			var nodes_in_range = _get_nodes_in_range(current_node_id, vision_range)
+			for node_id in nodes_in_range:
+				visible_node_ids[node_id] = true
+		else:
+			# [핵심 수정] 현재 위치가 없을 때(재진입 시) 모든 'start' 노드를 가시성 목록에 추가
+			for node_id in dungeon_data.nodes:
+				if dungeon_data.nodes[node_id].node_type == "start":
+					visible_node_ids[node_id] = true
 
 	# --- FOG OF WAR DEBUGGING ---
 	print("DEBUG: DungeonMap: _update_map_visuals called.")
@@ -266,13 +282,17 @@ func _update_button_states():
 
 func _update_info_label():
 	var info_text = ""
+	enter_dungeon_button.visible = true # 확실히 보이게 함
 	
 	if not dungeon_data.nodes.has(selected_target_node_id):
 		info_text += "이동할 지점을 선택하십시오.\n"
-		enter_dungeon_button.text = "전투 시작" # 기본값
+		enter_dungeon_button.text = "지점 선택 필요"
+		enter_dungeon_button.disabled = true
 	else:
 		var info_node: DungeonNode = dungeon_data.nodes[selected_target_node_id]
 		var is_visited = selected_target_node_id in player_run_state.VisitedNodeIDs
+		
+		enter_dungeon_button.disabled = false # 노드가 선택되었으므로 활성화
 		
 		if is_visited:
 			info_text += "[탐사 완료] 구역\n"

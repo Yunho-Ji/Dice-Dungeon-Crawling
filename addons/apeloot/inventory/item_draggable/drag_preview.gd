@@ -1,7 +1,7 @@
 extends Control
 
 var texture: TextureRect:
-	get():
+	get:
 		return $TextureRect
 
 var item_pattern: Array

@@ -36,8 +36,9 @@ func _ready():
 	# Other managers will be fetched when needed, as they live on the Main scene
 
 func generate_dungeon_if_needed():
-	if should_generate_new_dungeon:
-		print("DEBUG: MapManager: Generating new dungeon.")
+	# 만약 선택된 던전 ID가 현재 로드된 던전과 다르다면 강제로 새 던전 생성을 트리거합니다.
+	if (dungeon_data.has("dungeon_id") and dungeon_data.dungeon_id != game_manager.selected_dungeon_id) or should_generate_new_dungeon:
+		print("DEBUG: MapManager: Generating a FRESH dungeon.")
 
 		if dungeon_seed == 0: # 0을 초기값으로 간주
 			randomize()
@@ -47,58 +48,53 @@ func generate_dungeon_if_needed():
 
 		var dungeon_generator = DungeonGenerator.new()
 		dungeon_data = dungeon_generator.generate_dungeon(dungeon_config, dungeon_seed)
-		dungeon_max_depth = dungeon_data.num_layers # Get num_layers from the returned dictionary
+		dungeon_data["dungeon_id"] = game_manager.selected_dungeon_id # ID 저장
+		dungeon_max_depth = dungeon_data.num_layers
 
-		# --- Player now chooses a start node from the map ---
-		# Find all start nodes
+		# 새 던전이므로 시작 노드 중 하나를 무작위로 선택하여 초기 위치 설정
 		var start_nodes = []
 		for node in dungeon_data.nodes.values():
 			if node.node_type == "start":
 				start_nodes.append(node)
 		
-		# Randomly assign a starting node. This is NOT seeded.
 		if not start_nodes.is_empty():
 			var rng = RandomNumberGenerator.new()
 			rng.randomize()
 			player_run_state.CurrentNodeID = start_nodes[rng.randi_range(0, start_nodes.size() - 1)].node_id
 		else:
-			player_run_state.CurrentNodeID = "" # Should not happen
+			player_run_state.CurrentNodeID = ""
 
-		player_run_state.VisitedNodeIDs.clear()
-		player_run_state.VisitedNodeIDs.append(player_run_state.CurrentNodeID) # Start by visiting the start node
-		player_run_state.CurrentDepth = 0 # Initialize current depth for new dungeon
-		should_generate_new_dungeon = false
-		# Grant a dice roll for starting a new dungeon (Rule #1)
-		get_node("/root/DiceManager").enable_roll()
-	elif game_manager.is_additional_exploration_mode:
-		print("DEBUG: MapManager: Additional exploration mode. Reconstructing dungeon.")
-		# 시드는 유지되므로, dungeon_data는 이미 생성되어 있음.
-		# VisitedNodeIDs 초기화 (현재 탐험의 방문 노드 기록은 초기화)
-		player_run_state.VisitedNodeIDs.clear()
-		
-		# 영구적으로 발견된 노드들을 VisitedNodeIDs에 추가하여 항상 보이게 함
-		var permanently_discovered_for_dungeon = game_manager.permanently_discovered_nodes.get(game_manager.selected_dungeon_id, [])
-		for node_id in permanently_discovered_for_dungeon:
-			if not node_id in player_run_state.VisitedNodeIDs:
-				player_run_state.VisitedNodeIDs.append(node_id)
-
-		# [수정] 시작 노드를 자동으로 할당하지 않고 비워두어 사용자가 선택하게 함
-		player_run_state.CurrentNodeID = ""
-		print("DEBUG: MapManager: Additional exploration mode. Waiting for entrance selection.")
-
+		# 탐사 기록 초기화 (완전 새 던전)
+		player_run_state.VisitedNodeIDs = [player_run_state.CurrentNodeID] if player_run_state.CurrentNodeID != "" else []
 		player_run_state.CurrentDepth = 0
+		should_generate_new_dungeon = false
+		
+		# 새 던전 시작 시에만 주사위 기회 부여
+		get_node("/root/DiceManager").enable_roll()
+		
+	else:
+		# [동일 던전 재진입] 레이아웃과 탐사 기록(VisitedNodeIDs)은 유지하되 위치만 리셋
+		print("DEBUG: MapManager: Re-entering existing dungeon layout. Preserving exploration progress.")
+		
+		# 현재 위치를 비워줌으로써 지도를 열었을 때 입구(Start 노드)를 선택하게 유도
+		player_run_state.CurrentNodeID = ""
+		player_run_state.CurrentDepth = 0
+		
+		# 추가 탐험 모드 플래그가 켜져 있었다면 특정 노드 변환 로직 수행
+		if game_manager.is_additional_exploration_mode:
+			_apply_additional_exploration_rules()
+			game_manager.is_additional_exploration_mode = false
 
-		# transformed_nodes 정보를 바탕으로 맵 재구성
-		var cleared_dungeon_info = game_manager.cleared_dungeons.get(game_manager.selected_dungeon_id, {})
-		var transformed_node_ids = cleared_dungeon_info.get("transformed_nodes", [])
-		
-		for node_id in transformed_node_ids:
-			if dungeon_data.nodes.has(node_id):
-				dungeon_data.nodes[node_id].node_type = "special" # 일반 전투 노드를 특수 노드로 변경
-				print("DEBUG: MapManager: Node ", node_id, " transformed to special.")
-		
-		# 추가 탐험 모드에서는 주사위 굴림 기회 부여 안함 (규칙에 따라)
-		# get_node("/root/DiceManager").enable_roll() # 주석 처리
+# [신규] 추가 탐험 시 적용될 특수 규칙 (예: 클리어 노드 변환 등)
+func _apply_additional_exploration_rules():
+	var cleared_dungeon_info = game_manager.cleared_dungeons.get(game_manager.selected_dungeon_id, {})
+	var transformed_node_ids = cleared_dungeon_info.get("transformed_nodes", [])
+	
+	for node_id in transformed_node_ids:
+		if dungeon_data.nodes.has(node_id):
+			dungeon_data.nodes[node_id].node_type = "special"
+			print("DEBUG: MapManager: Node ", node_id, " transformed for additional exploration.")
+
 func show_dungeon_map():
 	print("DEBUG: MapManager: show_dungeon_map called. current_node_id: ", player_run_state.CurrentNodeID)
 

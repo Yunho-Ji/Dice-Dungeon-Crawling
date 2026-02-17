@@ -199,43 +199,18 @@ func _play_dice_animation(final_val: int = -1):
 	dice_visual_node.setup(20, 1, Color("e67e22"))
 	dice_visual_node.set_rolling(true)
 	
-	var duration = 0.6 # 구르는 시간 단축 (기존 1.0)
-	var elapsed = 0.0
-	var current_frame = 0
-	
-	# 1. 고속 회전 루프 (가변 인터벌)
-	while elapsed < duration:
-		var delta = get_process_delta_time()
-		elapsed += delta
-		
-		var current_interval = lerp(0.03, 0.1, elapsed / duration)
-		current_frame = (current_frame + 1) % 6
-		
-		# 구르는 동안에는 임시 숫자 표시 (결과값과 무관하게 빠르게 변경)
-		var temp_roll = randi_range(1, 20)
-		result_label.text = "🎲 [ %d ]" % temp_roll
-		
-		if dice_visual_node:
-			dice_visual_node.current_value = temp_roll
-			dice_visual_node._update_number_texture()
-			dice_visual_node.sync_rolling_frame(current_frame, true)
-		
-		await get_tree().create_timer(current_interval).timeout
-	
-	# 2. [수정] 결과값 고정 및 마지막 7프레임 시퀀스 (루프 밖에서 1회만 실행)
+	# [수정] 고속 회전 루프 제거 (애니메이션 대폭 단축)
 	if final_val != -1:
 		dice_visual_node.current_value = final_val
 		dice_visual_node._update_number_texture()
-		result_label.text = "🎲 [ %d ]" % final_val # 텍스트 고정
+		result_label.text = "🎲 [ %d ]" % final_val
 		
-		print("Dice: Finalizing sequence for result: ", final_val)
-		# 0~6번 프레임을 빠르게 순회하며 멈춤 연출
+		# 7프레임 시퀀스만 빠르게 재생 (약 0.2초)
 		for f in range(0, 7):
 			if dice_visual_node:
 				dice_visual_node.sync_rolling_frame(f, true)
-			await get_tree().create_timer(0.04).timeout
+			await get_tree().create_timer(0.03).timeout
 	
-	# 3. 최종 정지 상태 확정
 	_set_dice_final_result(final_val)
 
 func _set_dice_final_result(val: int):
