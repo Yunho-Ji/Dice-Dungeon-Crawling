@@ -29,10 +29,6 @@ text = "공격"
 layout_mode = 2
 text = "방어"
 
-[node name="DodgeButton" type="Button" parent="BattleControls"]
-layout_mode = 2
-text = "회피"
-
 [node name="Skill1Button" type="Button" parent="BattleControls"]
 layout_mode = 2
 text = "스킬1"

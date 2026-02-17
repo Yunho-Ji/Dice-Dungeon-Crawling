@@ -3,7 +3,7 @@ extends CharacterBody2D
 
 signal damage_taken(amount: int, position: Vector2)
 
-enum Stance { ATTACK, DEFENSE, EVADE }
+enum Stance { ATTACK, DEFENSE }
 
 # Battle variables
 var action_gauge: float = 0.0
@@ -191,8 +191,6 @@ func perform_stance_action():
 			perform_attack_action()
 		Stance.DEFENSE:
 			perform_defense_action()
-		Stance.EVADE:
-			perform_evade_action()
 
 func perform_attack_action():
 	if target and is_instance_valid(target):
@@ -220,37 +218,6 @@ func perform_defense_action():
 	
 	print(name, " 방어 태세 돌입! (선불 비용: ", upfront_cost, ", 잔여 게이지: ", action_gauge, "%)")
 	action_gauge_bar.value = action_gauge # UI 즉시 갱신
-
-const STATPOWDEBUFF_Data = preload("res://resources/status_effects/data/STATPOWDEBUFF_Data.tres")
-
-func perform_evade_action():
-	is_acting = true # 행동 시작
-	print(name, " 회피 행동 시작 (게이지: ", action_gauge, "%)")
-	var gauge_percentage = action_gauge
-	var success_chance: float = 0.0
-	var buff_duration: float = 0.0
-	var consumption = 100.0
-
-	if gauge_percentage < 60.0:
-		print(name, " 긴급 회피 시도...")
-		success_chance = 60.0
-		buff_duration = 3.0
-	else:
-		print(name, " 회피 시도...")
-		success_chance = 80.0
-		buff_duration = 6.0
-
-	if randf() * 100.0 < success_chance:
-		print(name, " 회피 성공! 버프 획득")
-		add_status_effect(STATPOWDEBUFF_Data, buff_duration)
-		consumption = 70.0 # 회피 성공 시 30% 보존
-	else:
-		print(name, " 회피 실패!")
-		consumption = 100.0
-		
-	action_gauge = max(0.0, action_gauge - consumption)
-	action_gauge_bar.value = action_gauge
-	finish_action() # 회피는 현재 별도 애니메이션이 없으므로 즉시 종료
 
 func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int):
 	if event is InputEventMouseButton and event.pressed:

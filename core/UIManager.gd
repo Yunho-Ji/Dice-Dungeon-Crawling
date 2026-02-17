@@ -39,7 +39,6 @@ func _ready():
 		# 전투 관련 시그널을 GameManager에 직접 연결
 		battle_hud.attack_stance_selected.connect(game_manager.handle_attack_stance)
 		battle_hud.defense_stance_selected.connect(game_manager.handle_defense_stance)
-		battle_hud.dodge_stance_selected.connect(game_manager.handle_dodge_stance)
 		battle_hud.skill_1_used.connect(game_manager.use_skill_1)
 		battle_hud.skill_2_used.connect(game_manager.use_skill_2)
 		

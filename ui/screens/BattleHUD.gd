@@ -2,7 +2,6 @@ extends CanvasLayer
 
 signal attack_stance_selected
 signal defense_stance_selected
-signal dodge_stance_selected
 signal skill_1_used
 signal skill_2_used
 signal inventory_opened
@@ -23,7 +22,6 @@ func _ready():
 
 	$BattleControls/AttackButton.pressed.connect(_on_attack_button_pressed)
 	$BattleControls/DefenseButton.pressed.connect(_on_defense_button_pressed)
-	$BattleControls/DodgeButton.pressed.connect(_on_dodge_button_pressed)
 	$BattleControls/Skill1Button.pressed.connect(_on_skill_1_button_pressed)
 	$BattleControls/Skill2Button.pressed.connect(_on_skill_2_button_pressed)
 	# $InventoryButton.pressed.connect(_on_inventory_button_pressed) # Connected in editor
@@ -76,9 +74,6 @@ func _on_attack_button_pressed():
 
 func _on_defense_button_pressed():
 	emit_signal("defense_stance_selected")
-
-func _on_dodge_button_pressed():
-	emit_signal("dodge_stance_selected")
 
 func _on_skill_1_button_pressed():
 	emit_signal("skill_1_used")

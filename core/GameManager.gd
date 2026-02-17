@@ -140,9 +140,6 @@ func handle_attack_stance():
 func handle_defense_stance():
 	if battle_manager: battle_manager.set_player_stance(Character.Stance.DEFENSE)
 
-func handle_dodge_stance():
-	if battle_manager: battle_manager.set_player_stance(Character.Stance.EVADE)
-
 func use_skill_1():
 	print("GameManager: 스킬 1 사용")
 
