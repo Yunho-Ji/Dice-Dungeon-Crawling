@@ -356,8 +356,9 @@ func prepare_dungeon_battle(node: DungeonNode):
 		if i == 0:
 			enemy_node = instantiated_enemy
 		enemy_nodes.append(instantiated_enemy)
-		if current_scene_root.has_method("_on_character_input_event"):
-			instantiated_enemy.input_event.connect(Callable(current_scene_root, "_on_character_input_event").bind(instantiated_enemy))
+		# [수정] Character.gd 자체 입력 처리 사용
+		# if current_scene_root.has_method("_on_character_input_event"):
+		# 	instantiated_enemy.input_event.connect(Callable(current_scene_root, "_on_character_input_event").bind(instantiated_enemy))
 		if ui_manager and ui_manager.battle_hud:
 			instantiated_enemy.damage_taken.connect(Callable(ui_manager.battle_hud, "_on_character_damage_taken").bind(false))
 

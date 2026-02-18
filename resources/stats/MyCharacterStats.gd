@@ -43,21 +43,19 @@ func _setup_keys():
 
 # VIT/INT에 따른 HP/MP 업데이트 로직
 func update_derived_stats():
-	# 건강(VIT) 1당 최대 HP 10 증가 (기본 100)
-	var prev_max_hp = health.base_value
-	health.base_value = 100 + (vit.computed_value * 10)
+	if not StatManager: return
 	
-	# 지능(INT) 1당 최대 MP 5 증가 (기본 50)
-	var prev_max_mp = current_mp.base_value
-	current_mp.base_value = 50 + (int_stat.computed_value * 5)
+	# StatManager 중앙 공식을 통해 파생 수치 결정
+	health.base_value = StatManager.get_max_hp(self)
+	current_mp.base_value = StatManager.get_max_mp(self)
 	
-	# [핵심 수정] 초기화 시점(현재값이 0일 때) 현재 HP/MP를 최대치로 설정
+	# 초기화 시점(현재값이 0일 때) 혹은 최대치를 초과했을 때 보정
 	if health.current_value == 0 or health.current_value > health.base_value:
 		health.current_value = health.base_value
 	if current_mp.current_value == 0 or current_mp.current_value > current_mp.base_value:
 		current_mp.current_value = current_mp.base_value
 	
-	# 시그널 발생을 통해 UI(Character.gd 등) 갱신 유도
+	# UI 갱신을 위해 시그널 발생
 	health.emit_signal("value_changed", health.computed_value)
 	current_mp.emit_signal("value_changed", current_mp.computed_value)
 

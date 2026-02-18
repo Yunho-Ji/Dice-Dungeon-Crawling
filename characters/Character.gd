@@ -68,10 +68,9 @@ func _process(delta: float):
 			is_vulnerable = false
 			modulate = Color(1, 1, 1)
 
-	# 마나 재생 (정신 SPI 기반)
-	var spi_stat = current_stats.get_stat("spi")
-	if spi_stat:
-		var mp_regen_amount = (spi_stat.computed_value * 0.2) * delta 
+	# 마나 재생 (정신 SPI 기반 - StatManager 공식 사용)
+	if current_stats:
+		var mp_regen_amount = StatManager.get_mp_regen_per_sec(current_stats) * delta 
 		var mp_stat = current_stats.get_stat("current_mp")
 		if mp_stat and mp_stat.current_value < mp_stat.computed_value:
 			var new_mp = float(mp_stat.current_value) + mp_regen_amount
@@ -87,11 +86,10 @@ func _process(delta: float):
 		for effect in active_status_effects:
 			if is_instance_valid(effect): effect.update_duration(delta)
 
-		# 행동 게이지 충전 (공격속도 SPD 기반)
+		# 행동 게이지 충전 (공격속도 SPD 기반 - StatManager 공식 사용)
 		if target != null and is_instance_valid(target) and target.current_stats.get_stat("health").current_value > 0:
 			if current_stance != Stance.DEFENSE and not is_acting:
-				var spd_stat = current_stats.get_stat("spd")
-				var charge_speed = spd_stat.computed_value if spd_stat else 50.0
+				var charge_speed = StatManager.get_ap_charge_speed(current_stats)
 				
 				if GameManager.active_penalties.has("fatigue"):
 					charge_speed *= 0.85 
@@ -174,36 +172,36 @@ func attack(p_target: Character):
 func take_damage(amount: int, piercing_rate: float = 0.0, true_damage_rate: float = 0.0):
 	if not current_stats: return
 
-	# 0. 회피/빗겨맞음 (AGI)
-	var agi_stat = current_stats.get_stat("agi")
-	if agi_stat:
-		if randf() * 100.0 < (light_pieces * 5.0):
+	# 0. 회피/빗겨맞음 (StatManager 공식 사용)
+	var evade_chance = StatManager.get_evade_chance(current_stats, light_pieces)
+	if randf() * 100.0 < evade_chance:
+		# 경갑 보너스에 의한 완전 회피와 AGI에 의한 빗겨맞음(데미지 반감)을 통합 관리하거나 분리 가능
+		# 현재는 통합하여 일정 확률로 데미지 무시/반감 처리
+		if randf() < 0.5: # 50% 확률로 완전 회피
 			emit_signal("damage_taken", 0, global_position)
 			return
-		if randf() * 100.0 < (agi_stat.computed_value * 0.5):
+		else: # 50% 확률로 빗겨맞음 (50% 감쇄)
 			amount = int(amount * 0.5)
 
 	var true_dmg = int(amount * true_damage_rate)
 	var norm_dmg = amount - true_dmg
 	var dr_pct = 0.0
 	
-	# 1. 방어 (RES)
+	# 1. 방어 상태 판정 (StatManager의 PG 임계치 사용)
 	if is_guarding:
-		var res_stat = current_stats.get_stat("res")
-		var res_val = res_stat.computed_value if res_stat else 0
-		if action_gauge >= max(40.0, 85.0 - (res_val * 0.5)):
+		var pg_threshold = StatManager.get_pg_ap_threshold(current_stats)
+		if action_gauge >= pg_threshold:
 			dr_pct = 0.9
 			is_perfect_guarding = true
-			action_gauge = 50.0
+			action_gauge = 50.0 # PG 성공 시 AP 반환
 		else:
 			dr_pct = 0.5
 		is_guarding = false
 		current_stance = Stance.ATTACK
 
-	# 2. 방어력 (DEF)
-	var def_stat = current_stats.get_stat("defense")
-	var def_val = def_stat.computed_value if def_stat else 0
-	var final_dmg = int((max(0, norm_dmg - int(def_val * (1.0 - piercing_rate)))) * (1.0 - dr_pct)) + true_dmg
+	# 2. 방어력 적용 (StatManager 공식 사용)
+	var final_dmg = StatManager.calculate_final_damage(norm_dmg, current_stats, piercing_rate)
+	final_dmg = int(final_dmg * (1.0 - dr_pct)) + true_dmg
 	
 	var hp = current_stats.get_stat("health")
 	if hp:
@@ -213,19 +211,29 @@ func take_damage(amount: int, piercing_rate: float = 0.0, true_damage_rate: floa
 		if not is_perfect_guarding: _apply_hit_stun(final_dmg)
 
 func _apply_hit_stun(dmg: int):
-	var res = current_stats.get_stat("res")
-	var res_val = res.computed_value if res else 0
-	action_gauge = max(0.0, action_gauge - max(0.0, (dmg * 0.2) - (res_val * 0.5)))
+	# 피격 경직(AP 차감) 계산: StatManager 공식 사용
+	var stun_amount = StatManager.calculate_ap_stun(dmg, current_stats)
+	action_gauge = max(0.0, action_gauge - stun_amount)
 
 func finish_action():
 	is_acting = false
 
-func _on_input_event(_v, event, _s):
+func _on_input_event(_viewport, event, _shape_idx):
 	if event is InputEventMouseButton and event.pressed:
-		if event.button_index == MOUSE_BUTTON_LEFT and not is_player and is_in_battle:
-			if GameManager.battle_manager: GameManager.battle_manager.set_player_target(self)
-		elif event.button_index == MOUSE_BUTTON_RIGHT:
-			if GameManager.ui_manager: GameManager.ui_manager.show_character_info(self)
+		print("DEBUG: Character Input Event - Button Index: ", event.button_index, " on ", name)
+		
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			if not is_player and is_in_battle:
+				print("DEBUG: Target Selected: ", name)
+				if GameManager.battle_manager: 
+					GameManager.battle_manager.set_player_target(self)
+			return # 이벤트 처리 완료 후 종료
+
+		if event.button_index == MOUSE_BUTTON_RIGHT:
+			print("DEBUG: Info Popup Requested: ", name)
+			if GameManager.ui_manager: 
+				GameManager.ui_manager.show_character_info(self)
+			return # 이벤트 처리 완료 후 종료
 
 func update_stats_from_player_manager(pm: PlayerManager):
 	if pm and pm.current_player_stats:

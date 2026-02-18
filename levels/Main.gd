@@ -61,8 +61,8 @@ func start_game_deferred():
 	assert(player_node != null, "Player 노드를 찾을 수 없습니다!")
 	assert(enemy_node != null, "Enemy 노드를 찾을 수 없습니다!")
 	
-	player_node.input_event.connect(Callable(self, "_on_character_input_event").bind(player_node))
-	# enemy_node.input_event.connect(Callable(self, "_on_character_input_event").bind(enemy_node)) # GameManager에서 동적으로 연결
+	# [수정] Character.gd 내부에서 자체적으로 입력을 처리하므로 Main.gd에서의 중복 연결 제거
+	# player_node.input_event.connect(Callable(self, "_on_character_input_event").bind(player_node))
 
 	print("DEBUG: Main.gd: Calling game_manager.initialize_game_scene with:") # New line
 	print("DEBUG:   player_node valid: ", is_instance_valid(player_node)) # New line
@@ -86,12 +86,4 @@ func start_game_deferred():
 		# 이미 진행 중인 던전(추가 탐험 등)이면 지도 표시
 		map_manager.show_dungeon_map()
 
-	print("--- Main.gd: 게임 시작 지연 호출 완료 ---\
-")
-
-func _on_character_input_event(_viewport: Node, event: InputEvent, _shape_idx: int, character: Character):
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		if status_popup_instance:
-			status_popup_instance.show_stats(character)
-			# 팝업을 중앙에 배치하는 대신, 현재 위치에 그대로 표시합니다.
-			pass
+	print("--- Main.gd: 게임 시작 지연 호출 완료 ---")

@@ -74,7 +74,8 @@ func _apply_equipment_stats(slot_key: String, item_data: Dictionary, is_equippin
 		# 아이템 데이터의 stats 딕셔너리를 순회하며 수정자 생성
 		for stat_key in item_stats.keys():
 			var value = item_stats[stat_key]
-			var target_key = _map_item_stat_to_player_stat(stat_key)
+			# [수정] StatManager를 통해 정규화된 스탯 키 획득
+			var target_key = StatManager.normalize_stat_key(stat_key)
 			
 			if target_key != "":
 				var stat = current_player_stats.get_stat(target_key)
@@ -96,18 +97,6 @@ func _apply_equipment_stats(slot_key: String, item_data: Dictionary, is_equippin
 					stat.remove_modifier(modifier)
 			equipment_modifiers.erase(slot_key)
 
-# 아이템 데이터의 스탯 키를 시스템 스탯 키로 매핑
-func _map_item_stat_to_player_stat(item_stat_key: String) -> String:
-	match item_stat_key.to_lower():
-		"atk", "attack", "attack_power": return "atk"
-		"vit", "vitality", "health": return "vit"
-		"spd", "speed", "attack_speed": return "spd"
-		"int", "intelligence", "int_stat": return "int_stat"
-		"agi", "agility": return "agi"
-		"res", "resistance": return "res"
-		"spi", "spirit": return "spi"
-		"rec", "recovery", "recovery_power": return "rec"
-	return ""
 # 기존 코드 호환성을 위해 래퍼 함수를 제공합니다.
 
 func add_gold(amount: int):

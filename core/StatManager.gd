@@ -1,128 +1,116 @@
 extends Node
 
-# StatManager
-# 역할: 스탯 계산 공식, Modifiers 관리, 2차 스탯 파생 로직을 전담합니다.
+# StatManager (v2.0)
+# DDC 프로젝트의 모든 수치적 정의와 규칙을 관장하는 중앙 엔진입니다.
+# 기획적 수치 변경은 오직 이 파일에서만 이루어져야 합니다.
 
 # --------------------------------------------------------------------------
-# Modifier Operations
+# 1. 수치 계산의 기초 (Modifier Logic)
 # --------------------------------------------------------------------------
-func add_modifier(stat: MyStat, value: float, operation: int, source: String = ""):
-	if not stat: return
-	
-	var mod = MyStatModifier.new()
-	mod.value = value
-	mod.operation = operation
-	# mod.source = source # 추후 디버깅용 소스 추가 가능
-	
-	stat.add_modifier(mod)
-	# SignalBus를 통해 변경 알림
-	SignalBus.emit_signal("stat_changed", null, stat.key, stat.computed_value)
 
-func remove_modifier(stat: MyStat, modifier: MyStatModifier):
-	if not stat or not modifier: return
-	
-	stat.remove_modifier(modifier)
-	# SignalBus를 통해 변경 알림
-	SignalBus.emit_signal("stat_changed", null, stat.key, stat.computed_value)
-
-func clear_modifiers(stat: MyStat):
-	if stat:
-		stat.clear_modifiers()
-		SignalBus.emit_signal("stat_changed", null, stat.key, stat.computed_value)
-
-# --------------------------------------------------------------------------
-# Core Calculation Logic (Logic Migration from MyStat/Modifier)
-# --------------------------------------------------------------------------
+## 특정 스탯의 최종 연산값 산출 (기초값 + 수정자)
 func calculate_stat_value(stat: MyStat) -> int:
 	if not stat: return 0
+	var effective_value: float = float(stat.base_value)
 	
-	var effective_value = stat.base_value
+	# Modifier 적용 순서 표준화: ADD -> MULTIPLY -> SET
+	# 1. ADD / SUBTRACT
+	for mod in stat.modifiers:
+		if mod.operation == MyStatModifier.Operation.ADD: effective_value += mod.value
+		elif mod.operation == MyStatModifier.Operation.SUBTRACT: effective_value -= mod.value
 	
-	# 향후: 여기서 Modifier 정렬 (예: Add -> Mult 순서) 로직 추가 가능
-	# 현재: 리스트 순서대로 적용 (Legacy Behavior)
-	for modifier in stat.modifiers:
-		if modifier is MyStatModifier:
-			effective_value = _apply_modifier(effective_value, modifier)
+	# 2. MULTIPLY
+	for mod in stat.modifiers:
+		if mod.operation == MyStatModifier.Operation.MULTIPLY: effective_value *= mod.value
+	
+	# 3. SET (최종 덮어쓰기)
+	for mod in stat.modifiers:
+		if mod.operation == MyStatModifier.Operation.SET: effective_value = mod.value
 			
 	return int(effective_value)
 
-func _apply_modifier(current_value: float, modifier: MyStatModifier) -> float:
-	var val = modifier.value
-	match modifier.operation:
-		MyStatModifier.Operation.ADD:
-			return current_value + val
-		MyStatModifier.Operation.SUBTRACT:
-			return current_value - val
-		MyStatModifier.Operation.MULTIPLY:
-			return current_value * val
-		MyStatModifier.Operation.DIVIDE:
-			if val == 0:
-				push_error("StatManager: Zero Division Error in modifier calculation")
-				return current_value
-			return current_value / val
-		MyStatModifier.Operation.SET:
-			return val
-	return current_value
-
 # --------------------------------------------------------------------------
-# Derived Calculation Formulas (2차 스탯)
+# 2. 기초 스탯 기반 2차 스탯 공식 (Derived Stats Formulas)
 # --------------------------------------------------------------------------
 
-# [수정] 마비노기 스타일 데미지 계산 (기반 마련)
-func calculate_damage(attacker_stats: MyCharacterStats, skill_multiplier: float) -> int:
-	var base_atk = attacker_stats.get_stat("atk").computed_value
-	
-	# 향후 무기 시스템 연동 시 Min/Max/Balance 반영 예정
-	# 현재는 기초 공격력을 Max로 간주하고 밸런스에 따라 하방 결정
-	var max_dmg = base_atk
-	var min_dmg = int(max_dmg * 0.2) # 기본 최소 데미지 20%
-	var balance = 0.5 # 기본 밸런스 50%
-	
-	# 밸런스 로직 시뮬레이션: 밸런스가 높을수록 Max에 가까운 난수 발생
-	var rng = RandomNumberGenerator.new()
-	rng.randomize()
-	
-	var final_atk = max_dmg
-	if rng.randf() > balance:
-		final_atk = rng.randi_range(min_dmg, max_dmg)
-		
-	return int(final_atk * skill_multiplier)
+## 최대 HP (VIT 기반): 기초 100 + 건강 1당 10
+func get_max_hp(stats: MyCharacterStats) -> int:
+	var vit_val = stats.get_stat("vit").computed_value
+	return 100 + (vit_val * 10)
 
-# [수정] 방어력(Defense) 및 저항(Resistance) 기반 피해 감소
-func calculate_mitigation(damage: int, defender_stats: MyCharacterStats) -> int:
-	# 방어구 수치 (Defense)
-	var def = defender_stats.get_stat("defense").computed_value
-	# 저항 수치 (Resistance): 물리 관통 등에 대한 저항력으로 사용 가능
-	
-	# 예시 공식: (대미지 - 방어력) 방식 유지하되 최소 데미지 1 보장
-	return max(1, damage - def)
+## 최대 MP (INT 기반): 기초 50 + 지능 1당 5
+func get_max_mp(stats: MyCharacterStats) -> int:
+	var int_val = stats.get_stat("int_stat").computed_value
+	return 50 + (int_val * 5)
 
-# --------------------------------------------------------------------------
-# Destiny Design Stat Mechanics (운명 설계 스탯 메커니즘)
-# --------------------------------------------------------------------------
+## 초당 마나 재생 (SPI 기반): 정신 1당 0.2 (피로도 패널티 가능성 상정)
+func get_mp_regen_per_sec(stats: MyCharacterStats) -> float:
+	var spi_val = stats.get_stat("spi").computed_value
+	var base_regen = spi_val * 0.2
+	return base_regen
 
-## 저항(RES) 스탯에 따른 퍼펙트 가드(PG) 범위 확장 값 계산
-func calculate_pg_extension(resistance_points: int) -> float:
-	var extension: float = 0.0
-	
-	if resistance_points <= 12:
-		extension = resistance_points * 1.5
-	elif resistance_points <= 25:
-		extension = (12 * 1.5) + (resistance_points - 12) * 0.5
-	else:
-		extension = (12 * 1.5) + (13 * 0.5) + (resistance_points - 25) * 0.1
-		
-	return extension
+## 행동 게이지(AP) 충전 속도 (SPD 기반)
+func get_ap_charge_speed(stats: MyCharacterStats) -> float:
+	var spd_val = stats.get_stat("spd").computed_value
+	# 향후 SPD가 일정 수준 이상일 때 효율이 감소하는 Diminishing Returns 적용 가능 지점
+	return float(spd_val)
 
-## 회복력(REC) 스탯에 따른 전투 후 자동 회복 비율(%) 계산
+## 회피 확률 (AGI + 장비 기반): 민첩 1당 0.5% + 경갑 보너스
+func get_evade_chance(stats: MyCharacterStats, light_armor_count: int) -> float:
+	var agi_val = stats.get_stat("agi").computed_value
+	var base_evade = agi_val * 0.5
+	var armor_bonus = light_armor_count * 5.0
+	return base_evade + armor_bonus
+
+## 퍼펙트 가드 AP 요구량 (RES 기반): 저항 1당 요구량 0.5 감소
+func get_pg_ap_threshold(stats: MyCharacterStats) -> float:
+	var res_val = stats.get_stat("res").computed_value
+	return max(40.0, 85.0 - (res_val * 0.5))
+
+## 전투 후 회복 비율 계산: 회복력(REC) 기반 (신규 명명)
+func get_post_battle_recovery_rate(rec_value: int) -> float:
+	if rec_value <= 20: return rec_value * 0.01
+	if rec_value <= 40: return 0.20 + (rec_value - 20) * 0.005
+	return min(0.50, 0.30 + (rec_value - 40) * 0.002)
+
+## [Legacy] 기존 코드 호환성 유지 (회복력 기반 회복률)
 func calculate_recovery_percentage(recovery_points: int) -> float:
-	var percentage: float = 0.0
-	
-	if recovery_points <= 20:
-		percentage = recovery_points * 0.01 # 포인트당 1%
-	elif recovery_points <= 40:
-		percentage = 0.20 + (recovery_points - 20) * 0.005 # 포인트당 0.5%
-	else:
-		percentage = 0.30 + (recovery_points - 40) * 0.002 
-		
-	return min(0.50, percentage)
+	return get_post_battle_recovery_rate(recovery_points)
+
+# --------------------------------------------------------------------------
+# 3. 전투 보정 및 판정 (Combat Mechanics)
+# --------------------------------------------------------------------------
+
+## 피격 시 AP 차감량 (넉백): 데미지 비례, RES로 경감
+func calculate_ap_stun(damage: int, stats: MyCharacterStats) -> float:
+	var res_val = stats.get_stat("res").computed_value
+	var raw_stun = damage * 0.2
+	var mitigation = res_val * 0.5
+	return max(0.0, raw_stun - mitigation)
+
+## 최종 피해 계산 (방어력 적용)
+func calculate_final_damage(raw_damage: int, defender_stats: MyCharacterStats, p_rate: float = 0.0) -> int:
+	var def_val = defender_stats.get_stat("defense").computed_value
+	# 관통력 적용: 방어자의 방어력을 p_rate 비율만큼 무시
+	var effective_def = int(def_val * (1.0 - p_rate))
+	return max(1, raw_damage - effective_def)
+
+# --------------------------------------------------------------------------
+# 4. 데이터 연동 및 매핑 (Data Normalization)
+# --------------------------------------------------------------------------
+
+## 외부 데이터(JSON 등)의 다양한 키값을 시스템 표준 키로 변환
+func normalize_stat_key(key: String) -> String:
+	match key.to_lower().strip_edges():
+		"hp", "max_hp", "health", "체력": return "health"
+		"mp", "max_mp", "mana", "마나": return "current_mp"
+		"atk", "attack", "dmg", "공격력": return "atk"
+		"def", "defense", "armor", "방어력": return "defense"
+		"spd", "speed", "aspd", "공격속도": return "spd"
+		"agi", "dex", "민첩": return "agi"
+		"vit", "con", "건강": return "vit"
+		"int", "intelligence", "지능": return "int_stat"
+		"res", "resistance", "저항": return "res"
+		"spi", "spirit", "정신": return "spi"
+		"rec", "recovery", "회복력": return "rec"
+	return key
