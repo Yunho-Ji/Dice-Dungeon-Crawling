@@ -70,15 +70,38 @@ func show_stats(character: Character):
 		var value_text = "-"
 
 		# 체력과 마력은 현재/최대 값으로 표시
-		if stat.key == "health" or stat.key == "current_mp":
-			value_text = "%s / %s" % [stat.current_value, stat.computed_value]
+		if stat.key == "health":
+			value_text = "%d / %d" % [stat.current_value, stat.computed_value]
+		elif stat.key == "current_mp":
+			value_text = "%d / %d" % [stat.current_value, stat.computed_value]
 		else:
-			# 그 외 모든 스탯(공격력, 방어력 등)은 보너스가 모두 합산된 최종 수치만 표기
-			value_text = str(stat.computed_value)
+			# 그 외 모든 스탯(공격력, 방어력 등)은 기본값과 보너스를 구분하여 표기
+			var final_val = stat.computed_value
+			var base_val = stat.base_value
+			var bonus_val = final_val - base_val
+			
+			if bonus_val > 0:
+				value_text = "%d (%d + %d)" % [final_val, base_val, bonus_val]
+			elif bonus_val < 0:
+				value_text = "%d (%d - %d)" % [final_val, base_val, abs(bonus_val)]
+			else:
+				value_text = "%d" % final_val
 
 		var label = Label.new()
 		label.text = "%s: %s" % [stat_name, value_text]
-		label.add_theme_color_override("font_color", Color.WHITE)
+		
+		# 보너스 유무에 따라 색상 변경
+		if stat.key != "health" and stat.key != "current_mp":
+			if stat.computed_value > stat.base_value:
+				label.modulate = Color.GREEN_YELLOW
+			elif stat.computed_value < stat.base_value:
+				label.modulate = Color.TOMATO
+			else:
+				label.modulate = Color.WHITE
+		else:
+			label.modulate = Color.WHITE
+			
+		label.add_theme_color_override("font_color", Color.WHITE) # 기본 폰트 색상은 유지하되 modulate로 전체 틴트
 		stats_grid.add_child(label)
 
 	# 활성 상태 효과 정보 추가

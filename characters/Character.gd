@@ -243,6 +243,13 @@ func update_stats_from_player_manager(pm: PlayerManager):
 				if s: s.value_changed.connect(update_hp_label)
 			_stat_signals_connected = true
 
+# [신규] 방어구 유형별 장착 정보 동기화
+func sync_armor_profile(armor_counts: Dictionary):
+	cloth_pieces = armor_counts.get("cloth", 0)
+	light_pieces = armor_counts.get("light", 0)
+	heavy_pieces = armor_counts.get("heavy", 0)
+	print("DEBUG: Character armor profile synced - C:", cloth_pieces, " L:", light_pieces, " H:", heavy_pieces)
+
 # [신규/복구] 상태 이상 부여 및 저항 로직
 func add_status_effect(effect_data: StatusEffectData, duration_override: float = -1.0):
 	if not current_stats: return

@@ -38,7 +38,7 @@ signal itemUpgraded
 			if "price" in Apeloot.items[val] and not price:
 				price = Apeloot.items[val].price
 var instance_id: String
-var parent_inventory: GridInventory:
+var parent_inventory:
 	set(val):
 		if parent_inventory != val:
 			parent_inventory = val
@@ -70,6 +70,10 @@ var price : int
 var rarity := Apeloot.Rarity.COMMON
 var stats : Dictionary
 var check_can_afford := false
+
+# [신규] 아이템 위치 태그 (마을 시스템 등에서 필터링용)
+# "bag": 가방(인벤토리) 내부, "equipment": 장비 슬롯 장착 중
+var location_tag := "bag"
 
 @onready var drop_particles := $GPUParticles2D2
 func _ready():

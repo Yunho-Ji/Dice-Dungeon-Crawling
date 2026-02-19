@@ -20,6 +20,10 @@ var equipment: Dictionary = {
 # [신규] 장비로 인한 스탯 수정자 저장 (slot_key -> Array[MyStatModifier])
 var equipment_modifiers: Dictionary = {}
 
+# [신규] 인벤토리(가방) 데이터 백업 (InventoryScreen 파괴 대비)
+# 형식: Array[Dictionary] (GridInventory.item_states와 동일)
+var inventory_data: Array = []
+
 # [신규] 방어구 유형별 장착 개수
 var armor_counts: Dictionary = {
 	"cloth": 0,
@@ -48,6 +52,30 @@ func unequip_item(slot_key: String):
 		_update_armor_counts() # 방어구 카운트 갱신
 		print("DEBUG: ", slot_key, " 부위 장비 해제 완료.")
 
+# [신규] 아이템 장착 가능 여부 확인 (스탯 요구사항 등)
+func can_equip_item(item_data: Dictionary) -> bool:
+	if not item_data.has("requirements"):
+		return true # 요구사항이 없으면 누구나 장착 가능
+		
+	var reqs = item_data["requirements"]
+	
+	# 1. 스탯 요구사항 체크
+	for stat_key in reqs.keys():
+		if stat_key == "class": continue # 클래스 제한은 추후 구현
+
+		var required_value = reqs[stat_key]
+		var normalized_key = StatManager.normalize_stat_key(stat_key)
+		
+		# 현재 플레이어 스탯 (기본값 + 현재 장비 보정 포함)
+		var current_stat = current_player_stats.get_stat(normalized_key)
+		
+		if current_stat and current_stat.computed_value < required_value:
+			print("장착 불가: ", normalized_key, " 부족 (필요: ", required_value, ", 현재: ", current_stat.computed_value, ")")
+			# UI에 경고를 띄우기 위해 SignalBus 등을 사용할 수 있음
+			return false
+			
+	return true
+
 # [신규] 방어구 유형 카운트 갱신
 func _update_armor_counts():
 	armor_counts = {"cloth": 0, "light": 0, "heavy": 0}
@@ -72,20 +100,53 @@ func _apply_equipment_stats(slot_key: String, item_data: Dictionary, is_equippin
 		var item_stats = item_data.get("stats", {})
 		
 		# 아이템 데이터의 stats 딕셔너리를 순회하며 수정자 생성
+		print("DEBUG: Applying stats for item: ", item_data.get("id"), " Stats: ", item_stats)
 		for stat_key in item_stats.keys():
-			var value = item_stats[stat_key]
-			# [수정] StatManager를 통해 정규화된 스탯 키 획득
-			var target_key = StatManager.normalize_stat_key(stat_key)
+			var raw_value = item_stats[stat_key]
+			var value = 0.0
 			
+			# [수정] 배열 형태([min, max])와 단일 값 처리
+			if raw_value is Array:
+				if raw_value.size() >= 2:
+					value = (raw_value[0] + raw_value[1]) / 2.0 # 평균값 사용
+				elif raw_value.size() > 0:
+					value = raw_value[0]
+			elif raw_value is float or raw_value is int:
+				value = float(raw_value)
+			
+			var target_key = StatManager.normalize_stat_key(stat_key)
+			var modifier_value = 0
+			
+			# [신규] 특수 키에 대한 매핑 및 값 처리
+			if stat_key == "min_atk" or stat_key == "max_atk":
+				target_key = "atk"
+				modifier_value = int(value * 0.5) 
+			elif stat_key == "dr_rate":
+				target_key = "defense"
+				modifier_value = int(value) 
+			elif stat_key == "evade_rate":
+				target_key = "agi"
+				modifier_value = int(value) 
+			elif stat_key == "hp_max":
+				target_key = "vit" 
+				modifier_value = int(value / 10.0) 
+			elif stat_key == "str":
+				target_key = "atk"
+				modifier_value = int(value)
+			else:
+				# 일반적인 경우
+				modifier_value = int(value)
+
 			if target_key != "":
 				var stat = current_player_stats.get_stat(target_key)
 				if stat:
 					var modifier = MyIntStatModifier.new()
-					modifier.value = value
+					modifier.value = modifier_value
 					modifier.operation = MyStatModifier.Operation.ADD
 					modifier.target_stat_key = target_key
 					stat.add_modifier(modifier)
 					modifiers.append(modifier)
+					print("DEBUG: Stat applied - ", target_key, " +", modifier_value)
 		
 		equipment_modifiers[slot_key] = modifiers
 	else:
@@ -132,3 +193,42 @@ func _ready():
 		print("PlayerManager: 초기 스탯 생성 완료.")
 	
 	_print_stats_debug_info("_ready")
+
+# [신규] 게임 세션 시작 시 호출 (SceneManager 등에서 호출)
+func initialize_session():
+	if current_player_stats == null and player_data:
+		current_player_stats = player_data.base_stats.duplicate(true)
+	
+	# 기본 장비가 하나도 없다면 초기 장비 지급
+	var has_equipment = false
+	for slot in equipment.values():
+		if slot != null:
+			has_equipment = true
+			break
+			
+	if not has_equipment:
+		_equip_starting_gear()
+
+func _equip_starting_gear():
+	# 기본 지급 아이템 목록 (ID, 슬롯) - 테스트용 데이터로 교체
+	var starter_items = [
+		{"id": "test_grimoire_epic", "slot": "right_hand"},
+		{"id": "test_cloth_top_rare", "slot": "top"},
+		{"id": "test_leather_shoes_common", "slot": "shoes"}
+	]
+	
+	print("PlayerManager: 기본 장비 지급 시작... (Apeloot Items Count: ", Apeloot.items.size(), ")")
+	for item in starter_items:
+		var item_id = item["id"]
+		var slot_key = item["slot"]
+		
+		# Apeloot 데이터베이스에서 아이템 정보 가져오기
+		if Apeloot.items.has(item_id):
+			var item_data = Apeloot.items[item_id].duplicate()
+			item_data["id"] = item_id # ID 주입
+			print("DEBUG: Equipping starter item: ", item_id, " Stats: ", item_data.get("stats", {}))
+			
+			# 장착 실행 (요구사항 무시하고 강제 장착)
+			equip_item(slot_key, item_data)
+		else:
+			printerr("PlayerManager: 기본 장비 아이템을 찾을 수 없습니다 - ", item_id)

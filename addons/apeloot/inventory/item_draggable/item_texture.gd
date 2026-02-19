@@ -68,7 +68,10 @@ func update_drag_preview_position():
 	var inventory = find_inventory_at_position(mouse_position)
 	
 	if not inventory or inventory.pickup_only:
-		drag_preview.visible = false
+		# 인벤토리 밖에서는 마우스 중앙을 따라다니며 프리뷰 유지
+		drag_preview.visible = true
+		drag_preview.position = mouse_position - (full_size / 2)
+		drag_preview.set_collision_state(true)
 		return
 		
 	var center_slot = inventory.find_slot_at_position(mouse_position)
@@ -182,8 +185,11 @@ func end_drag():
 		cursor_visual = null
 	set_process(false)
 
-func find_inventory_at_position(pos: Vector2) -> GridInventory:
-	for inv in Apeloot.inventory_refs.values():
-		if inv.get_global_rect().has_point(pos):
+func find_inventory_at_position(pos: Vector2) -> Node:
+	for inv_id in Apeloot.inventory_refs.keys():
+		var inv = Apeloot.inventory_refs[inv_id]
+		var rect = inv.get_global_rect()
+		if rect.has_point(pos):
+			print("DEBUG: Found inventory ", inv_id, " for pos ", pos)
 			return inv
 	return null

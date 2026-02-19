@@ -68,8 +68,9 @@ func show_screen(screen_type: Screen, instance: Node = null):
 		var current_screen_node = screen_nodes[current_screen]
 		current_screen_node.visible = false
 		
-		# 임시 화면(지도, 인벤토리, 운명설계 등)은 제거하여 메모리 해제
-		var is_temp = current_screen in [Screen.DUNGEON_MAP, Screen.INVENTORY, Screen.DESTINY_DESIGN, Screen.END_OF_DUNGEON_OPTIONS, Screen.LOOT_OFFER]
+		# 임시 화면(지도, 운명설계 등)은 제거하여 메모리 해제
+		# [수정] INVENTORY는 제거하지 않고 유지 (데이터 보존 및 백그라운드 접근 위해)
+		var is_temp = current_screen in [Screen.DUNGEON_MAP, Screen.DESTINY_DESIGN, Screen.END_OF_DUNGEON_OPTIONS, Screen.LOOT_OFFER]
 		if is_temp:
 			current_screen_node.queue_free()
 			screen_nodes.erase(current_screen)

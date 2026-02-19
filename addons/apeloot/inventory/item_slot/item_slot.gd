@@ -81,6 +81,7 @@ func _on_gui_input(event: InputEvent):
 
 # 드롭 데이터 수락 가능 여부 확인
 func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
+	print("DEBUG: ItemSlot _can_drop_data called at slot ", slot_id)
 	# 데이터가 딕셔너리가 아니거나 "item" 키가 없으면 false 반환
 	if not data is Dictionary or not "item" in data:
 		return false
@@ -92,9 +93,13 @@ func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
 
 # 데이터 드롭 처리
 func _drop_data(at_position: Vector2, data: Variant) -> void:
+	print("DEBUG: ItemSlot _drop_data called at slot ", slot_id)
+	print("DEBUG: ItemSlot parent_inventory is: ", parent_inventory)
 	var item = data["item"] # 드롭된 아이템 가져오기
+	print("DEBUG: ItemSlot calling parent_inventory.find_slot_at_position")
 	# 드롭 위치의 중앙 슬롯 ID 찾기
 	var center_slot = parent_inventory.find_slot_at_position(at_position)
+	print("DEBUG: ItemSlot center_slot found: ", center_slot)
 	# 부모 인벤토리에서 아이템 드롭 처리
 	parent_inventory.handle_item_drop(item, center_slot)
 

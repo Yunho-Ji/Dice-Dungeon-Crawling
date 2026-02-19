@@ -361,6 +361,8 @@ func _place_item(dragged_item: DraggableItem, target_slot):
 		dragged_item.parent_inventory.item_reparented.emit(dragged_item, self)
 		dragged_item.reparent(items_node)
 		dragged_item.parent_inventory = self
+		# [신규] 인벤토리 배치 시 태그 설정
+		dragged_item.location_tag = "bag"
 	dragged_item.parent_inventory.snap_item_to_grid(dragged_item, target_slot)
 
 # 드래그된 아이템 제거

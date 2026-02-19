@@ -168,6 +168,10 @@ func handle_battle_end(win: bool, spawn_chest: bool = true):
 	current_game_phase = GamePhase.BATTLE_END
 	emit_signal("battle_ended", win)
 	if win:
+		# [신규] 승리 시 전장에 남은 적 개체들 제거 (그룹 기반 확실한 제거)
+		get_tree().call_group("active_enemies", "queue_free")
+		enemy_nodes.clear()
+		
 		# [신규] 승리 시 해당 노드를 클리어 처리 (MapManager 진행 상태 갱신)
 		var map_manager = get_node("/root/MapManager")
 		if map_manager and current_dungeon_node:
@@ -353,6 +357,7 @@ func prepare_dungeon_battle(node: DungeonNode):
 		current_scene_root.add_child(instantiated_enemy)
 		instantiated_enemy.name = "Enemy_" + str(i)
 		instantiated_enemy.initialize(info.data)
+		instantiated_enemy.add_to_group("active_enemies") # [신규] 일괄 제거를 위한 그룹 등록
 		if i == 0:
 			enemy_node = instantiated_enemy
 		enemy_nodes.append(instantiated_enemy)

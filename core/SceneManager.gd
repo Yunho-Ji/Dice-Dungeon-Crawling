@@ -23,6 +23,10 @@ func start_game_with_character(character_data: CharacterData):
 		# 임시: 만약 player_data가 여전히 null이면 Novice.tres를 로드 (테스트용)
 		if player_manager.player_data == null:
 			player_manager.player_data = load("res://resources/characters/player/Novice.tres") as CharacterData
+			
+		# [신규] 플레이어 세션 초기화 (장비 지급 등)
+		player_manager.initialize_session()
+		
 	go_to_town()
 	emit_signal("game_started")
 

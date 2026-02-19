@@ -22,7 +22,14 @@ func _ready():
 	add_child(drag_layer)
 	
 	# 실제 아이템이 추가될 컨트롤 노드
+	# [수정] CanvasLayer 아래 Control은 앵커가 작동하지 않으므로 크기를 직접 지정하거나
+	# 뷰포트 크기에 맞게 설정해야 함. (여기서는 간단히 Full Rect로 설정하되, 동작 확인 필요)
+	# 더 확실하게 하기 위해 _process에서 갱신하거나, 단순히 큰 크기를 줌.
 	temp_node.set_anchors_preset(Control.PRESET_FULL_RECT)
+	# [추가] 앵커가 안 먹힐 경우를 대비해 넉넉한 크기 설정
+	temp_node.custom_minimum_size = Vector2(1920, 1080) 
+	temp_node.size = Vector2(1920, 1080)
+	
 	temp_node.mouse_filter = Control.MOUSE_FILTER_IGNORE # 입력 가로채기 방지
 	drag_layer.add_child(temp_node)
 	

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>DDC Transparent Atlas Viewer (test bulid2)</title>
+    <style>
+        body { background-color: #111; color: #fff; font-family: sans-serif; margin: 0; padding: 20px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(16, 1fr);
+            gap: 10px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .icon-wrapper {
+            position: relative;
+            width: 64px;
+            height: 64px;
+            border: 1px solid #333;
+            /* 투명 격자 배경 */
+            background-image: 
+                linear-gradient(45deg, #222 25%, transparent 25%), 
+                linear-gradient(-45deg, #222 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #222 75%),
+                linear-gradient(-45deg, transparent 75%, #222 75%);
+            background-size: 10px 10px;
+            overflow: hidden;
+        }
+        .icon-wrapper:hover {
+            transform: scale(1.2);
+            border-color: #00ffcc;
+            z-index: 10;
+            transition: transform 0.1s;
+            cursor: pointer;
+        }
+        .icon-img {
+            width: 1024px;
+            image-rendering: pixelated;
+            position: absolute;
+        }
+        .index-label {
+            position: absolute;
+            bottom: 0; right: 0;
+            background: rgba(0,0,0,0.8);
+            color: #00ffcc;
+            font-size: 10px;
+            padding: 2px 4px;
+            z-index: 5;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>⚔️ DDC 투명 아틀라스 뷰어</h1>
+        <p>투명화된 'test bulid2.png' 리소스를 사용 중입니다.</p>
+    </div>
+
+    <div id="viewer" class="grid-container"></div>
+
+    <script>
+        const viewer = document.getElementById('viewer');
+        const imgPath = '../resources/items/test%20bulid2.png'; 
+        const itemSize = 64;
+        const columns = 16;
+        const total = 16 * 82;
+
+        for (let i = 0; i < total; i++) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'icon-wrapper';
+            
+            const img = document.createElement('img');
+            img.src = imgPath;
+            img.className = 'icon-img';
+            
+            const x = (i % columns) * itemSize;
+            const y = Math.floor(i / columns) * itemSize;
+            
+            img.style.left = `-${x}px`;
+            img.style.top = `-${y}px`;
+            
+            const label = document.createElement('div');
+            label.className = 'index-label';
+            label.innerText = i;
+            
+            wrapper.appendChild(img);
+            wrapper.appendChild(label);
+            viewer.appendChild(wrapper);
+        }
+    </script>
+</body>
+</html>

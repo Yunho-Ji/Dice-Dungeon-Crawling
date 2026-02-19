@@ -94,6 +94,9 @@ func _handle_battle_end(win: bool):
 		if is_instance_valid(enemy):
 			enemy.set_process(false)
 			enemy.is_in_battle = false
+	
+	# [신규] 적 리스트 참조 해제 (GameManager에서 queue_free() 시 안전성 확보)
+	enemies.clear()
 
 	if game_manager:
 		game_manager.handle_battle_end(win)

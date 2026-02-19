@@ -1,0 +1,96 @@
+{
+	"prefixes": {
+		"sharp": {
+			"name": "날카로운",
+			"stats": { "atk": [3.0, 6.0] },
+			"desc": "공격력이 소폭 상승합니다."
+		},
+		"sturdy": {
+			"name": "견고한",
+			"stats": { "vit": [4.0, 8.0] },
+			"desc": "건강함이 느껴지는 장비입니다."
+		},
+		"swift": {
+			"name": "신속한",
+			"stats": { "spd": [2.5, 5.0] },
+			"desc": "몸놀림이 가벼워집니다."
+		},
+		"wise": {
+			"name": "현명한",
+			"stats": { "int": [4.0, 7.0] },
+			"desc": "정신이 맑아지는 기분입니다."
+		},
+		"veteran": {
+			"name": "노련한",
+			"stats": { "agi": [3.0, 6.0] },
+			"desc": "전투의 경험이 묻어납니다."
+		},
+		"calm": {
+			"name": "침착한",
+			"stats": { "res": [5.0, 10.0] },
+			"desc": "어떤 상황에도 동요하지 않습니다."
+		},
+		"blessed": {
+			"name": "축복받은",
+			"stats": { "spi": [4.0, 8.0] },
+			"desc": "신비로운 기운이 감돕니다."
+		},
+		"healthy": {
+			"name": "활기찬",
+			"stats": { "rec": [3.0, 7.0] },
+			"desc": "회복력이 눈에 띄게 좋아집니다."
+		},
+		"heavy": {
+			"name": "묵직한",
+			"stats": { "atk": [5.0, 10.0], "spd": [-3.0, -1.0] },
+			"desc": "강력하지만 조금 느려집니다."
+		},
+		"lightweight": {
+			"name": "경량화된",
+			"stats": { "spd": [4.0, 7.0], "vit": [-2.0, -1.0] },
+			"desc": "빠르지만 맷집이 약해집니다."
+		}
+	},
+	"suffixes": {
+		"of_might": {
+			"name": "의 위력",
+			"stats": { "atk": [4.0, 8.0] }
+		},
+		"of_protection": {
+			"name": "의 보호",
+			"stats": { "res": [6.0, 12.0] }
+		},
+		"of_haste": {
+			"name": "의 가속",
+			"stats": { "spd": [3.0, 6.0] }
+		},
+		"of_intellect": {
+			"name": "의 지혜",
+			"stats": { "int": [5.0, 9.0] }
+		},
+		"of_the_bear": {
+			"name": "의 곰",
+			"stats": { "vit": [6.0, 10.0] }
+		},
+		"of_the_fox": {
+			"name": "의 여우",
+			"stats": { "agi": [4.0, 8.0] }
+		},
+		"of_remedy": {
+			"name": "의 치유",
+			"stats": { "rec": [5.0, 10.0] }
+		},
+		"of_the_spirit": {
+			"name": "의 영혼",
+			"stats": { "spi": [5.0, 9.0] }
+		},
+		"of_vampire": {
+			"name": "의 흡혈귀",
+			"stats": { "atk": [2.0, 4.0], "rec": [2.0, 4.0] }
+		},
+		"of_the_abyss": {
+			"name": "의 심연",
+			"stats": { "int": [10.0, 15.0], "res": [-5.0, -3.0] }
+		}
+	}
+}

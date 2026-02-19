@@ -125,12 +125,12 @@ text = "가방"
 horizontal_alignment = 1
 
 [node name="InventoryInterface" type="PanelContainer" parent="CenterContainer/MainPanel/VBox/MainHBox/InventorySection"]
-custom_minimum_size = Vector2(240, 180)
+custom_minimum_size = Vector2(600, 360)
 layout_mode = 2
 script = ExtResource("2_inventory_script")
 id = "player_inventory"
-slot_count = 20
-columns = 4
+slot_count = 60
+columns = 10
 
 [node name="Footer" type="HBoxContainer" parent="CenterContainer/MainPanel/VBox"]
 layout_mode = 2

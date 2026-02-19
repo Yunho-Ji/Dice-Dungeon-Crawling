@@ -47,6 +47,10 @@ window/stretch/mode="canvas_items"
 
 enabled=PackedStringArray("res://addons/apeloot/plugin.cfg", "res://addons/betterrandnumgen/plugin.cfg", "res://addons/godot-4-aseprite-importers-main/addons/nklbdev.aseprite_importers/plugin.cfg", "res://addons/godot_mcp/plugin.cfg", "res://addons/gut/plugin.cfg", "res://addons/tree_maps/plugin.cfg")
 
+[gui]
+
+theme/custom_font="uid://c5n8ya526chql"
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"

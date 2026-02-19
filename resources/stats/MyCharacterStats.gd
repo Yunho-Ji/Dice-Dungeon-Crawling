@@ -96,12 +96,20 @@ func clone() -> MyCharacterStats:
 # 다른 stats 객체로부터 값을 동기화
 func sync_from(other: MyCharacterStats):
 	if not other: return
-	agi.base_value = other.agi.base_value
-	vit.base_value = other.vit.base_value
-	int_stat.base_value = other.int_stat.base_value
-	atk.base_value = other.atk.base_value
-	spd.base_value = other.spd.base_value
-	res.base_value = other.res.base_value
-	spi.base_value = other.spi.base_value
-	rec.base_value = other.rec.base_value
+	
+	# 각 스탯 객체의 sync_from을 호출하여 base_value 및 modifiers 전체 동기화
+	agi.sync_from(other.agi)
+	vit.sync_from(other.vit)
+	int_stat.sync_from(other.int_stat)
+	atk.sync_from(other.atk)
+	spd.sync_from(other.spd)
+	res.sync_from(other.res)
+	spi.sync_from(other.spi)
+	rec.sync_from(other.rec)
+	
+	# 파생 스탯 업데이트 (Modifier 반영 후 재계산)
 	update_derived_stats()
+	
+	# [신규] 방어력(Defense) 등 별도 관리 스탯도 동기화 필요 시 추가
+	if defense and other.defense:
+		defense.sync_from(other.defense)

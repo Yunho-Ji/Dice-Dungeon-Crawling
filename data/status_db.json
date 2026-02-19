@@ -1,0 +1,181 @@
+{
+  "poison": {
+	"id": "poison",
+	"name": "맹독",
+	"desc": "행동 게이지 100%마다 고정 데미지를 입습니다.",
+	"type": "debuff",
+	"duration": 5.0,
+	"tick_type": "damage",
+	"tick_value": 3.0,
+	"modifiers": []
+  },
+  "burn": {
+	"id": "burn",
+	"name": "화상",
+	"desc": "뜨거운 열기로 인해 지속적인 피해를 입습니다.",
+	"type": "debuff",
+	"duration": 4.0,
+	"tick_type": "damage",
+	"tick_value": 5.0,
+	"modifiers": []
+  },
+  "haste": {
+	"id": "haste",
+	"name": "가속",
+	"desc": "행동 게이지 충전 속도가 증가합니다.",
+	"type": "buff",
+	"duration": 3.0,
+	"modifiers": [{ "stat": "spd", "op": "MULTIPLY", "val": 1.3 }]
+  },
+  "slow": {
+	"id": "slow",
+	"name": "둔화",
+	"desc": "행동 게이지 충전 속도가 감소합니다.",
+	"type": "debuff",
+	"duration": 3.0,
+	"modifiers": [{ "stat": "spd", "op": "MULTIPLY", "val": 0.7 }]
+  },
+  "stun": {
+	"id": "stun",
+	"name": "기절",
+	"desc": "일시적으로 행동 불능 상태가 됩니다.",
+	"type": "debuff",
+	"duration": 2.0,
+	"prevent_action": true,
+	"modifiers": [{ "stat": "spd", "op": "SET", "val": 0 }]
+  },
+  "might_buff": {
+	"id": "might_buff",
+	"name": "완력 강화",
+	"desc": "물리 공격력이 증가합니다.",
+	"type": "buff",
+	"duration": 5.0,
+	"modifiers": [{ "stat": "atk", "op": "ADD", "val": 5.0 }]
+  },
+  "guard_buff": {
+	"id": "guard_buff",
+	"name": "철벽의 태세",
+	"desc": "물리 방어력이 증가합니다.",
+	"type": "buff",
+	"duration": 5.0,
+	"modifiers": [{ "stat": "defense", "op": "ADD", "val": 5.0 }]
+  },
+  "resistance_buff": {
+	"id": "resistance_buff",
+	"name": "정신 집중",
+	"desc": "상태이상 저항력이 증가합니다.",
+	"type": "buff",
+	"duration": 5.0,
+	"modifiers": [{ "stat": "res", "op": "ADD", "val": 10.0 }]
+  },
+  "luck_clover": {
+	"id": "luck_clover",
+	"name": "네잎클로버",
+	"desc": "운이 상승하여 주사위 판정이 유리해집니다.",
+	"type": "buff",
+	"duration": 5.0,
+	"modifiers": [{ "stat": "luck", "op": "ADD", "val": 15.0 }]
+  },
+  "luck_jinx": {
+	"id": "luck_jinx",
+	"name": "불운의 징크스",
+	"desc": "운이 하락하여 주사위 판정이 불리해집니다.",
+	"type": "debuff",
+	"duration": 5.0,
+	"modifiers": [{ "stat": "luck", "op": "SUBTRACT", "val": 15.0 }]
+  },
+  "trap_disarm_success": {
+	"id": "trap_disarm_success",
+	"name": "침착한 손길",
+	"desc": "함정 해제 성공으로 자신감이 붙어 민첩이 일시적으로 상승합니다.",
+	"type": "buff",
+	"duration": 10.0,
+	"modifiers": [{ "stat": "agi", "op": "ADD", "val": 5.0 }]
+  },
+  "trap_disarm_fail": {
+	"id": "trap_disarm_fail",
+	"name": "트라우마",
+	"desc": "함정 해제 실패의 충격으로 손이 떨려 민첩이 하락합니다.",
+	"type": "debuff",
+	"duration": 10.0,
+	"modifiers": [{ "stat": "agi", "op": "SUBTRACT", "val": 5.0 }]
+  },
+  "stat_pow_buff": {
+	"id": "stat_pow_buff",
+	"name": "기술의 극의",
+	"desc": "모든 기술의 위력이 일시적으로 증폭됩니다.",
+	"type": "buff",
+	"duration": 5.0,
+	"modifiers": [{ "stat": "atk", "op": "MULTIPLY", "val": 1.2 }]
+  },
+  "stat_pow_debuff": {
+	"id": "stat_pow_debuff",
+	"name": "무기력",
+	"desc": "힘이 빠져 기술의 위력이 약해집니다.",
+	"type": "debuff",
+	"duration": 5.0,
+	"modifiers": [{ "stat": "atk", "op": "MULTIPLY", "val": 0.8 }]
+  },
+  "avd_buff": {
+	"id": "avd_buff",
+	"name": "흐릿한 잔상",
+	"desc": "몸이 가벼워져 적의 공격을 더 잘 회피합니다.",
+	"type": "buff",
+	"duration": 5.0,
+	"modifiers": [{ "stat": "agi", "op": "ADD", "val": 10.0 }]
+  },
+  "avd_debuff": {
+	"id": "avd_debuff",
+	"name": "무거운 발걸음",
+	"desc": "몸이 무거워져 적의 공격에 노출되기 쉽습니다.",
+	"type": "debuff",
+	"duration": 5.0,
+	"modifiers": [{ "stat": "agi", "op": "SUBTRACT", "val": 10.0 }]
+  },
+  "fatigue": {
+	"id": "fatigue",
+	"name": "피로",
+	"desc": "누적된 피로로 인해 모든 행동이 느려집니다.",
+	"type": "debuff",
+	"duration": 15.0,
+	"modifiers": [{ "stat": "spd", "op": "MULTIPLY", "val": 0.8 }, { "stat": "rec", "op": "SUBTRACT", "val": 5.0 }]
+  },
+  "vigor": {
+	"id": "vigor",
+	"name": "활력",
+	"desc": "넘치는 생명력으로 최대 체력이 일시적으로 증가합니다.",
+	"type": "buff",
+	"duration": 10.0,
+	"modifiers": [{ "stat": "health", "op": "ADD", "val": 20.0 }]
+  },
+  "regen_strong": {
+	"id": "regen_strong",
+	"name": "강력한 재생",
+	"desc": "매우 빠른 속도로 상처가 아뭅니다.",
+	"type": "buff",
+	"duration": 3.0,
+	"tick_type": "heal",
+	"tick_value": 10.0,
+	"modifiers": []
+  },
+  "mana_burn": {
+	"id": "mana_burn",
+	"name": "마력 연소",
+	"desc": "마력이 불타올라 매 턴 마나를 잃습니다.",
+	"type": "debuff",
+	"duration": 5.0,
+	"tick_type": "mana_damage",
+	"tick_value": 5.0,
+	"modifiers": []
+  },
+  "reserved_slot_1": null,
+  "reserved_slot_2": null,
+  "reserved_slot_3": null,
+  "reserved_slot_4": null,
+  "reserved_slot_5": null,
+  "deprecated_stance_lock": null,
+  "deprecated_stance_guard": null,
+  "deprecated_grd_buff": null,
+  "deprecated_grd_debuff": null,
+  "deprecated_vampiric": null
+}

@@ -1,154 +1,109 @@
 {
-	"steak": {
-		"name": "Steak",
-		"desc": "Made from happy cows.",
-		"price": 31,
-		"rarity": 0,
-		"pattern": "3x1",
-		"merge": true,
-		"equip_type": "none"
-	},
-	"pickaxe": {
-		"name": "Pickaxe",
-		"desc": "A test item that was drawn in paint.",
-		"price": 50,
-		"rarity": 0,
-		"pattern": "T",
-		"merge": true,
-		"equip_type": "weapon"
-	},
-	"ketchup": {
-		"name": "Ketchup",
-		"desc": "Goes well with steak.",
-		"price": 10,
-		"rarity": 1,
-		"stack": 66,
-		"equip_type": "none"
-	},
-	"glasses": {
-		"name": "Glasses?",
-		"desc": "I don't know what this is.",
-		"price": 31,
-		"rarity": 0,
-		"pattern": "diagonal",
-		"merge": true,
-		"equip_type": "accessory"
-	},
-	"rusty_sword": {
-		"name": "녹슨 검",
-		"desc": "금방이라도 부러질 것 같은 검입니다. 그래도 맨손보다는 낫습니다.",
-		"price": 100,
-		"rarity": 0,
-		"pattern": "1x2",
-		"equip_type": "weapon",
-		"stats": {"atk": 2}
-	},
-	"wooden_shield": {
-		"name": "나무 방패",
-		"desc": "가벼운 목재로 만든 방패입니다.",
-		"price": 80,
-		"rarity": 0,
-		"pattern": "2x2",
-		"equip_type": "shield",
-		"stats": {"defense": 2}
-	},
-	"leather_top": {
-		"name": "가죽 상의",
-		"desc": "질긴 가죽으로 만든 기본적인 갑옷입니다.",
-		"price": 150,
-		"rarity": 0,
-		"pattern": "2x2",
-		"equip_type": "top",
-		"armor_type": "light",
-		"stats": {"defense": 3, "health": 5}
-	},
-	"leather_cap": {
-		"name": "가죽 모자",
-		"desc": "머리를 보호하기 위한 간단한 모자입니다.",
-		"price": 80,
-		"rarity": 0,
-		"pattern": "1x1",
-		"equip_type": "head",
-		"armor_type": "light",
-		"stats": {"defense": 1}
-	},
-	"leather_pants": {
-		"name": "가죽 바지",
-		"desc": "활동성이 좋은 가죽 바지입니다.",
-		"price": 120,
-		"rarity": 0,
-		"pattern": "2x2",
-		"equip_type": "bottom",
-		"armor_type": "light",
-		"stats": {"defense": 2, "health": 2}
-	},
-	"leather_boots": {
-		"name": "가죽 장화",
-		"desc": "단단한 가죽으로 만든 장화입니다.",
-		"price": 90,
-		"rarity": 0,
-		"pattern": "1x2",
-		"equip_type": "shoes",
-		"armor_type": "light",
-		"stats": {"defense": 1, "spd": 2}
-	},
-	"iron_ring": {
-		"name": "철 반지",
-		"desc": "평범한 철제 반지입니다. 왠지 행운이 따를 것 같습니다.",
-		"price": 200,
-		"rarity": 1,
-		"pattern": "1x1",
+	"test_necklace_common": {
+		"name": "수습생의 목걸이",
+		"atlas_index": 288,
 		"equip_type": "accessory",
-		"stats": {"spi": 1}
+		"grade": "common",
+		"stats": { "spi": [1.5, 2.5] }
 	},
-	"iron_plate": {
-		"name": "강철 흉갑",
-		"desc": "두꺼운 강철판으로 만든 흉갑입니다. 매우 무겁지만 든든합니다.",
-		"price": 300,
-		"rarity": 1,
-		"pattern": "2x2",
-		"equip_type": "top",
-		"armor_type": "heavy",
-		"stats": {"defense": 8}
+	"test_necklace_relic": {
+		"name": "영혼의 눈 (유물)",
+		"atlas_index": 303,
+		"equip_type": "accessory",
+		"grade": "relic",
+		"can_reforge": false,
+		"stats": { "spi": [12.0, 18.0], "res": [15.0, 25.0] }
 	},
-	"wizard_robe": {
-		"name": "마법사의 로브",
-		"desc": "마력이 깃든 부드러운 천으로 만든 옷입니다.",
-		"price": 250,
-		"rarity": 1,
-		"pattern": "2x2",
+	"test_ring_rare": {
+		"name": "숙련자의 반지",
+		"atlas_index": 310,
+		"equip_type": "accessory",
+		"grade": "rare",
+		"stats": { "int_stat": [3.0, 5.0] }
+	},
+	"test_ring_epic": {
+		"name": "대마법사의 인장",
+		"atlas_index": 425,
+		"equip_type": "accessory",
+		"grade": "epic",
+		"stats": { "int_stat": [8.0, 12.0], "spi": [5.0, 8.0] }
+	},
+	"test_circlet_common": {
+		"name": "베이지 서클릿",
+		"atlas_index": 320,
+		"equip_type": "head",
+		"armor_type": "cloth",
+		"grade": "common",
+		"stats": { "dr_rate": [0.5, 1.0], "ms_bonus_rate": [0.2, 0.5] }
+	},
+	"test_cloth_top_rare": {
+		"name": "푸른 자수 로브",
+		"atlas_index": 375,
 		"equip_type": "top",
 		"armor_type": "cloth",
-		"stats": {"current_mp": 20, "int_stat": 5}
+		"grade": "rare",
+		"stats": { "dr_rate": [1.5, 2.5], "ms_bonus_rate": [0.8, 1.2] }
 	},
-	"gold_pile_small": {
-		"name": "금화 더미",
-		"desc": "주머니가 버티지 못하고 터져나왔습니다. 가방 한구석을 차지하기 시작합니다.",
-		"price": 0,
-		"rarity": 1,
-		"pattern": "2x2",
-		"is_gold": true,
-		"is_cursed": true,
-		"equip_type": "none"
+	"test_cloth_top_relic": {
+		"name": "별무리 성의 (유물)",
+		"atlas_index": 570,
+		"equip_type": "top",
+		"armor_type": "cloth",
+		"grade": "relic",
+		"can_reforge": false,
+		"stats": { "dr_rate": [4.0, 6.0], "ms_bonus_rate": [2.5, 4.0] }
 	},
-	"gold_pile_medium": {
-		"name": "무너지는 금화 더미",
-		"desc": "돈이 기하급수적으로 불어나며 자꾸만 쏟아집니다. 당신은 부자입니까, 아니면 짐꾼입니까?",
-		"price": 0,
-		"rarity": 2,
-		"pattern": "3x3",
-		"is_gold": true,
-		"is_cursed": true,
-		"equip_type": "none"
+	"test_orb_rare": {
+		"name": "마력의 구슬",
+		"atlas_index": 450,
+		"equip_type": "accessory",
+		"grade": "rare",
+		"stats": { "int_stat": [4.0, 6.0], "spi": [2.0, 4.0] }
 	},
-	"gold_pile_large": {
-		"name": "탐욕의 금화 산",
-		"desc": "가방이 비명을 지르고 있습니다. 감당할 수 없는 무게는 저주와 다를 바 없습니다. 무엇인가를 희생해야만 할 것입니다.",
-		"price": 0,
-		"rarity": 3,
-		"pattern": "4x4",
-		"is_gold": true,
-		"is_cursed": true,
-		"equip_type": "none"
+	"test_grimoire_epic": {
+		"name": "제니의 파괴적인 주문서",
+		"atlas_index": 712,
+		"equip_type": "weapon",
+		"grade": "epic",
+		"stats": { "min_atk": 99999.0, "max_atk": 99999.0, "balance": 100.0, "str": 999 }
+	},
+	"test_leather_shoes_common": {
+		"name": "제니의 번개 장화",
+		"atlas_index": 832,
+		"equip_type": "shoes",
+		"armor_type": "light",
+		"grade": "common",
+		"stats": { "dr_rate": 20.0, "evade_rate": 100.0, "hp_max": 1000.0 }
+	},
+	"test_heavy_boots_rare": {
+		"name": "기사의 강철 장화",
+		"atlas_index": 935,
+		"equip_type": "shoes",
+		"armor_type": "heavy",
+		"grade": "rare",
+		"stats": { "dr_rate": [5.0, 7.5], "res_bonus": [10.0, 15.0] }
+	},
+	"test_heavy_helm_epic": {
+		"name": "사자문양 투구",
+		"atlas_index": 960,
+		"equip_type": "head",
+		"armor_type": "heavy",
+		"grade": "epic",
+		"stats": { "dr_rate": [8.0, 12.0], "res_bonus": [15.0, 22.0] }
+	},
+	"test_shield_common": {
+		"name": "나무 원형 방패",
+		"atlas_index": 1008,
+		"equip_type": "shield",
+		"grade": "common",
+		"stats": { "dr_rate": [3.0, 5.0], "block_chance": [10.0, 15.0] }
+	},
+	"test_shield_relic": {
+		"name": "성벽의 파편 (유물)",
+		"atlas_index": 1020,
+		"equip_type": "shield",
+		"grade": "relic",
+		"can_reforge": false,
+		"stats": { "dr_rate": [18.0, 25.0], "block_chance": [40.0, 60.0] }
 	}
 }

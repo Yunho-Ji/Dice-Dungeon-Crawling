@@ -1,0 +1,302 @@
+{
+	"absolute_defense": {
+		"id": "absolute_defense",
+		"name": "금강불괴",
+		"base_stats": ["vit", "res"],
+		"tiers": [
+			{ "level": 1, "require": {"vit": 18, "res": 12}, "name": "두꺼운 가죽", "desc": "받는 물리 피해 2 고정 감소", "val": 2 },
+			{ "level": 2, "require": {"vit": 43, "res": 26}, "name": "강철 의지", "desc": "피격 시 AP 넉백 35% 저항", "val": 0.35 },
+			{ "level": 3, "require": {"vit": 92, "res": 54}, "name": "금강불괴", "desc": "최대 체력의 5% 이하 데미지 완전 무시", "val": 0.05 }
+		]
+	},
+	"phantom_step": {
+		"id": "phantom_step",
+		"name": "환영 보폭",
+		"base_stats": ["spd", "agi"],
+		"tiers": [
+			{ "level": 1, "require": {"spd": 22, "agi": 11}, "name": "가벼운 발걸음", "desc": "모션 속도 6% 증가", "val": 0.06 },
+			{ "level": 2, "require": {"spd": 47, "agi": 24}, "name": "잔상 생성", "desc": "회피 성공 시 AP 12 회복", "val": 12 },
+			{ "level": 3, "require": {"spd": 88, "agi": 56}, "name": "무영보", "desc": "빗겨맞음 발생 시 감쇄율 15% 추가 (시스템 캡 적용)", "val": 0.15 }
+		]
+	},
+	"mana_core": {
+		"id": "mana_core",
+		"name": "심안의 마력로",
+		"base_stats": ["int", "spi"],
+		"tiers": [
+			{ "level": 1, "require": {"int": 19, "spi": 13}, "name": "마력 흐름", "desc": "마나 실드 효율 +0.25", "val": 0.25 },
+			{ "level": 2, "require": {"int": 41, "spi": 27}, "name": "정신 집속", "desc": "마나가 60% 이상일 때 마법 저항(RES) +18", "val": 18 },
+			{ "level": 3, "require": {"int": 95, "spi": 42}, "name": "심안의 방벽", "desc": "마나 실드 흡수 시 15% 확률로 마나 무소모", "val": 0.15 }
+		]
+	},
+	"berserk_echo": {
+		"id": "berserk_echo",
+		"name": "광전사의 메아리",
+		"base_stats": ["atk", "vit"],
+		"tiers": [
+			{ "level": 1, "require": {"atk": 24, "vit": 14}, "name": "피의 흥분", "desc": "잃은 체력 10%당 모션 속도 3% 증가", "val": 0.02 },
+			{ "level": 2, "require": {"atk": 45, "vit": 31}, "name": "흡혈 귀성", "desc": "적 처치 시 최대 체력의 4% 즉시 회복", "val": 0.04 },
+			{ "level": 3, "require": {"atk": 82, "vit": 58}, "name": "사선에서의 도약", "desc": "체력이 25% 이하일 때 공격력 45% 증가 및 경직 면역", "val": 0.45 }
+		]
+	},
+	"tactical_analysis": {
+		"id": "tactical_analysis",
+		"name": "냉철한 분석",
+		"base_stats": ["int", "agi"],
+		"tiers": [
+			{ "level": 1, "require": {"int": 25, "agi": 15}, "name": "동선 파악", "desc": "전투 시작 시 적 전체의 속성 정보 공개", "val": 1.0 },
+			{ "level": 2, "require": {"int": 48, "agi": 22}, "name": "정밀 타격", "desc": "지능의 20%만큼 물리 데미지에 가산", "val": 0.2 },
+			{ "level": 3, "require": {"int": 90, "agi": 45}, "name": "논리적 붕괴", "desc": "적의 물리 방어력 30%를 무시하고 데미지 계산", "val": 0.3 }
+		]
+	},
+	"experienced_adventurer": {
+		"id": "experienced_adventurer",
+		"name": "숙련된 모험가",
+		"base_stats": ["rec", "int"],
+		"tiers": [
+			{ "level": 1, "require": {"rec": 17, "int": 12}, "name": "약초 지식", "desc": "포션 사용 시 회복량 25% 증가", "val": 0.25 },
+			{ "level": 2, "require": {"rec": 39, "int": 25}, "name": "병 정렬", "desc": "포션 사용 시 행동 게이지 소모 40% 감소", "val": 0.4 },
+			{ "level": 3, "require": {"rec": 85, "int": 48}, "name": "현자의 돌", "desc": "전투 중 아이템 사용 시 행동 게이지 소모 0", "val": 1.0 }
+		]
+	},
+	"stone_wall": {
+		"id": "stone_wall",
+		"name": "부동의 자세",
+		"base_stats": ["res", "spi"],
+		"tiers": [
+			{ "level": 1, "require": {"res": 21, "spi": 13}, "name": "평정심", "desc": "피격 시 AP 넉백 20% 감소", "val": 0.2 },
+			{ "level": 2, "require": {"res": 44, "spi": 29}, "name": "철벽의 정신", "desc": "피격 시 AP 넉백 50% 감소", "val": 0.5 },
+			{ "level": 3, "require": {"res": 87, "spi": 52}, "name": "태산의 의지", "desc": "모든 상태이상 저항 확률 20% 추가 및 경직 면역", "val": 0.2 }
+		]
+	},
+	"avenger": {
+		"id": "avenger",
+		"name": "복수자",
+		"base_stats": ["atk", "res"],
+		"tiers": [
+			{ "level": 1, "require": {"atk": 26, "res": 14}, "name": "분노 축적", "desc": "노드 내 누적 피해 20당 공격력 2% 증가", "val": 20 },
+			{ "level": 2, "require": {"atk": 52, "res": 28}, "name": "피의 복수", "desc": "피격 시 1노드 동안 데미지 반사 10% 활성화", "val": 0.1 },
+			{ "level": 3, "require": {"atk": 98, "res": 44}, "name": "징벌자", "desc": "누적 피해가 최대 체력의 50% 초과 시 다음 공격 데미지 100% 증가", "val": 1.0 }
+		]
+	},
+	"spirit_resonance": {
+		"id": "spirit_resonance",
+		"name": "영혼 공명",
+		"base_stats": ["spi", "res"],
+		"tiers": [
+			{ "level": 1, "require": {"spi": 23, "res": 15}, "name": "정신 수양", "desc": "마나 재생률 +15%", "val": 0.15 },
+			{ "level": 2, "require": {"spi": 46, "res": 23}, "name": "명경지수", "desc": "상태이상 저항에 SPI의 20% 가산", "val": 0.2 },
+			{ "level": 3, "require": {"spi": 94, "res": 41}, "name": "영혼의 메아리", "desc": "기술 사용 시 20% 확률로 소모 마나 반환", "val": 0.2 }
+		]
+	},
+	"adrenalin": {
+		"id": "adrenalin",
+		"name": "아드레날린",
+		"base_stats": ["rec", "spd"],
+		"tiers": [
+			{ "level": 1, "require": {"rec": 18, "spd": 15}, "name": "재생력 강화", "desc": "받는 치유량 10% 증가", "val": 0.1 },
+			{ "level": 2, "require": {"rec": 42, "spd": 22}, "name": "한계 돌파", "desc": "체력 30% 이하 시 행동 속도 20% 증가", "val": 0.2 },
+			{ "level": 3, "require": {"rec": 81, "spd": 55}, "name": "사선의 경계", "desc": "치명적 피해 시 1회 생존 (전투당 1회)", "val": 1.0 }
+		]
+	},
+	"master_of_none": {
+		"id": "master_of_none",
+		"name": "만능 재주꾼",
+		"base_stats": ["atk", "int", "agi"],
+		"tiers": [
+			{ "level": 1, "require": {"atk": 15, "int": 15, "agi": 15}, "name": "잡학 다식", "desc": "모든 8대 스탯 +2", "val": 2 },
+			{ "level": 2, "require": {"atk": 35, "int": 35, "agi": 35}, "name": "임기응변", "desc": "장비 요구 능력치 5 감소", "val": 5 },
+			{ "level": 3, "require": {"atk": 75, "int": 75, "agi": 75}, "name": "무아지경", "desc": "자신을 제외한 모든 2차 스탯의 1단계 효과 강제 발동", "val": 1.0 }
+		]
+	},
+	"vampiric_touch": {
+		"id": "vampiric_touch",
+		"name": "흡혈귀의 손길",
+		"base_stats": ["atk", "rec"],
+		"tiers": [
+			{ "level": 1, "require": {"atk": 22, "rec": 18}, "name": "갈증", "desc": "일반 공격 시 데미지의 3% 흡혈", "val": 0.03 },
+			{ "level": 2, "require": {"atk": 48, "rec": 36}, "name": "선혈의 축제", "desc": "상태이상에 걸린 적 공격 시 데미지의 8% 흡혈", "val": 0.08 },
+			{ "level": 3, "require": {"atk": 95, "rec": 74}, "name": "불멸의 갈구", "desc": "적 처치 시 최대 체력의 15% 즉시 회복", "val": 0.15 }
+		]
+	},
+	"precise_strike": {
+		"id": "precise_strike",
+		"name": "정밀한 타격",
+		"base_stats": ["atk", "agi"],
+		"tiers": [
+			{ "level": 1, "require": {"atk": 21, "agi": 14}, "name": "안정된 파지", "desc": "무기 밸런스(Balance) +5", "val": 5.0 },
+			{ "level": 2, "require": {"atk": 46, "agi": 28}, "name": "영점 조절", "desc": "무기 밸런스 +15", "val": 15.0 },
+			{ "level": 3, "require": {"atk": 93, "agi": 51}, "name": "최대 출력", "desc": "밸런스 수치의 20%만큼 최소 데미지 가산", "val": 0.2 }
+		]
+	},
+	"blade_dancer": {
+		"id": "blade_dancer",
+		"name": "검무",
+		"base_stats": ["atk", "spd"],
+		"tiers": [
+			{ "level": 1, "require": {"atk": 23, "spd": 23}, "name": "경쾌한 몸놀림", "desc": "공격 액션 모션 속도 8% 증가", "val": 0.08 },
+			{ "level": 2, "require": {"atk": 49, "spd": 49}, "name": "연속된 흐름", "desc": "공격 성공 시 다음 AP 충전 10% 가속 (중첩 불가)", "val": 0.1 },
+			{ "level": 3, "require": {"atk": 98, "spd": 98}, "name": "폭풍의 칼날", "desc": "공격 액션 완수 시 10% 확률로 즉시 재행동", "val": 0.1 }
+		]
+	},
+	"juggernaut": {
+		"id": "juggernaut",
+		"name": "거한",
+		"base_stats": ["vit", "atk"],
+		"tiers": [
+			{ "level": 1, "require": {"vit": 32, "atk": 18}, "name": "압도적 질량", "desc": "피격 시 적에게 받은 데미지의 5% 반사", "val": 0.05 },
+			{ "level": 2, "require": {"vit": 68, "atk": 34}, "name": "파괴적 무게", "desc": "최대 체력의 2%만큼 공격력 상시 가산", "val": 0.02 },
+			{ "level": 3, "require": {"vit": 135, "atk": 62}, "name": "불가항력", "desc": "공격 시 적의 최대 체력 3%만큼 고정 피해 추가", "val": 0.03 }
+		]
+	},
+	"puncturing_shot": {
+		"id": "puncturing_shot",
+		"name": "꿰뚫는 사격",
+		"base_stats": ["atk", "agi"],
+		"tiers": [
+			{ "level": 1, "require": {"atk": 28, "agi": 16}, "name": "방어구 틈새", "desc": "적의 데미지 감소율(DR) 5% 무시", "val": 0.05 },
+			{ "level": 2, "require": {"atk": 54, "agi": 32}, "name": "관통 강화", "desc": "적의 물리 방어력(DEF) 15% 무시", "val": 0.15 },
+			{ "level": 3, "require": {"atk": 112, "agi": 68}, "name": "영혼 관통", "desc": "모든 공격이 적의 저항(RES)을 무시하고 AP 넉백 100% 적용", "val": 1.0 }
+		]
+	},
+	"focus_fire": {
+		"id": "focus_fire",
+		"name": "집중 포화",
+		"base_stats": ["atk", "int"],
+		"tiers": [
+			{ "level": 1, "require": {"atk": 22, "int": 22}, "name": "기초 강화탄", "desc": "공격 시 5 고정 데미지 추가", "val": 5.0 },
+			{ "level": 2, "require": {"atk": 48, "int": 48}, "name": "마력 강화탄", "desc": "지능의 15%만큼 추가 피해 발생", "val": 0.15 },
+			{ "level": 3, "require": {"atk": 102, "int": 102}, "name": "속성 과부하", "desc": "지능의 30%만큼 추가 피해 및 적 마나 10 차감", "val": 0.3 }
+		]
+	},
+	"natures_touch": {
+		"id": "natures_touch",
+		"name": "대지의 가호",
+		"base_stats": ["vit", "rec"],
+		"tiers": [
+			{ "level": 1, "require": {"vit": 20, "rec": 15}, "name": "활력 징후", "desc": "최대 체력 5% 증가", "val": 0.05 },
+			{ "level": 2, "require": {"vit": 45, "rec": 35}, "name": "대지의 치유", "desc": "매 노드(Node) 진입 시 체력 5% 회복", "val": 0.05 },
+			{ "level": 3, "require": {"vit": 95, "rec": 75}, "name": "대지의 부활", "desc": "사망 시 체력 5%로 부활 (전투당 1회)", "val": 0.05 }
+		]
+	},
+	"mana_circuit": {
+		"id": "mana_circuit",
+		"name": "마력 순환",
+		"base_stats": ["int", "spd"],
+		"tiers": [
+			{ "level": 1, "require": {"int": 24, "spd": 18}, "name": "마력 가속", "desc": "마나 재생률 10% 증가", "val": 0.1 },
+			{ "level": 2, "require": {"int": 52, "spd": 42}, "name": "과부하 제어", "desc": "스킬 사용 후 1노드 동안 모션 속도 10% 증가", "val": 0.1 },
+			{ "level": 3, "require": {"int": 108, "spd": 88}, "name": "무한 동력", "desc": "마나 최대치 달성 시 다음 스킬 데미지 50% 증가", "val": 0.5 }
+		]
+	},
+	"explorer_instinct": {
+		"id": "explorer_instinct",
+		"name": "모험가의 직감",
+		"base_stats": ["agi", "res"],
+		"tiers": [
+			{ "level": 1, "require": {"agi": 18, "res": 14}, "name": "위험 감지", "desc": "함정 데미지 20% 감소", "val": 0.2 },
+			{ "level": 2, "require": {"agi": 42, "res": 32}, "name": "재빠른 손놀림", "desc": "함정 해제 성공 확률 15% 증가", "val": 0.15 },
+			{ "level": 3, "require": {"agi": 88, "res": 64}, "name": "전설적 감각", "desc": "전투 이탈 확률 30% 증가 및 전투 시작 시 선공권 확보", "val": 0.3 }
+		]
+	},
+	"flow_of_battle": {
+		"id": "flow_of_battle",
+		"name": "전투의 흐름",
+		"base_stats": ["spd", "res"],
+		"tiers": [
+			{ "level": 1, "require": {"spd": 21, "res": 15}, "name": "경쾌함", "desc": "전투 시작 시 AP 15% 충전", "val": 15.0 },
+			{ "level": 2, "require": {"spd": 46, "res": 33}, "name": "평정 유지", "desc": "피격 시 AP 넉백 30% 감소", "val": 0.3 },
+			{ "level": 3, "require": {"spd": 94, "res": 68}, "name": "물 흐르듯", "desc": "행동 성공 시 다음 행동 AP 충전 속도 20% 가속", "val": 0.2 }
+		]
+	},
+	"overload": {
+		"id": "overload",
+		"name": "자아 연소",
+		"base_stats": ["int", "rec"],
+		"tiers": [
+			{ "level": 1, "require": {"int": 26, "rec": 14}, "name": "불안정한 출력", "desc": "마법 데미지 15% 증가, 매 행동 시 마나 2 소모", "val": 0.15 },
+			{ "level": 2, "require": {"int": 55, "rec": 28}, "name": "폭주하는 마나", "desc": "마법 데미지 30% 증가, 매 행동 시 마나 5 소모", "val": 0.3 },
+			{ "level": 3, "require": {"int": 110, "rec": 52}, "name": "영혼 연소", "desc": "스킬 데미지 60% 증가, 마나 부족 시 체력 5% 소모하여 발동", "val": 0.6 }
+		]
+	},
+	"assassins_mark": {
+		"id": "assassins_mark",
+		"name": "암살자의 표식",
+		"base_stats": ["agi", "atk"],
+		"tiers": [
+			{ "level": 1, "require": {"agi": 22, "atk": 18}, "name": "기습 준비", "desc": "전투 첫 타격 데미지 30% 증가", "val": 0.3 },
+			{ "level": 2, "require": {"agi": 48, "atk": 36}, "name": "출혈 자상", "desc": "공격 시 15% 확률로 적에게 출혈(DoT) 부여", "val": 0.15 },
+			{ "level": 3, "require": {"agi": 96, "atk": 72}, "name": "심장 꿰기", "desc": "출혈 상태인 적 공격 시 최종 데미지 40% 증가", "val": 0.4 }
+		]
+	},
+	"fluid_defense": {
+		"id": "fluid_defense",
+		"name": "유연한 방어",
+		"base_stats": ["spd", "res"],
+		"tiers": [
+			{ "level": 1, "require": {"spd": 25, "res": 12}, "name": "흘리기", "desc": "피격 시 10% 확률로 데미지 50% 감쇄", "val": 0.1 },
+			{ "level": 2, "require": {"spd": 50, "res": 25}, "name": "유연한 신체", "desc": "빗겨맞음 발생 시 AP 넉백 완전 무시", "val": 1.0 },
+			{ "level": 3, "require": {"spd": 100, "res": 50}, "name": "잔상 방어", "desc": "모션 속도 비례 데미지 감소율 추가 (최대 10%)", "val": 0.1 }
+		]
+	},
+	"mind_over_matter": {
+		"id": "mind_over_matter",
+		"name": "정신력의 승리",
+		"base_stats": ["int", "res"],
+		"tiers": [
+			{ "level": 1, "require": {"int": 28, "res": 18}, "name": "사고 가속", "desc": "지능 수치의 15%만큼 저항(RES) 가산", "val": 0.15 },
+			{ "level": 2, "require": {"int": 58, "res": 38}, "name": "논리적 방어", "desc": "마법 피격 시 지능 비례 데미지 10% 감소", "val": 0.1 },
+			{ "level": 3, "require": {"int": 115, "res": 82}, "name": "초월적 인지", "desc": "상태이상 중일 때 오히려 공격력 30% 증가", "val": 0.3 }
+		]
+	},
+	"rejuvenation": {
+		"id": "rejuvenation",
+		"name": "재생의 물결",
+		"base_stats": ["rec", "spi"],
+		"tiers": [
+			{ "level": 1, "require": {"rec": 19, "spi": 12}, "name": "활기", "desc": "회복 아이템 사용 시 MP 10 즉시 회복", "val": 10.0 },
+			{ "level": 2, "require": {"rec": 44, "spi": 28}, "name": "영적 재생", "desc": "매 행동 시 잃은 마나의 2% 추가 회복", "val": 0.02 },
+			{ "level": 3, "require": {"rec": 92, "spi": 64}, "name": "생명의 원천", "desc": "마나가 가득 찰 때마다 체력 10% 즉시 회복 (노드당 1회)", "val": 0.1 }
+		]
+	},
+	"unshakable_will": {
+		"id": "unshakable_will",
+		"name": "굳건한 신념",
+		"base_stats": ["res", "spi"],
+		"tiers": [
+			{ "level": 1, "require": {"res": 24, "spi": 16}, "name": "정신 장벽", "desc": "상태이상 저항 확률 10% 증가", "val": 0.1 },
+			{ "level": 2, "require": {"res": 52, "spi": 38}, "name": "굴하지 않는 마음", "desc": "기절 지속 시간 50% 감소", "val": 0.5 },
+			{ "level": 3, "require": {"res": 105, "spi": 78}, "name": "성역", "desc": "상태이상 해제 시 2노드 동안 모든 데미지 25% 감소", "val": 0.25 }
+		]
+	},
+	"elemental_ward": {
+		"id": "elemental_ward",
+		"name": "원소 보호막",
+		"base_stats": ["int", "res"],
+		"tiers": [
+			{ "level": 1, "require": {"int": 27, "res": 22}, "name": "속성 중화", "desc": "마법 피해 10% 감소", "val": 0.1 },
+			{ "level": 2, "require": {"int": 56, "res": 48}, "name": "에너지 흡수", "desc": "마법 피격 시 데미지의 5%만큼 마나 회복", "val": 0.05 },
+			{ "level": 3, "require": {"int": 112, "res": 94}, "name": "원소 반전", "desc": "마법 피격 시 10% 확률로 데미지 무효화 및 체력 회복", "val": 0.1 }
+		]
+	},
+	"overclocked_regen": {
+		"id": "overclocked_regen",
+		"name": "과속 재생",
+		"base_stats": ["spd", "rec"],
+		"tiers": [
+			{ "level": 1, "require": {"spd": 26, "rec": 12}, "name": "순환 촉진", "desc": "행동 시마다 체력 1 회복", "val": 1.0 },
+			{ "level": 2, "require": {"spd": 54, "rec": 28}, "name": "고속 재생", "desc": "행동 시마다 체력 3 회복", "val": 3.0 },
+			{ "level": 3, "require": {"spd": 110, "rec": 55}, "name": "한계 돌파 재생", "desc": "AP 100% 도달 시마다 최대 체력의 2% 회복", "val": 0.02 }
+		]
+	},
+	"last_stand": {
+		"id": "last_stand",
+		"name": "사선의 경계",
+		"base_stats": ["vit", "res"],
+		"tiers": [
+			{ "level": 1, "require": {"vit": 25, "res": 15}, "name": "끈기", "desc": "체력 20% 이하 시 데미지 15% 감소", "val": 0.15 },
+			{ "level": 2, "require": {"vit": 55, "res": 35}, "name": "투혼", "desc": "체력 20% 이하 시 공격력 30% 증가", "val": 0.3 },
+			{ "level": 3, "require": {"vit": 110, "res": 75}, "name": "최후의 보루", "desc": "피격 시 체력이 1 이하로 내려가지 않음 (1노드 동안 1회 발동)", "val": 1.0 }
+		]
+	}
+}
