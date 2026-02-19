@@ -91,72 +91,48 @@ func _update_armor_counts():
 	if game_manager and is_instance_valid(game_manager.player_node):
 		game_manager.player_node.sync_armor_profile(armor_counts)
 
-# [신규] 장비 스탯 반영 로직
+# [신규] 장비 스탯 반영 로직 (리팩토링 완료: StatInterpreter 위임)
 func _apply_equipment_stats(slot_key: String, item_data: Dictionary, is_equipping: bool):
 	if not current_player_stats: return
 	
 	if is_equipping:
-		var modifiers: Array[MyStatModifier] = []
 		var item_stats = item_data.get("stats", {})
+		print("DEBUG: Applying stats via StatInterpreter for item: ", item_data.get("id"))
 		
-		# 아이템 데이터의 stats 딕셔너리를 순회하며 수정자 생성
-		print("DEBUG: Applying stats for item: ", item_data.get("id"), " Stats: ", item_stats)
-		for stat_key in item_stats.keys():
-			var raw_value = item_stats[stat_key]
-			var value = 0.0
+		# 1. StatInterpreter를 통해 효과 객체 생성 (레거시 JSON -> Effect 변환)
+		var new_effects = StatInterpreter.parse_stats(item_stats)
+		
+		# 2. 효과 적용
+		for effect in new_effects:
+			# [수정] effect.apply(player_data) 호출 제거 (타입 불일치 해결)
+			# StatInterpreter가 반환한 Effect 객체는 데이터 홀더로 사용하고,
+			# PlayerManager가 직접 current_player_stats에 적용합니다.
 			
-			# [수정] 배열 형태([min, max])와 단일 값 처리
-			if raw_value is Array:
-				if raw_value.size() >= 2:
-					value = (raw_value[0] + raw_value[1]) / 2.0 # 평균값 사용
-				elif raw_value.size() > 0:
-					value = raw_value[0]
-			elif raw_value is float or raw_value is int:
-				value = float(raw_value)
-			
-			var target_key = StatManager.normalize_stat_key(stat_key)
-			var modifier_value = 0
-			
-			# [신규] 특수 키에 대한 매핑 및 값 처리
-			if stat_key == "min_atk" or stat_key == "max_atk":
-				target_key = "atk"
-				modifier_value = int(value * 0.5) 
-			elif stat_key == "dr_rate":
-				target_key = "defense"
-				modifier_value = int(value) 
-			elif stat_key == "evade_rate":
-				target_key = "agi"
-				modifier_value = int(value) 
-			elif stat_key == "hp_max":
-				target_key = "vit" 
-				modifier_value = int(value / 10.0) 
-			elif stat_key == "str":
-				target_key = "atk"
-				modifier_value = int(value)
-			else:
-				# 일반적인 경우
-				modifier_value = int(value)
-
-			if target_key != "":
-				var stat = current_player_stats.get_stat(target_key)
+			if effect is StatModifierEffect:
+				var stat = current_player_stats.get_stat(effect.stat_key)
 				if stat:
-					var modifier = MyIntStatModifier.new()
-					modifier.value = modifier_value
-					modifier.operation = MyStatModifier.Operation.ADD
-					modifier.target_stat_key = target_key
-					stat.add_modifier(modifier)
-					modifiers.append(modifier)
-					print("DEBUG: Stat applied - ", target_key, " +", modifier_value)
+					var mod = MyIntStatModifier.new() # MyStatModifier 대신 MyIntStatModifier 사용 권장 (구체 클래스)
+					mod.value = int(effect.value) # float -> int 명시적 변환
+					mod.target_stat_key = effect.stat_key
+					mod.operation = MyStatModifier.Operation.ADD if not effect.is_multiplier else MyStatModifier.Operation.MULTIPLY
+					stat.add_modifier(mod)
+					
+					# 나중에 해제할 수 있도록 추적
+					if not equipment_modifiers.has(slot_key):
+						equipment_modifiers[slot_key] = []
+					equipment_modifiers[slot_key].append(mod)
+					
+					print("DEBUG: Effect Applied: ", effect.get_description())
 		
-		equipment_modifiers[slot_key] = modifiers
 	else:
-		# 기존에 적용된 수정자들을 제거
+		# 장비 해제 시: 저장해둔 Modifier들을 제거
 		if equipment_modifiers.has(slot_key):
 			for modifier in equipment_modifiers[slot_key]:
 				var stat = current_player_stats.get_stat(modifier.target_stat_key)
 				if stat:
 					stat.remove_modifier(modifier)
 			equipment_modifiers.erase(slot_key)
+			print("DEBUG: Effects removed for slot: ", slot_key)
 
 # 기존 코드 호환성을 위해 래퍼 함수를 제공합니다.
 

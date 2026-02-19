@@ -21,7 +21,7 @@ func update_props(item: DraggableItem):
 	if has_node("%DescLabel"):
 		get_node("%DescLabel").text = item_data.get("desc", "")
 	
-	# [수정] 스탯 표시 로직 개선
+	# [리팩토링] 스탯 표시 로직 개선 (StatInterpreter 위임)
 	# VBoxContainer를 찾아 그 아래에 스탯 라벨을 추가합니다.
 	var vbox = get_node("MarginContainer/VBoxContainer")
 	if vbox:
@@ -31,19 +31,18 @@ func update_props(item: DraggableItem):
 				child.queue_free()
 		
 		# 아이템의 현재 스탯(item.stats) 표시
-		var stats = item.stats if not item.stats.is_empty() else item_data.get("stats", {})
-		for stat_key in stats.keys():
-			var val = stats[stat_key]
+		var stats_data = item.stats if not item.stats.is_empty() else item_data.get("stats", {})
+		
+		# StatInterpreter를 통해 효과 객체 리스트로 변환
+		var effects = StatInterpreter.parse_stats(stats_data)
+		
+		for i in range(effects.size()):
+			var effect = effects[i]
 			var label = Label.new()
-			label.name = "StatLabel_" + stat_key
+			label.name = "StatLabel_" + str(i)
 			
-			# StatManager를 통해 정규화된 이름 가져오기 (가능할 경우)
-			var display_name = stat_key.to_upper()
-			
-			if val is Array: # [min, max] 범위형일 경우
-				label.text = "%s: %s ~ %s" % [display_name, str(val[0]), str(val[1])]
-			else: # 단일 수치일 경우
-				label.text = "%s: +%s" % [display_name, str(val)]
+			# Effect 객체가 제공하는 설명 사용 (SSOT)
+			label.text = effect.get_description()
 			
 			label.add_theme_font_size_override("font_size", 12)
 			label.modulate = Color(0.8, 0.9, 1.0) # 하늘색 톤

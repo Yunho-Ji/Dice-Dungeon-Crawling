@@ -47,14 +47,15 @@ func setup(p_id: String, p_data: Dictionary):
 	rarity_label.text = rarity_str.to_upper()
 	rarity_label.modulate = Color(0.7, 0.7, 0.7)
 	
-	# 스탯 요약
+	# 스탯 요약 (StatInterpreter 활용)
 	var stats = item_def.get("stats", {})
 	if not stats.is_empty():
-		var first_key = stats.keys()[0]
-		var val = stats[first_key]
-		var val_str = str(val)
-		if val is Array: val_str = "%s~%s" % [val[0], val[1]]
-		stats_label.text = "%s: %s" % [first_key.to_upper(), val_str]
+		var effects = StatInterpreter.parse_stats(stats)
+		if not effects.is_empty():
+			# 첫 번째 효과를 대표 스탯으로 표시
+			stats_label.text = effects[0].get_description()
+		else:
+			stats_label.text = ""
 	else:
 		stats_label.text = ""
 
