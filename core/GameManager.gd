@@ -120,6 +120,8 @@ func initialize_game_scene(player: Character, enemy: Character, battle_mgr: Node
 	if player_node and player_manager and player_manager.player_data:
 		player_node.initialize(player_manager.player_data)
 		player_node.update_stats_from_player_manager(player_manager)
+		# [신규] 씬 생성 시 장비의 트리거 효과(ActionTriggerEffect) 재적용
+		player_manager.reapply_equipment_effects(player_node)
 
 	if ui_manager and ui_manager.battle_hud:
 		player_node.damage_taken.connect(Callable(ui_manager.battle_hud, "_on_character_damage_taken").bind(true))

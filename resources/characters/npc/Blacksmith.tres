@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="NPCData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/characters/npc/NPCData.gd" id="1_npc"]
+
+[resource]
+script = ExtResource("1_npc")
+npc_name = "대장장이 카르고"
+portrait_path = ""
+greetings = Array[String](["내 망치질 소리가 여기까지 들렸나 보군!", "튼튼한 장비가 필요해 보이네."])
+talk_lines = Array[String](["강철을 다루는 건 쉬운 일이 아니지.", "내 할아버지는 전설적인 검을 만드셨다네."])
+options = [{
+"text": "장비 강화하기 (주사위 소모)",
+"type": 3,
+"param": null
+}, {
+"text": "장비 수리하기 (미구현)",
+"type": 4,
+"param": null
+}, {
+"text": "이야기 나누기",
+"type": 0,
+"param": null
+}]

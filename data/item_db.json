@@ -105,5 +105,21 @@
 		"grade": "relic",
 		"can_reforge": false,
 		"stats": { "dr_rate": [18.0, 25.0], "block_chance": [40.0, 60.0] }
+	},
+	"test_consumable_585": {
+		"name": "신비한 강화석 (임시)",
+		"atlas_index": 585,
+		"type": "consumable",
+		"grade": "common",
+		"description": "아이템 강화에 사용되는 재료입니다.",
+		"price": 10
+	},
+	"test_enchant_sword": {
+		"name": "낡은 연습용 검",
+		"atlas_index": 12, 
+		"equip_type": "weapon",
+		"grade": "common",
+		"stats": { "atk": 10, "hit_rate": 90.0 },
+		"enchant_level": 0
 	}
 }

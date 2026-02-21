@@ -17,12 +17,15 @@ var equipment: Dictionary = {
 	"accessory_4": null
 }
 
-# [신규] 장비로 인한 스탯 수정자 저장 (slot_key -> Array[MyStatModifier])
-var equipment_modifiers: Dictionary = {}
+# [신규] 장비로 인한 활성 효과 객체 저장 (slot_key -> Array[ItemEffect])
+var equipment_effects: Dictionary = {}
 
 # [신규] 인벤토리(가방) 데이터 백업 (InventoryScreen 파괴 대비)
 # 형식: Array[Dictionary] (GridInventory.item_states와 동일)
 var inventory_data: Array = []
+
+# [신규] 인벤토리 UI 부재 시 획득한 아이템 대기열
+var pending_items: Array[String] = []
 
 # [신규] 방어구 유형별 장착 개수
 var armor_counts: Dictionary = {
@@ -91,48 +94,101 @@ func _update_armor_counts():
 	if game_manager and is_instance_valid(game_manager.player_node):
 		game_manager.player_node.sync_armor_profile(armor_counts)
 
-# [신규] 장비 스탯 반영 로직 (리팩토링 완료: StatInterpreter 위임)
+# [신규] 장비 스탯 반영 로직 (리팩토링 완료: StatInterpreter 위임 & 통합 Effect 처리)
 func _apply_equipment_stats(slot_key: String, item_data: Dictionary, is_equipping: bool):
 	if not current_player_stats: return
 	
+	var player_node = null
+	var game_manager = get_node_or_null("/root/GameManager")
+	if game_manager:
+		player_node = game_manager.player_node
+
 	if is_equipping:
 		var item_stats = item_data.get("stats", {})
-		print("DEBUG: Applying stats via StatInterpreter for item: ", item_data.get("id"))
+		print("DEBUG: Parsing stats for item: ", item_data.get("id"))
 		
-		# 1. StatInterpreter를 통해 효과 객체 생성 (레거시 JSON -> Effect 변환)
+		# 1. StatInterpreter를 통해 효과 객체 생성
 		var new_effects = StatInterpreter.parse_stats(item_stats)
 		
-		# 2. 효과 적용
+		# 효과 리스트 초기화
+		if not equipment_effects.has(slot_key):
+			equipment_effects[slot_key] = []
+			
+		# 2. 효과 적용 및 저장
 		for effect in new_effects:
-			# [수정] effect.apply(player_data) 호출 제거 (타입 불일치 해결)
-			# StatInterpreter가 반환한 Effect 객체는 데이터 홀더로 사용하고,
-			# PlayerManager가 직접 current_player_stats에 적용합니다.
+			# 저장 (해제 시 사용)
+			equipment_effects[slot_key].append(effect)
 			
 			if effect is StatModifierEffect:
+				# 스탯 수정은 PlayerManager의 데이터(current_player_stats)에 직접 적용
+				# (PlayerNode가 없어도 스탯은 유지되어야 함)
 				var stat = current_player_stats.get_stat(effect.stat_key)
 				if stat:
-					var mod = MyIntStatModifier.new() # MyStatModifier 대신 MyIntStatModifier 사용 권장 (구체 클래스)
-					mod.value = int(effect.value) # float -> int 명시적 변환
+					var mod = MyStatModifier.new() # 타입 추론에 맡김
+					mod.value = effect.value
 					mod.target_stat_key = effect.stat_key
 					mod.operation = MyStatModifier.Operation.ADD if not effect.is_multiplier else MyStatModifier.Operation.MULTIPLY
 					stat.add_modifier(mod)
 					
-					# 나중에 해제할 수 있도록 추적
-					if not equipment_modifiers.has(slot_key):
-						equipment_modifiers[slot_key] = []
-					equipment_modifiers[slot_key].append(mod)
+					# StatModifierEffect 내부에 참조 저장 (나중에 필요할까 싶어서)
+					effect._applied_modifier = mod 
+					print("DEBUG: Stat Effect Applied: ", effect.get_description())
 					
-					print("DEBUG: Effect Applied: ", effect.get_description())
+			elif effect is ActionTriggerEffect:
+				# 트리거 효과는 실제 캐릭터 노드가 있어야 작동
+				if player_node and is_instance_valid(player_node):
+					effect.apply(player_node)
+					print("DEBUG: Trigger Effect Applied: ", effect.get_description())
+				else:
+					print("DEBUG: Trigger Effect Pending (No Player Node): ", effect.get_description())
+					# TODO: 씬 변경 시(플레이어 노드 생성 시) 재적용 로직 필요
 		
 	else:
-		# 장비 해제 시: 저장해둔 Modifier들을 제거
-		if equipment_modifiers.has(slot_key):
-			for modifier in equipment_modifiers[slot_key]:
-				var stat = current_player_stats.get_stat(modifier.target_stat_key)
-				if stat:
-					stat.remove_modifier(modifier)
-			equipment_modifiers.erase(slot_key)
+		# 장비 해제 시: 저장해둔 Effect들을 제거
+		if equipment_effects.has(slot_key):
+			for effect in equipment_effects[slot_key]:
+				if effect is StatModifierEffect:
+					if effect._applied_modifier:
+						var stat = current_player_stats.get_stat(effect.stat_key)
+						if stat:
+							stat.remove_modifier(effect._applied_modifier)
+							
+				elif effect is ActionTriggerEffect:
+					if player_node and is_instance_valid(player_node):
+						effect.remove(player_node)
+						
+			equipment_effects.erase(slot_key)
 			print("DEBUG: Effects removed for slot: ", slot_key)
+
+# [신규] 씬 변경 등으로 플레이어 노드가 새로 생성되었을 때 효과 재적용
+func reapply_equipment_effects(player_node: Character):
+	if not player_node: return
+	
+	print("DEBUG: Reapplying equipment effects to new player node...")
+	
+	# 1. 방어구 정보 동기화
+	player_node.sync_armor_profile(armor_counts)
+	
+	# 2. 트리거 효과 재연결
+	for slot_key in equipment_effects.keys():
+		for effect in equipment_effects[slot_key]:
+			if effect is ActionTriggerEffect:
+				# 이전 노드에서 제거 (혹시 모르니 안전장치)
+				effect.remove(player_node) 
+				# 새 노드에 적용
+				effect.apply(player_node)
+				print("DEBUG: Reapplied trigger effect: ", effect.get_description())
+
+# [신규] 인벤토리 UI 부재 시 아이템을 대기열에 추가
+func add_pending_item(item_id: String):
+	pending_items.append(item_id)
+	print("PlayerManager: 아이템이 대기열에 추가됨 (UI 로드 시 획득) - ", item_id)
+
+# [신규] 대기 중인 아이템 목록을 반환하고 대기열 비우기
+func consume_pending_items() -> Array[String]:
+	var items = pending_items.duplicate()
+	pending_items.clear()
+	return items
 
 # 기존 코드 호환성을 위해 래퍼 함수를 제공합니다.
 

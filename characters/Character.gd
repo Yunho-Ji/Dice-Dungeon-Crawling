@@ -2,6 +2,9 @@ class_name Character
 extends CharacterBody2D
 
 signal damage_taken(amount: int, position: Vector2)
+signal hit_target(target: Character, damage: int)
+signal action_started(stance: Stance)
+signal turn_started()
 
 enum Stance { ATTACK, DEFENSE }
 
@@ -126,6 +129,7 @@ func set_stance(new_stance: Stance):
 		perform_stance_action()
 
 func perform_stance_action():
+	emit_signal("action_started", current_stance)
 	match current_stance:
 		Stance.ATTACK: perform_attack_action()
 		Stance.DEFENSE: perform_defense_action()
@@ -162,15 +166,16 @@ func attack(p_target: Character):
 	var true_stat = current_stats.get_stat("true_damage")
 	if true_stat: true_damage_rate = true_stat.computed_value
 	
-	p_target.take_damage(base_atk, piercing_rate, true_damage_rate)
+	var damage_dealt = p_target.take_damage(base_atk, piercing_rate, true_damage_rate)
+	emit_signal("hit_target", p_target, damage_dealt)
 	
 	if not is_player:
 		finish_action()
 	else:
 		get_tree().create_timer(0.5).timeout.connect(finish_action)
 
-func take_damage(amount: int, piercing_rate: float = 0.0, true_damage_rate: float = 0.0):
-	if not current_stats: return
+func take_damage(amount: int, piercing_rate: float = 0.0, true_damage_rate: float = 0.0) -> int:
+	if not current_stats: return 0
 
 	# 0. 회피/빗겨맞음 (StatManager 공식 사용)
 	var evade_chance = StatManager.get_evade_chance(current_stats, light_pieces)
@@ -179,7 +184,7 @@ func take_damage(amount: int, piercing_rate: float = 0.0, true_damage_rate: floa
 		# 현재는 통합하여 일정 확률로 데미지 무시/반감 처리
 		if randf() < 0.5: # 50% 확률로 완전 회피
 			emit_signal("damage_taken", 0, global_position)
-			return
+			return 0
 		else: # 50% 확률로 빗겨맞음 (50% 감쇄)
 			amount = int(amount * 0.5)
 
@@ -209,6 +214,8 @@ func take_damage(amount: int, piercing_rate: float = 0.0, true_damage_rate: floa
 		emit_signal("damage_taken", final_dmg, global_position)
 		update_hp_label()
 		if not is_perfect_guarding: _apply_hit_stun(final_dmg)
+	
+	return final_dmg
 
 func _apply_hit_stun(dmg: int):
 	# 피격 경직(AP 차감) 계산: StatManager 공식 사용

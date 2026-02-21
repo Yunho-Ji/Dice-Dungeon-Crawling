@@ -100,11 +100,34 @@ func _ready():
 func _restore_inventory():
 	if inventory_interface and not PlayerManager.inventory_data.is_empty():
 		inventory_interface.initialize_inventory(PlayerManager.inventory_data)
+	
+	# [신규] 대기열에 있는 아이템 처리 (데이터 로드 후 수행)
+	_process_pending_items()
+
+func _process_pending_items():
+	if not inventory_interface: return
+	
+	var pending = PlayerManager.consume_pending_items()
+	if pending.is_empty(): return
+	
+	print("DEBUG: Processing pending items queue: ", pending.size())
+	for item_id in pending:
+		var new_item = inventory_interface.spawn_item(item_id)
+		if inventory_interface.try_fit_and_place(new_item):
+			print("DEBUG: Pending item placed: ", item_id)
+		else:
+			print("WARNING: Failed to place pending item (Inventory Full): ", item_id)
+			new_item.queue_free()
+			# 공간 부족 시 처리는 추후 보강 (예: 바닥에 드랍, 우편함 등)
+			# 일단은 실패 로그만 남김.
 
 func _on_visibility_changed():
 	if self.visible:
 		update_gold_display()
 		_refresh_equipment_visuals()
+		
+		# [신규] 인벤토리가 열릴 때마다 대기열 체크 (다른 경로로 획득했을 수 있음)
+		_process_pending_items()
 		
 		# [신규] 전투 중이면 장비 슬롯 드래그 잠금
 		var is_combat = EconomyManager.get_node("/root/GameManager").current_game_phase == GameManager.GamePhase.COMBAT

@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="NPCData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/characters/npc/NPCData.gd" id="1_npc"]
+
+[resource]
+script = ExtResource("1_npc")
+npc_name = "여관 주인 마리"
+portrait_path = ""
+greetings = Array[String](["어서 오세요! 편안한 침대가 준비되어 있답니다.", "여행에 지치셨나요? 푹 쉬다 가세요."])
+talk_lines = Array[String](["요즘 던전에서 이상한 소리가 들린다는 소문이 있어요.", "우리 여관 음식은 정말 맛있답니다!"])
+options = [{
+"text": "하룻밤 묵어가기 (시간 경과, 회복)",
+"type": 2,
+"param": null
+}, {
+"text": "현재 상태 저장하기 (진행도 저장)",
+"type": 3,
+"param": null
+}, {
+"text": "이야기 나누기",
+"type": 0,
+"param": null
+}]

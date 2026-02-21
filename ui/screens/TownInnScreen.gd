@@ -55,18 +55,28 @@ func _on_rest_pressed():
 	var tm = get_node("/root/TownManager")
 	var pm = get_node("/root/PlayerManager")
 	
-	# 1. 시간 리셋
+	# 1. 시간 리셋 (다음 날로)
 	tm.reset_to_next_day()
 	
-	# 2. HP/MP 완전 회복
+	# 2. HP/MP 60% 회복 (상태이상은 유지)
 	if pm.current_player_stats:
 		var hp = pm.current_player_stats.get_stat("health")
 		var mp = pm.current_player_stats.get_stat("current_mp")
-		if hp: hp.current_value = hp.computed_value
-		if mp: mp.current_value = mp.computed_value
 		
-	message_label.text = "푹 쉬고 나니 몸이 가볍습니다! (회복 완료)"
-	print("Inn: 휴식 완료. 모든 스탯 회복.")
+		if hp:
+			var heal_amount = int(hp.computed_value * 0.6)
+			hp.current_value = min(hp.computed_value, hp.current_value + heal_amount)
+			
+		if mp:
+			var mana_amount = int(mp.computed_value * 0.6)
+			mp.current_value = min(mp.computed_value, mp.current_value + mana_amount)
+		
+	# 3. 자동 저장
+	if SaveManager.has_method("save_game_at_inn"):
+		SaveManager.save_game_at_inn()
+	
+	message_label.text = "하룻밤 푹 쉬었습니다. (HP/MP 60% 회복, 저장됨)"
+	print("Inn: 휴식 완료. 60% 회복 및 자동 저장.")
 
 func _on_save_pressed():
 	if SaveManager.save_game_at_inn():

@@ -133,7 +133,9 @@ func _get_player_stats_data() -> Dictionary:
 func _get_inventory_data() -> Array:
 	var items_data = []
 	var inventory = Apeloot.inventory_refs.get("player_inventory")
+	
 	if inventory:
+		# UI가 활성화된 경우 UI 상태 저장
 		for item in inventory.items:
 			items_data.append({
 				"id": item.id,
@@ -145,6 +147,19 @@ func _get_inventory_data() -> Array:
 				"stats": item.stats,
 				"price": item.price
 			})
+	elif not PlayerManager.inventory_data.is_empty():
+		# UI가 없는 경우 백업 데이터 사용
+		print("SaveManager: 인벤토리 UI가 없어 백업 데이터를 저장합니다.")
+		items_data = PlayerManager.inventory_data.duplicate(true)
+		
+		# 대기열에 있는 아이템도 포함 (위치 정보 없음)
+		if not PlayerManager.pending_items.is_empty():
+			for item_id in PlayerManager.pending_items:
+				items_data.append({
+					"id": item_id,
+					"previous_center_slot": -1 # 미배치 상태
+				})
+				
 	return items_data
 
 func _apply_load_data(data: Dictionary):

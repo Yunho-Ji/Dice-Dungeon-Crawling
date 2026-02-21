@@ -1,5 +1,7 @@
 extends Control
 
+const NPCData = preload("res://resources/characters/npc/NPCData.gd")
+
 var town_manager # TownManager 싱글톤 인스턴스를 저장할 변수
 
 @onready var time_display_label = $TimeDisplay
@@ -74,13 +76,17 @@ func _on_location_button_pressed(button_name: String):
 	
 	match button_name:
 		"InnButton":
-			_open_inn_screen()
+			var npc_data = load("res://resources/characters/npc/InnKeeper.tres")
+			if npc_data: _open_npc_dialogue(npc_data)
+			
 		"GeneralStoreButton":
-			_open_shop_screen()
+			var npc_data = load("res://resources/characters/npc/Merchant.tres")
+			if npc_data: _open_npc_dialogue(npc_data)
+			
 		"BlacksmithButton":
-			print("대장간 방문: 장비 개선/수리 기능 구현 예정")
-			if town_manager.spend_time_for_facility():
-				print("Time advanced.")
+			var npc_data = load("res://resources/characters/npc/Blacksmith.tres")
+			if npc_data: _open_npc_dialogue(npc_data)
+			
 		"TavernButton":
 			print("선술집 방문: 현상금 수주/버프 기능 구현 예정")
 			if town_manager.spend_time_for_facility():
@@ -89,6 +95,52 @@ func _on_location_button_pressed(button_name: String):
 			print("기도원 방문: 주사위 축복 기능 구현 예정")
 			if town_manager.spend_time_for_facility():
 				print("Time advanced.")
+
+func _open_npc_dialogue(data: NPCData):
+	var dialogue_script = load("res://ui/screens/NPCDialogueScreen.gd")
+	var dialogue_screen = PanelContainer.new() # 스크립트가 상속받는 타입 확인 필요
+	dialogue_screen.set_script(dialogue_script)
+	add_child(dialogue_screen)
+	
+	dialogue_screen.set_anchors_preset(Control.PRESET_CENTER)
+	dialogue_screen.custom_minimum_size = Vector2(800, 500)
+	
+	dialogue_screen.setup(data)
+	dialogue_screen.closed.connect(_on_npc_dialogue_closed)
+
+func _on_npc_dialogue_closed(action_type, param):
+	match action_type:
+		NPCData.FunctionType.SHOP:
+			_open_shop_screen()
+		NPCData.FunctionType.REST:
+			_open_inn_screen()
+		NPCData.FunctionType.SAVE:
+			if SaveManager.save_game_at_inn():
+				print("Town: 저장 완료.")
+				# 간단한 알림 팝업이나 메시지 표시 (현재는 로그만)
+		NPCData.FunctionType.ENCHANT:
+			_open_enchant_screen()
+		NPCData.FunctionType.REPAIR:
+			print("수리 기능은 아직 준비되지 않았습니다.")
+		NPCData.FunctionType.QUEST:
+			print("퀘스트 기능은 아직 준비되지 않았습니다.")
+		NPCData.FunctionType.EXIT:
+			pass # 그냥 닫힘
+
+func _open_enchant_screen():
+	var enchant_script = load("res://ui/screens/EnchantScreen.gd")
+	var enchant_screen = PanelContainer.new()
+	enchant_screen.set_script(enchant_script)
+	add_child(enchant_screen)
+	
+	# 화면 중앙 배치
+	enchant_screen.set_anchors_preset(Control.PRESET_CENTER)
+	enchant_screen.set_anchor_and_offset(SIDE_LEFT, 0.5, -300)
+	enchant_screen.set_anchor_and_offset(SIDE_TOP, 0.5, -250)
+	enchant_screen.set_anchor_and_offset(SIDE_RIGHT, 0.5, 300)
+	enchant_screen.set_anchor_and_offset(SIDE_BOTTOM, 0.5, 250)
+	
+	enchant_screen.closed.connect(func(): _update_player_info())
 
 func _open_inn_screen():
 	var inn_script = load("res://ui/screens/TownInnScreen.gd")

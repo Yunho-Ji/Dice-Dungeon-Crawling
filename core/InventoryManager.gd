@@ -111,18 +111,34 @@ func _update_gold_item_visual(inventory: GridInventory, target_item_id: String, 
 	pass
 
 # [신규] 전역 아이템 추가 함수
-# 성공 시 true, 공간 부족 시 false 반환
+# 성공 시 true, 공간 부족 시 false 반환 (하지만 대기열에 추가되므로 실질적으론 획득 성공)
 func try_add_item(item_id: String) -> bool:
 	var inventory = Apeloot.inventory_refs.get("player_inventory")
-	if not inventory:
-		printerr("InventoryManager: player_inventory를 찾을 수 없습니다.")
-		return false
+	var added_to_ui = false
+	
+	if inventory:
+		var new_item = inventory.spawn_item(item_id)
+		if inventory.try_fit_and_place(new_item):
+			print("InventoryManager: 아이템 획득 성공 (UI) - ", item_id)
+			added_to_ui = true
+		else:
+			new_item.queue_free()
+			print("InventoryManager: 인벤토리 공간 부족 (UI) - ", item_id)
+			# UI는 있지만 공간이 부족한 경우 -> 일단 대기열에 넣어서 나중에 처리하게 할지, 아니면 실패로 처리할지 결정 필요
+			# 기획적으로 '우편함'이나 '바닥 떨구기'가 없다면 대기열에 넣는 것이 안전함.
+	
+	if not added_to_ui:
+		# UI가 없거나 공간이 부족하면 대기열에 추가
+		var player_manager = get_node_or_null("/root/GameManager/PlayerManager") # GameManager가 Autoload이므로 경로 조정
+		# PlayerManager가 Autoload가 아니라 GameManager의 자식일 수 있음. 확인 필요.
+		# 하지만 보통 PlayerManager는 별도 Autoload이거나 GameManager 내 변수임.
+		# 현재 코드베이스에서는 GameManager.player_manager로 접근 가능.
 		
-	var new_item = inventory.spawn_item(item_id)
-	if inventory.try_fit_and_place(new_item):
-		print("InventoryManager: 아이템 획득 성공 - ", item_id)
-		return true
-	else:
-		new_item.queue_free()
-		print("InventoryManager: 인벤토리 공간 부족 - ", item_id)
-		return false
+		if GameManager.player_manager:
+			GameManager.player_manager.add_pending_item(item_id)
+			return true
+		else:
+			printerr("InventoryManager: PlayerManager를 찾을 수 없어 아이템 획득 실패 - ", item_id)
+			return false
+			
+	return true

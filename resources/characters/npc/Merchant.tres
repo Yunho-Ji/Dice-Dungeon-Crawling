@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="NPCData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/characters/npc/NPCData.gd" id="1_npc"]
+
+[resource]
+script = ExtResource("1_npc")
+npc_name = "상인 로드릭"
+portrait_path = ""
+greetings = Array[String](["무엇을 찾으시나요? 없는 것 빼고 다 있습니다!", "좋은 물건들이 들어왔습니다."])
+talk_lines = Array[String](["요즘 물가가 많이 올랐어요. 전쟁 때문인가...", "희귀한 물건을 구하시면 저에게 가져오세요."])
+options = [{
+"text": "물건 사고팔기",
+"type": 1,
+"param": null
+}, {
+"text": "이야기 나누기",
+"type": 0,
+"param": null
+}]
