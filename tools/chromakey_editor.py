@@ -1,31 +1,37 @@
+import numpy as np
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 from PIL import Image, ImageTk, ImageColor
 import os
 
 class ChromaKeyEditor:
+    """
+    이미지에서 특정 색상을 선택하여 투명하게 만들고 PNG로 저장하는 크로마키 에디터 도구입니다.
+    Numpy를 활용한 벡터 연산으로 고속 처리를 지원합니다.
+    """
     def __init__(self, root):
         self.root = root
-        self.root.title("DDC ChromaKey Editor - PNG Saver")
+        self.root.title("DDC ChromaKey Editor - PNG Saver (Numpy Optimized)")
         self.root.geometry("1200x850")
         
-        self.original_img = None
-        self.processed_img = None
-        self.display_img = None
-        self.key_color = (255, 0, 255) # 기본 보라색
-        self.tolerance = 50
+        self.original_img = None      # 원본 PIL 이미지 (RGBA)
+        self.img_array_orig = None    # 원본 Numpy 배열 (RGBA)
+        self.processed_img = None     # 처리된 PIL 이미지
+        self.display_img = None       # 캔버스 표시용 PhotoImage
+        self.key_color = (255, 0, 255) # 기본 제거 색상 (Magenta)
+        self.tolerance = 50           # 색상 허용 오차
         
         self.setup_ui()
 
     def setup_ui(self):
-        # 상단 제어 바
+        """사용자 인터페이스(UI)를 설정합니다."""
         control_frame = ttk.Frame(self.root)
         control_frame.pack(side="top", fill="x", padx=10, pady=10)
         
         ttk.Button(control_frame, text="이미지 불러오기", command=self.load_image).pack(side="left", padx=5)
         
         ttk.Label(control_frame, text="허용 오차:").pack(side="left", padx=5)
-        self.tol_slider = ttk.Scale(control_frame, from_=0, to=150, orient="horizontal", command=self.on_param_change)
+        self.tol_slider = ttk.Scale(control_frame, from_=0, to=255, orient="horizontal", command=self.on_param_change)
         self.tol_slider.set(self.tolerance)
         self.tol_slider.pack(side="left", padx=5)
         
@@ -34,7 +40,6 @@ class ChromaKeyEditor:
         
         ttk.Button(control_frame, text="투명 PNG로 저장", command=self.save_image).pack(side="right", padx=5)
 
-        # 메인 캔버스 영역 (스크롤 지원)
         self.canvas_frame = ttk.Frame(self.root)
         self.canvas_frame.pack(expand=True, fill="both")
         
@@ -51,56 +56,58 @@ class ChromaKeyEditor:
         self.canvas.bind("<Button-1>", self.pick_color)
 
     def load_image(self):
+        """이미지를 불러와 Numpy 배열로 미리 변환해 둡니다."""
         path = filedialog.askopenfilename(filetypes=[("Image files", "*.png *.jpg *.jpeg *.bmp")])
         if not path: return
         
+        # 이미지를 RGBA로 변환 후 로드
         self.original_img = Image.open(path).convert("RGBA")
+        # 고속 처리를 위해 미리 Numpy 배열로 변환 (H, W, 4)
+        self.img_array_orig = np.array(self.original_img)
         self.process_image()
 
     def pick_color(self, event):
-        if not self.original_img: return
+        """클릭된 위치의 픽셀 색상을 키 색상으로 지정합니다."""
+        if self.img_array_orig is None: return
         
-        # 캔버스 좌표를 실제 이미지 좌표로 변환
-        x = self.canvas.canvasx(event.x)
-        y = self.canvas.canvasy(event.y)
+        x = int(self.canvas.canvasx(event.x))
+        y = int(self.canvas.canvasy(event.y))
         
         if 0 <= x < self.original_img.width and 0 <= y < self.original_img.height:
-            self.key_color = self.original_img.getpixel((int(x), int(y)))[:3]
+            # Numpy 배열에서 색상 직접 추출 (R, G, B)
+            self.key_color = tuple(self.img_array_orig[y, x, :3])
             self.color_label.config(text=f"제거 색상: {self.key_color}", foreground='#%02x%02x%02x' % self.key_color)
             self.process_image()
 
     def on_param_change(self, val):
         self.tolerance = int(float(val))
-        if self.original_img:
+        if self.img_array_orig is not None:
             self.process_image()
 
     def process_image(self):
-        if not self.original_img: return
+        """Numpy 벡터 연산을 사용하여 픽셀을 고속으로 투명화 처리합니다."""
+        if self.img_array_orig is None: return
         
-        # 픽셀 데이터 가져오기
-        data = self.original_img.getdata()
-        new_data = []
+        # 원본 배열 복사 (Alpha 채널 수정을 위해)
+        img_array = self.img_array_orig.copy()
         
-        kr, kg, kb = self.key_color
-        tol = self.tolerance
+        # RGB 채널만 추출 (H, W, 3)
+        rgb = img_array[:, :, :3]
         
-        for item in data:
-            # 색상 거리 계산 (단순 절대값 합산으로 성능 확보)
-            diff = abs(item[0] - kr) + abs(item[1] - kg) + abs(item[2] - kb)
-            
-            if diff < tol:
-                new_data.append((0, 0, 0, 0)) # 투명화
-            else:
-                new_data.append(item)
+        # 1. 색상 차이 계산 (L1 Distance: 절대값 합산)
+        # diff = |R1-R2| + |G1-G2| + |B1-B2|
+        # astype(np.int32)를 사용해 오버플로우 방지
+        diff = np.sum(np.abs(rgb.astype(np.int32) - np.array(self.key_color, dtype=np.int32)), axis=2)
         
-        self.processed_img = Image.new("RGBA", self.original_img.size)
-        self.processed_img.putdata(new_data)
+        # 2. 허용 오차(Tolerance) 미만인 픽셀 마스크 생성
+        mask = diff < self.tolerance
         
+        # 3. 마스크에 해당하는 픽셀의 Alpha(3번 인덱스)를 0(투명)으로 설정
+        img_array[mask, 3] = 0
+        
+        # 4. Numpy 배열을 다시 PIL 이미지로 변환
+        self.processed_img = Image.fromarray(img_array)
         self.update_canvas()
-
-    def update_preview(self):
-        # process_image에서 호출됨
-        pass
 
     def update_canvas(self):
         self.display_img = ImageTk.PhotoImage(self.processed_img)
