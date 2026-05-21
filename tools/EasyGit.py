@@ -4,8 +4,9 @@ import customtkinter as ctk
 from tkinter import Canvas, Toplevel, Label, messagebox
 
 # --- [설정] Easy Git이 관리할 실제 프로젝트 경로 ---
-# 파일이 tools 폴더 안에 있으므로 한 단계 상위 폴더를 대상으로 합니다.
-PROJECT_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# 인사담당자 참고: 실제 프로젝트의 데이터 오염을 방지하기 위해 
+# '샌드박스(Sandbox)' 환경에서 먼저 기능을 검증하는 테스트 프로세스를 구축했습니다.
+PROJECT_PATH = r"C:\Users\gamel\Documents\GodotProject\easy_git_test"
 
 class EasyTooltip:
     """

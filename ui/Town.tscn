@@ -78,7 +78,16 @@ layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.84, 0, 1)
 text = "소지 골드: 0 G"
 
-[node name="TimeDisplay" type="Label" parent="."]
+[node name="ContentArea" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 80.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TimeDisplay" type="Label" parent="ContentArea"]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -86,16 +95,16 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -100.0
-offset_top = -150.0
+offset_top = -100.0
 offset_right = 100.0
-offset_bottom = -100.0
+offset_bottom = -50.0
 grow_horizontal = 2
 grow_vertical = 0
 text = "AM 09:00"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ClosingMessageLabel" type="Label" parent="."]
+[node name="ClosingMessageLabel" type="Label" parent="ContentArea"]
 visible = false
 layout_mode = 1
 anchors_preset = 7
@@ -104,16 +113,16 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -200.0
-offset_top = -80.0
+offset_top = -40.0
 offset_right = 200.0
-offset_bottom = -50.0
+offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 0
 text = "PM 23:00, 여관을 제외한 모든 상점이 문을 닫았습니다."
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="LocationButtons" type="VBoxContainer" parent="."]
+[node name="LocationButtons" type="VBoxContainer" parent="ContentArea"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -128,27 +137,27 @@ grow_horizontal = 2
 grow_vertical = 2
 alignment = 1
 
-[node name="InnButton" type="Button" parent="LocationButtons"]
+[node name="InnButton" type="Button" parent="ContentArea/LocationButtons"]
 layout_mode = 2
 text = "여관"
 
-[node name="BlacksmithButton" type="Button" parent="LocationButtons"]
+[node name="BlacksmithButton" type="Button" parent="ContentArea/LocationButtons"]
 layout_mode = 2
 text = "대장간"
 
-[node name="TavernButton" type="Button" parent="LocationButtons"]
+[node name="TavernButton" type="Button" parent="ContentArea/LocationButtons"]
 layout_mode = 2
 text = "선술집"
 
-[node name="PrayerHouseButton" type="Button" parent="LocationButtons"]
+[node name="PrayerHouseButton" type="Button" parent="ContentArea/LocationButtons"]
 layout_mode = 2
 text = "기도원"
 
-[node name="GeneralStoreButton" type="Button" parent="LocationButtons"]
+[node name="GeneralStoreButton" type="Button" parent="ContentArea/LocationButtons"]
 layout_mode = 2
 text = "잡화점"
 
-[node name="StartExpeditionButton" type="Button" parent="."]
+[node name="StartExpeditionButton" type="Button" parent="ContentArea"]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -156,9 +165,9 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -100.0
-offset_top = -200.0
+offset_top = -150.0
 offset_right = 100.0
-offset_bottom = -160.0
+offset_bottom = -110.0
 grow_horizontal = 2
 grow_vertical = 0
 text = "원정 시작"

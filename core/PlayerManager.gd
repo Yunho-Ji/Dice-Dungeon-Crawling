@@ -50,10 +50,22 @@ func equip_item(slot_key: String, item_data: Dictionary):
 func unequip_item(slot_key: String):
 	if equipment.has(slot_key) and equipment[slot_key]:
 		var item_data = equipment[slot_key]
+		var item_id = item_data.get("id", "")
+		
+		# 1. 스탯 및 효과 제거
 		_apply_equipment_stats(slot_key, item_data, false)
+		
+		# 2. 슬롯 비우기
 		equipment[slot_key] = null
 		_update_armor_counts() # 방어구 카운트 갱신
-		print("DEBUG: ", slot_key, " 부위 장비 해제 완료.")
+		
+		# [수정] 해제된 아이템을 인벤토리(가방)로 돌려보냅니다.
+		# InventoryManager가 UI 존재 여부에 따라 가방에 넣거나 pending_items로 보냅니다.
+		if item_id != "":
+			InventoryManager.try_add_item(item_id)
+			print("PlayerManager: ", slot_key, " 부위 장비 해제 후 인벤토리로 이동 - ", item_id)
+		else:
+			print("PlayerManager: ", slot_key, " 부위 장비 해제 완료 (아이템 ID 없음).")
 
 # [신규] 아이템 장착 가능 여부 확인 (스탯 요구사항 등)
 func can_equip_item(item_data: Dictionary) -> bool:

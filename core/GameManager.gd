@@ -249,10 +249,14 @@ func _pick_random_item_with_weight(min_rarity: int = Apeloot.Rarity.COMMON) -> D
 
 func _show_loot_offer(loot: Dictionary):
 	if ui_manager:
+		# [수정] LootManager에 데이터 등록
+		var loot_manager = get_node("/root/LootManager")
+		loot_manager.set_pending_loot(loot)
+		
 		ui_manager.show_screen(UIManager.Screen.LOOT_OFFER)
 		var loot_screen = ui_manager.screen_nodes.get(UIManager.Screen.LOOT_OFFER)
 		if loot_screen:
-			loot_screen.setup(loot)
+			loot_screen.setup(loot_manager.get_loot_data())
 
 func _spawn_treasure_chest(loot: Dictionary):
 	var chest = TREASURE_CHEST_SCENE.instantiate()
@@ -363,9 +367,6 @@ func prepare_dungeon_battle(node: DungeonNode):
 		if i == 0:
 			enemy_node = instantiated_enemy
 		enemy_nodes.append(instantiated_enemy)
-		# [수정] Character.gd 자체 입력 처리 사용
-		# if current_scene_root.has_method("_on_character_input_event"):
-		# 	instantiated_enemy.input_event.connect(Callable(current_scene_root, "_on_character_input_event").bind(instantiated_enemy))
 		if ui_manager and ui_manager.battle_hud:
 			instantiated_enemy.damage_taken.connect(Callable(ui_manager.battle_hud, "_on_character_damage_taken").bind(false))
 
@@ -419,7 +420,7 @@ func _show_trap_event():
 			bonus = int(stat.computed_value * 0.1)
 	
 	popup.setup_event(popup.EventType.TRAP, 15, 20, bonus)
-	# 팝업 타이틀 및 설명 커스텀 (필요 시 EventPopup 내부에 trap_name 전달 로직 추가 가능)
+	# 팝업 타이틀 및 설명 커스텀
 	popup.title_label.text = trap_name
 	
 	popup.event_completed.connect(_on_event_completed.bind(popup))

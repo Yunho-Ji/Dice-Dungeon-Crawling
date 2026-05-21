@@ -9,7 +9,7 @@ signal item_updated(in_inv: GridInventory, item: DraggableItem)
 enum Rarity {COMMON, UNCOMMON, RARE, EPIC, LEGENDARY}
 const ITEM_ICONS_PATH := "res://addons/apeloot/image/examples/"
 const ITEM_DB_PATH := "res://data/item_db.json"
-const INVENTORY_ITEM_SIZE := Vector2(56,56)
+const INVENTORY_ITEM_SIZE := Vector2(40,40)
 
 var items := {} # JSON에서 로드됨
 var inventory_refs := {}

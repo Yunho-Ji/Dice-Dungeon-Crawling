@@ -120,18 +120,32 @@ func drag_item() -> Variant:
 
 func drop_item():
 	is_dragging = false
-	# Force drop if it wasn't triggered automatically
 	var drop_position = get_global_mouse_position()
-	var inventory = find_inventory_at_position(drop_position)
-	if inventory and not inventory.pickup_only:
-		var slot_id = inventory.find_slot_at_position(drop_position)
-		var slot = inventory.get_slot_by_index(slot_id)
-		if slot:
-			slot._drop_data(drop_position, {"item": item_node})
-	else:
-		var parent_inventory = item_node.parent_inventory
-		var center_slot = parent_inventory.find_slot_at_position(drop_position)
-		parent_inventory.handle_item_drop(item_node, center_slot)
+	var target_inventory = find_inventory_at_position(drop_position)
+	var original_inventory = item_node.parent_inventory
+	var success = false
+
+	if target_inventory and not target_inventory.pickup_only:
+		var slot_id = target_inventory.find_slot_at_position(drop_position)
+		if slot_id != -1:
+			# 타겟 인벤토리의 handle_item_drop 직접 호출 시도 (더 명확한 트랜잭션)
+			if target_inventory.has_method("handle_item_drop"):
+				success = target_inventory.handle_item_drop(item_node, slot_id)
+			else:
+				# handle_item_drop이 없는 일반 GridInventory인 경우
+				success = target_inventory.try_fit_and_place_at_slot(item_node, slot_id)
+
+	# 드롭 실패 시 원본 인벤토리로 복귀 (복구 로직)
+	if not success and original_inventory:
+		print("DEBUG: Drop failed. Returning item to original inventory.")
+		if not original_inventory.try_fit_and_place(item_node):
+			# 원본 인벤토리마저 공간이 없거나 오류인 경우 (최후의 수단: 대기열)
+			printerr("CRITICAL: Failed to return item to original inventory!")
+			PlayerManager.add_pending_item(item_node.id)
+			item_node.queue_free()
+	
+	# 비주얼 정리
+	end_drag()
 
 # 드래그 중 회전
 func rotate_item():
