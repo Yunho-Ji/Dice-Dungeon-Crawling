@@ -116,13 +116,15 @@ func _open_enchant_screen(parent_screen: Control):
 
 func _open_shop_screen(parent_screen: Control):
 	# [디아블로 방식] 하나의 큰 그리드 생성
-	var inv_script = load("res://addons/apeloot/inventory/grid_inventory/inventory_interface.gd")
-	var shop_grid = PanelContainer.new()
-	shop_grid.set_script(inv_script)
+	var grid_scene = load("res://ui/inventory/CustomInventoryGrid.tscn")
+	var shop_grid = grid_scene.instantiate()
 	
-	shop_grid.id = "town_shop_general"
-	shop_grid.slot_count = 50 # 5x10 큰 그리드
-	shop_grid.columns = 5
+	# 상점용 데이터 생성 (임시로 빈 10x10 그리드)
+	shop_grid.inventory_data = InventoryData.new(Vector2i(10, 10))
+	
+	# 임시 상품 추가
+	shop_grid.inventory_data.add_item("test_grimoire_epic")
+	shop_grid.inventory_data.add_item("test_cloth_top_rare")
 	
 	parent_screen.set_grid_content(shop_grid)
 	

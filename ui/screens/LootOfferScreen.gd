@@ -46,13 +46,15 @@ const LOOT_ITEM_SLOT_SCENE = preload("res://ui/elements/LootItemSlot.tscn")
 func _add_item_display(item_info: Dictionary):
 	var item_id = item_info.get("id", "")
 	
-	var slot = LOOT_ITEM_SLOT_SCENE.instantiate()
-	items_container.add_child(slot)
-	
-	slot.setup(item_id, item_info)
-	slot.take_requested.connect(_on_item_take_requested.bind(slot))
+	var slot = LOOT_ITEM_SLOT_SCENE.instantiate() as LootItemSlot
+	if slot:
+		items_container.add_child(slot)
+		slot.setup(item_id, item_info)
+		slot.take_requested.connect(_on_item_take_requested.bind(slot))
+	else:
+		printerr("LootOfferScreen: Failed to instantiate LootItemSlot from scene.")
 
-func _on_item_take_requested(item_id: String, item_data: Dictionary, slot_node: Node):
+func _on_item_take_requested(_item_id: String, item_data: Dictionary, slot_node: Node):
 	# LootManager를 통해 획득 시도
 	var loot_manager = get_node("/root/LootManager")
 	if loot_manager.claim_item(item_data):

@@ -104,15 +104,16 @@ func show_dungeon_map():
 	# Hide game world elements
 	if is_instance_valid(player_node): player_node.visible = false
 	if is_instance_valid(game_manager):
-		# [수정] 모든 적 개체 숨기기
+		# [수정] 모든 적 개체 숨기기 (유효성 검사 강화)
 		for enemy in game_manager.enemy_nodes:
 			if is_instance_valid(enemy):
 				enemy.visible = false
 		
 		# [신규] 전장의 보물상자도 숨기기
-		var chests = get_tree().get_nodes_in_group("treasure_chests") # 그룹화 필요
+		var chests = get_tree().get_nodes_in_group("treasure_chests")
 		for chest in chests:
-			chest.visible = false
+			if is_instance_valid(chest):
+				chest.visible = false
 	if is_instance_valid(stage_info_hud): stage_info_hud.visible = false
 
 	if not is_instance_valid(ui_manager):
@@ -139,11 +140,11 @@ func hide_dungeon_map():
 	
 	if is_instance_valid(player_node): player_node.visible = true
 	if is_instance_valid(game_manager):
-		# [수정] 모든 적 개체 다시 표시 (살아있는 개체만 표시하거나 전체 표시 후 사망 로직에 맡김)
+		# [수정] 모든 적 개체 다시 표시 (유효성 검사 강화)
 		for enemy in game_manager.enemy_nodes:
 			if is_instance_valid(enemy):
 				# 체력이 남아있는 적만 다시 보이게 함 (사망한 적 잔상 방지)
-				if enemy.current_stats.get_stat("health").current_value > 0:
+				if enemy.current_stats and enemy.current_stats.get_stat("health").current_value > 0:
 					enemy.visible = true
 	if is_instance_valid(stage_info_hud): stage_info_hud.visible = true
 	
@@ -214,17 +215,12 @@ func set_should_generate_new_dungeon(value: bool, preserve_seed: bool = false):
 		dungeon_seed = 0 # 0을 초기값으로 사용
 
 func _get_main_scene_nodes():
-	# This is a helper to safely get nodes that only exist on the main game scene
-	if not is_instance_valid(ui_manager):
-		ui_manager = game_manager.ui_manager
-	if not is_instance_valid(battle_manager):
-		battle_manager = game_manager.battle_manager
-	if not is_instance_valid(player_node):
-		player_node = game_manager.player_node
-	if not is_instance_valid(enemy_node):
-		enemy_node = game_manager.enemy_node
-	if not is_instance_valid(stage_info_hud):
-		stage_info_hud = game_manager.stage_info_hud
+	# [개선] 안전한 할당 로직: 싱글톤(GameManager)의 참조가 유효할 때만 가져오고, 아니면 null을 할당하여 Freed Instance 오류 방지
+	ui_manager = game_manager.ui_manager if is_instance_valid(game_manager.ui_manager) else null
+	battle_manager = game_manager.battle_manager if is_instance_valid(game_manager.battle_manager) else null
+	player_node = game_manager.player_node if is_instance_valid(game_manager.player_node) else null
+	enemy_node = game_manager.enemy_node if is_instance_valid(game_manager.enemy_node) else null
+	stage_info_hud = game_manager.stage_info_hud if is_instance_valid(game_manager.stage_info_hud) else null
 
 func get_current_dungeon_visited_node_ids() -> Array:
 	return player_run_state.VisitedNodeIDs

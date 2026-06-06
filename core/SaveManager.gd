@@ -21,19 +21,19 @@ func _execute_save(slot_id: int) -> bool:
 		"meta": {
 			"version": "1.1",
 			"timestamp": Time.get_datetime_dict_from_system(),
-			"steam_id": PlatformManager.get_steam_id(),
-			"username": PlatformManager.get_username(),
-			"platform": PlatformManager.get_platform_name()
+			"steam_id": PlatformManager.get_steam_id() if PlatformManager else 0,
+			"username": PlatformManager.get_username() if PlatformManager else "Player",
+			"platform": PlatformManager.get_platform_name() if PlatformManager else "PC"
 		},
-		"economy": EconomyManager.get_gold(),
+		"economy": EconomyManager.get_gold() if EconomyManager else 0,
 		"player": {
-			"uid": PlayerManager.player_data.uid if PlayerManager.player_data else "",
+			"uid": PlayerManager.player_data.uid if PlayerManager and PlayerManager.player_data else "",
 			"stats": _get_player_stats_data(),
-			"equipment": PlayerManager.equipment,
+			"equipment": PlayerManager.equipment if PlayerManager else {},
 			"statuses": [] 
 		},
 		"inventory": _get_inventory_data(),
-		"dice": DiceManager.get_player_dice_pool(),
+		"dice": DiceManager.get_player_dice_pool() if DiceManager else [],
 		"dungeon_progress": {} 
 	}
 	
@@ -51,7 +51,7 @@ func _execute_save(slot_id: int) -> bool:
 		print("SaveManager: 로컬 세이브 완료. 슬롯: ", slot_id)
 		
 		# 2. Steam Cloud 동기화 (MVP)
-		if PlatformManager.is_cloud_enabled():
+		if PlatformManager and PlatformManager.is_cloud_enabled():
 			var cloud_file_name = "save_slot_%d.json" % slot_id
 			PlatformManager.cloud_save_file(cloud_file_name, json_string)
 		
@@ -62,8 +62,9 @@ func _execute_save(slot_id: int) -> bool:
 	
 	return false
 
-## 비동기 상호작용을 위한 고스트 데이터 추출 및 저장
+# 비동기 상호작용을 위한 고스트 데이터 추출 및 저장
 func _save_ghost_data(full_save_data: Dictionary):
+	var dice_pool = full_save_data.get("dice", [])
 	var ghost_data = {
 		"uid": full_save_data.player.uid,
 		"username": full_save_data.meta.username,
@@ -71,8 +72,8 @@ func _save_ghost_data(full_save_data: Dictionary):
 		"stats": full_save_data.player.stats,
 		"equipment": full_save_data.player.equipment,
 		"dice_summary": {
-			"total_count": full_save_data.dice.size(),
-			"max_dice": full_save_data.dice.max() if full_save_data.dice.size() > 0 else 0
+			"total_count": dice_pool.size(),
+			"max_dice": dice_pool.max() if dice_pool.size() > 0 else 0
 		}
 	}
 	
@@ -86,7 +87,7 @@ func _save_ghost_data(full_save_data: Dictionary):
 		file.close()
 		print("SaveManager: 고스트 데이터 내보내기 완료: ", MY_GHOST_PATH)
 
-## 타 유저의 고스트 데이터 로드 (비동기 상호작용용)
+# 타 유저의 고스트 데이터 로드 (비동기 상호작용용)
 func load_ghost_data(ghost_path: String) -> Dictionary:
 	if not FileAccess.file_exists(ghost_path):
 		return {}
@@ -95,10 +96,9 @@ func load_ghost_data(ghost_path: String) -> Dictionary:
 	var json_string = file.get_as_text()
 	file.close()
 	
-	var json = JSON.new()
-	var error = json.parse(json_string)
-	if error == OK:
-		return json.data
+	var data = JSON.parse_string(json_string)
+	if data is Dictionary:
+		return data
 	return {}
 
 func load_game(slot_id: int = 1) -> bool:
@@ -110,17 +110,15 @@ func load_game(slot_id: int = 1) -> bool:
 	var json_string = file.get_as_text()
 	file.close()
 	
-	var json = JSON.new()
-	var error = json.parse(json_string)
-	if error != OK:
-		return false
-		
-	_apply_load_data(json.data)
-	return true
+	var data = JSON.parse_string(json_string)
+	if data is Dictionary:
+		_apply_load_data(data)
+		return true
+	return false
 
 func _get_player_stats_data() -> Dictionary:
 	var stats_data = {}
-	if PlayerManager.current_player_stats:
+	if PlayerManager and PlayerManager.current_player_stats:
 		for key in PlayerManager.current_player_stats.get_all_stat_keys():
 			var stat = PlayerManager.current_player_stats.get_stat(key)
 			if stat:
@@ -130,43 +128,16 @@ func _get_player_stats_data() -> Dictionary:
 				}
 	return stats_data
 
-func _get_inventory_data() -> Array:
-	var items_data = []
-	var inventory = Apeloot.inventory_refs.get("player_inventory")
-	
-	if inventory:
-		# UI가 활성화된 경우 UI 상태 저장
-		for item in inventory.items:
-			items_data.append({
-				"id": item.id,
-				"instance_id": item.instance_id,
-				"previous_center_slot": item.previous_center_slot,
-				"orientation": item.orientation,
-				"stack_count": item.stack_count,
-				"rarity": item.rarity,
-				"stats": item.stats,
-				"price": item.price
-			})
-	elif not PlayerManager.inventory_data.is_empty():
-		# UI가 없는 경우 백업 데이터 사용
-		print("SaveManager: 인벤토리 UI가 없어 백업 데이터를 저장합니다.")
-		items_data = PlayerManager.inventory_data.duplicate(true)
-		
-		# 대기열에 있는 아이템도 포함 (위치 정보 없음)
-		if not PlayerManager.pending_items.is_empty():
-			for item_id in PlayerManager.pending_items:
-				items_data.append({
-					"id": item_id,
-					"previous_center_slot": -1 # 미배치 상태
-				})
-				
-	return items_data
+func _get_inventory_data() -> Dictionary:
+	if PlayerManager and PlayerManager.inventory_data:
+		return PlayerManager.inventory_data.to_dict()
+	return {}
 
 func _apply_load_data(data: Dictionary):
-	if data.has("economy"):
+	if data.has("economy") and EconomyManager:
 		EconomyManager.set_gold(data.economy)
 	
-	if data.has("player") and PlayerManager.current_player_stats:
+	if data.has("player") and PlayerManager and PlayerManager.current_player_stats:
 		if data.player.has("uid") and PlayerManager.player_data:
 			PlayerManager.player_data.uid = data.player.uid
 			
@@ -178,11 +149,10 @@ func _apply_load_data(data: Dictionary):
 					stat.base_value = stats_data[key].get("base", stat.base_value)
 					stat.current_value = stats_data[key].get("current", stat.current_value)
 	
-	var inventory = Apeloot.inventory_refs.get("player_inventory")
-	if inventory and data.has("inventory"):
-		inventory.initialize_inventory(data.inventory)
+	if data.has("inventory") and PlayerManager:
+		PlayerManager.inventory_data = InventoryData.from_dict(data.inventory)
 
-	if data.has("dice"):
+	if data.has("dice") and DiceManager:
 		DiceManager.player_dice_pool = data.dice
 		DiceManager.player_dice_pool.sort()
 		

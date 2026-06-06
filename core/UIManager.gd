@@ -28,6 +28,7 @@ func _ready():
 	if battle_hud:
 		screen_nodes[Screen.BATTLE_HUD] = battle_hud
 		battle_hud.destiny_design_opened.connect(_on_destiny_design_opened)
+		battle_hud.inventory_opened.connect(_on_inventory_opened)
 		battle_hud.map_requested.connect(get_node("/root/MapManager").show_dungeon_map)
 		battle_hud.start_combat_requested.connect(game_manager.handle_start_combat)
 		

@@ -187,15 +187,18 @@ func set_player_target(new_target: Character):
 	if not is_instance_valid(player_node): return
 	
 	# 기존 타겟 선택 해제
-	if player_node.target and player_node.target.has_method("set_selected"):
+	if is_instance_valid(player_node.target) and player_node.target.has_method("set_selected"):
 		player_node.target.set_selected(false)
 	
 	# 새 타겟 설정
-	player_node.target = new_target
-	if new_target and new_target.has_method("set_selected"):
-		new_target.set_selected(true)
-	
-	print("BattleManager: Player target changed to ", new_target.name)
+	if is_instance_valid(new_target):
+		player_node.target = new_target
+		if new_target.has_method("set_selected"):
+			new_target.set_selected(true)
+		print("BattleManager: Player target changed to ", new_target.name)
+	else:
+		player_node.target = null
+		print("BattleManager: Player target cleared (Invalid target provided).")
 
 
 func set_player_stance(new_stance: Character.Stance):

@@ -20,9 +20,8 @@ var equipment: Dictionary = {
 # [신규] 장비로 인한 활성 효과 객체 저장 (slot_key -> Array[ItemEffect])
 var equipment_effects: Dictionary = {}
 
-# [신규] 인벤토리(가방) 데이터 백업 (InventoryScreen 파괴 대비)
-# 형식: Array[Dictionary] (GridInventory.item_states와 동일)
-var inventory_data: Array = []
+# [신규] 커스텀 인벤토리 데이터 (Model)
+var inventory_data: InventoryData = InventoryData.new(Vector2i(10, 5))
 
 # [신규] 인벤토리 UI 부재 시 획득한 아이템 대기열
 var pending_items: Array[String] = []
@@ -261,14 +260,14 @@ func _equip_starting_gear():
 		{"id": "test_leather_shoes_common", "slot": "shoes"}
 	]
 	
-	print("PlayerManager: 기본 장비 지급 시작... (Apeloot Items Count: ", Apeloot.items.size(), ")")
+	print("PlayerManager: 기본 장비 지급 시작... (Items Count: ", DataManager.items.size(), ")")
 	for item in starter_items:
 		var item_id = item["id"]
 		var slot_key = item["slot"]
 		
-		# Apeloot 데이터베이스에서 아이템 정보 가져오기
-		if Apeloot.items.has(item_id):
-			var item_data = Apeloot.items[item_id].duplicate()
+		# DataManager에서 아이템 정보 가져오기
+		var item_data = DataManager.get_item(item_id)
+		if not item_data.is_empty():
 			item_data["id"] = item_id # ID 주입
 			print("DEBUG: Equipping starter item: ", item_id, " Stats: ", item_data.get("stats", {}))
 			

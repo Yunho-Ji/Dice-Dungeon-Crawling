@@ -10,14 +10,11 @@ var enchant_button: Button
 var target_item_label: Label
 
 # Data
-var current_target_item: DraggableItem = null # 현재 슬롯에 올라간 아이템 노드
+var current_target_item: InventoryItem = null # 현재 슬롯에 올라간 아이템 데이터
 var selected_dice_index: int = -1 # 선택된 주사위 인덱스
 var selected_dice_sides: int = 0
 
 func _ready():
-	# Apeloot 드롭 수신 등록
-	Apeloot.inventory_refs["enchant_screen"] = self
-	
 	custom_minimum_size = Vector2(600, 500)
 	
 	var main_vbox = VBoxContainer.new()
@@ -32,12 +29,18 @@ func _ready():
 	# 1. Target Item Slot (Drop Zone)
 	target_slot_panel = PanelContainer.new()
 	target_slot_panel.custom_minimum_size = Vector2(0, 100)
+	target_slot_panel.set_script(load("res://ui/inventory/InventorySlotUI.gd"))
+	
 	var slot_label = Label.new()
 	slot_label.text = "강화할 장비를 이곳에 드래그하세요"
 	slot_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	slot_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	target_slot_panel.add_child(slot_label)
 	main_vbox.add_child(target_slot_panel)
+	
+	# 드롭 로직 오버라이드
+	target_slot_panel.set_script(null) # 다시 초기화
+	target_slot_panel.set_script(load("res://ui/screens/EnchantScreen.gd").EnchantSlot)
 	
 	target_item_label = Label.new()
 	target_item_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -72,6 +75,41 @@ func _ready():
 	close_btn.pressed.connect(_on_close_pressed)
 	main_vbox.add_child(close_btn)
 
+# 내부 클래스로 드롭 슬롯 정의 (순환 참조 방지)
+class EnchantSlot extends PanelContainer:
+	var parent_screen: Node
+	
+	func _can_drop_data(_at_position, data):
+		return data is Dictionary and data.has("item")
+		
+	func _drop_data(_at_position, data):
+		var item = data["item"] as InventoryItem
+		parent_screen.handle_item_drop(item, data.get("source_node"))
+
+func handle_item_drop(item: InventoryItem, source_node: Node):
+	if current_target_item:
+		_return_item_to_inventory(current_target_item)
+	
+	# 기존 위치에서 제거
+	if source_node:
+		var source_parent = source_node.get_parent()
+		if source_parent.name == "ItemsContainer":
+			PlayerManager.inventory_data.remove_item(item)
+	
+	current_target_item = item
+	target_item_label.text = DataManager.get_item(item.id).get("name", "Unknown Item")
+	
+	# UI 표시용 노드 생성 (임시)
+	for child in target_slot_panel.get_children():
+		if child is DraggableItemUI: child.queue_free()
+		
+	var item_ui = preload("res://ui/inventory/DraggableItemUI.tscn").instantiate() as DraggableItemUI
+	target_slot_panel.add_child(item_ui)
+	item_ui.setup(item)
+	item_ui.position = (target_slot_panel.size / 2.0) - (item_ui.size / 2.0)
+	
+	_update_enchant_button()
+
 func _refresh_dice_list():
 	for c in dice_list_container.get_children():
 		c.queue_free()
@@ -88,46 +126,16 @@ func _refresh_dice_list():
 func _on_dice_selected(idx: int, sides: int, btn: Button):
 	selected_dice_index = idx
 	selected_dice_sides = sides
-	
-	# 다른 버튼 토글 해제
 	for child in dice_list_container.get_children():
 		if child != btn:
 			child.set_pressed_no_signal(false)
-			
 	_update_enchant_button()
 
 func _update_enchant_button():
 	enchant_button.disabled = (current_target_item == null or selected_dice_index == -1)
 
-# Apeloot 드롭 핸들러
-func handle_item_drop(dragged_item, _target_slot):
-	# 이미 아이템이 있다면 기존 아이템을 인벤토리로 반환 (또는 교체)
-	if current_target_item:
-		_return_item_to_inventory(current_target_item)
-	
-	# 드래그된 아이템을 슬롯의 자식으로 가져옴
-	if dragged_item.parent_inventory:
-		dragged_item.parent_inventory.remove_item(dragged_item)
-	
-	dragged_item.get_parent().remove_child(dragged_item)
-	target_slot_panel.add_child(dragged_item)
-	
-	# 위치 중앙 정렬
-	dragged_item.position = (target_slot_panel.size / 2.0) - (dragged_item.get_node("ItemTexture").size / 2.0)
-	
-	current_target_item = dragged_item
-	target_item_label.text = Apeloot.items[dragged_item.id].get("name", "Unknown Item")
-	
-	_update_enchant_button()
-	return true # 드롭 성공
-
-func _return_item_to_inventory(item):
-	# PlayerManager의 대기열이나 인벤토리로 되돌리기
-	# 여기서는 간단히 삭제하고 PlayerManager 대기열에 추가 (안전하게)
-	var id = item.id
-	item.queue_free()
-	if PlayerManager:
-		PlayerManager.add_pending_item(id)
+func _return_item_to_inventory(item: InventoryItem):
+	PlayerManager.inventory_data.add_item(item.id)
 	current_target_item = null
 	target_item_label.text = ""
 
@@ -136,54 +144,32 @@ func _on_enchant_pressed():
 	
 	enchant_button.disabled = true
 	result_label.text = "주사위를 굴리는 중..."
-	
-	# 주사위 굴림 연출 (간단히 타이머 사용)
 	await get_tree().create_timer(1.0).timeout
 	
 	var roll_result = randi_range(1, selected_dice_sides)
 	result_label.text = "주사위 결과: %d!" % roll_result
-	
 	await get_tree().create_timer(0.5).timeout
 	
-	# 강화 로직 실행
-	var item_data = Apeloot.items[current_target_item.id] # 원본 데이터 참조 (주의: 인스턴스 데이터여야 함)
-	# Apeloot 구조상 dragged_item.stats 에 인스턴스 스탯이 있을 것임
+	var enchant_manager = get_node("/root/EnchantManager")
+	var item_def = DataManager.get_item(current_target_item.id)
 	
-	# 임시 딕셔너리 생성해서 매니저에 전달
+	# [임시] 강화 데이터 구성
 	var enchant_data = {
-		"name": item_data.get("name", ""),
-		"grade": current_target_item.rarity, # Apeloot 변수명 확인 필요 (rarity vs grade)
-		"stats": current_target_item.stats # 인스턴스 스탯
+		"name": item_def.get("name", ""),
+		"grade": 0, # TODO: 등급 매핑
+		"stats": item_def.get("stats", {})
 	}
 	
-	# 매니저 호출
-	# Autoload 접근 안정성을 위해 get_node 사용
-	var enchant_manager = get_node("/root/EnchantManager")
-	if not enchant_manager:
-		printerr("EnchantScreen: EnchantManager Autoload를 찾을 수 없습니다!")
-		enchant_button.disabled = false
-		return
-		
 	var success = enchant_manager.enchant_item(enchant_data, roll_result)
-	
 	if success:
 		result_label.text += "
-강화 성공! 스탯이 상승했습니다."
-		# 주사위 소모
+강화 성공!"
 		DiceManager.player_dice_pool.remove_at(selected_dice_index)
 		_refresh_dice_list()
 		selected_dice_index = -1
-		
-		# 아이템 정보 갱신 (툴팁 등)
-		current_target_item.stats = enchant_data.stats
-		# 등급 변화 반영
-		# current_target_item.rarity = enchant_data.grade 
-		
 	else:
 		result_label.text += "
 강화 실패..."
-		# 실패 시 주사위는 소모되지 않는가? 기획 확인 필요. 
-		# "선택된 주사위는 주사위 굴리기 시 주사위풀에서 삭제된다" -> 실패해도 삭제됨
 		DiceManager.player_dice_pool.remove_at(selected_dice_index)
 		_refresh_dice_list()
 		selected_dice_index = -1
@@ -194,12 +180,5 @@ func _on_enchant_pressed():
 func _on_close_pressed():
 	if current_target_item:
 		_return_item_to_inventory(current_target_item)
-	
-	if Apeloot.inventory_refs.get("enchant_screen") == self:
-		Apeloot.inventory_refs.erase("enchant_screen")
-		
 	closed.emit()
 	queue_free()
-
-# Apeloot 호환성
-func can_place_item(_item, _slot_id) -> bool: return true

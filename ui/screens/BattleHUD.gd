@@ -26,13 +26,16 @@ func _ready():
 	$BattleControls/Skill2Button.pressed.connect(_on_skill_2_button_pressed)
 	# $InventoryButton.pressed.connect(_on_inventory_button_pressed) # Connected in editor
 	
-	# [수정] 버튼 시그널 명시적 연결
-	if map_button: map_button.pressed.connect(_on_map_button_pressed)
-	if start_combat_button: start_combat_button.pressed.connect(_on_start_combat_button_pressed)
-	if destiny_design_button: destiny_design_button.pressed.connect(_on_destiny_design_button_pressed)
+	# [수정] 버튼 시그널 안전하게 연결 (중복 연결 방지)
+	if map_button and not map_button.pressed.is_connected(_on_map_button_pressed): 
+		map_button.pressed.connect(_on_map_button_pressed)
+	if start_combat_button and not start_combat_button.pressed.is_connected(_on_start_combat_button_pressed): 
+		start_combat_button.pressed.connect(_on_start_combat_button_pressed)
+	if destiny_design_button and not destiny_design_button.pressed.is_connected(_on_destiny_design_button_pressed): 
+		destiny_design_button.pressed.connect(_on_destiny_design_button_pressed)
 	
-	# InventoryScreen Autoload에 inventory_opened 시그널 연결
-	inventory_opened.connect(InventoryScreen.show_screen)
+	# [수정] 인벤토리 열기 시그널 (UIManager가 감시하거나 개별적으로 처리)
+	inventory_opened.connect(func(): if GameManager.ui_manager: GameManager.ui_manager.show_screen(UIManager.Screen.INVENTORY))
 
 	# Initially hide both buttons
 	if map_button: map_button.visible = false

@@ -79,6 +79,13 @@ func start_game_deferred():
 	var was_new_dungeon = map_manager.should_generate_new_dungeon
 	map_manager.generate_dungeon_if_needed()
 	
+	# [신규] 던전 진입 시 현재 노드(시작 노드)를 GameManager에 알림
+	# 이를 통해 더미 적을 제거하고 정식 첫 전투를 준비합니다.
+	var current_node_id = map_manager.player_run_state.CurrentNodeID
+	if map_manager.dungeon_data.has("nodes") and map_manager.dungeon_data.nodes.has(current_node_id):
+		var start_node = map_manager.dungeon_data.nodes[current_node_id]
+		game_manager.prepare_dungeon_battle(start_node)
+	
 	if was_new_dungeon:
 		# 새 던전이면 운명 설계부터 시작
 		game_manager.start_dungeon_initial_sequence()

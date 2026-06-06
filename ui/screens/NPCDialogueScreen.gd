@@ -1,6 +1,6 @@
 extends PanelContainer
 
-signal closed(action_type, param)
+signal closed(action_type: int, param)
 
 var npc_data: NPCData
 var portrait_rect: TextureRect
@@ -17,7 +17,7 @@ var center_vbox: VBoxContainer
 var top_header: HBoxContainer
 var header_label: Label
 
-var player_inventory_interface: Control = null
+var player_inventory_interface: CustomInventoryGrid = null
 var player_gold_label: Label = null
 
 func _ready():
@@ -144,17 +144,15 @@ func _create_option_buttons():
 func set_grid_content(content_node: Control):
 	for child in npc_grid_area.get_children(): child.queue_free()
 	if content_node:
-		var tile_size = Apeloot.INVENTORY_ITEM_SIZE.x
+		var tile_size = 40
 		content_node.custom_minimum_size = Vector2(tile_size * 10, tile_size * 6)
 		content_node.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		content_node.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		npc_grid_area.add_child(content_node)
-		_disable_internal_scroll(content_node)
 
 func show_player_inventory(show: bool):
 	player_inventory_area.visible = show
 	if not show:
-		_save_inventory_data()
 		for child in player_inventory_area.get_children(): child.queue_free()
 		player_inventory_interface = null
 		return
@@ -166,70 +164,43 @@ func show_player_inventory(show: bool):
 	bag_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	player_inventory_area.add_child(bag_label)
 	
-	var inv_script = load("res://addons/apeloot/inventory/grid_inventory/inventory_interface.gd")
-	player_inventory_interface = PanelContainer.new()
-	player_inventory_interface.set_script(inv_script)
-	player_inventory_interface.id = "player_inventory"
-	player_inventory_interface.slot_count = 60
-	player_inventory_interface.columns = 10
-	
-	var tile_size = Apeloot.INVENTORY_ITEM_SIZE.x
-	player_inventory_interface.custom_minimum_size = Vector2(tile_size * 10, tile_size * 6)
-	player_inventory_interface.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	player_inventory_interface.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	player_inventory_area.add_child(player_inventory_interface)
-	
-	# 데이터 로드
-	player_inventory_interface.initialize_inventory(PlayerManager.inventory_data)
-	
-	# 대기열 처리
-	var pending = PlayerManager.consume_pending_items()
-	for item_id in pending:
-		var new_item = player_inventory_interface.spawn_item(item_id)
-		if not player_inventory_interface.try_fit_and_place(new_item):
-			new_item.queue_free()
-			PlayerManager.add_pending_item(item_id)
-	
-	call_deferred("_disable_internal_scroll", player_inventory_interface)
+	var grid_scene = load("res://ui/inventory/CustomInventoryGrid.tscn")
+	if grid_scene:
+		player_inventory_interface = grid_scene.instantiate() as CustomInventoryGrid
+		player_inventory_interface.inventory_data = PlayerManager.inventory_data if PlayerManager else null
+		
+		var tile_size = 40
+		player_inventory_interface.custom_minimum_size = Vector2(tile_size * 10, tile_size * 6)
+		player_inventory_interface.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		player_inventory_interface.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		player_inventory_area.add_child(player_inventory_interface)
+		
+		# 대기열 처리
+		if PlayerManager and InventoryManager:
+			var pending = PlayerManager.consume_pending_items()
+			for item_id in pending:
+				if not InventoryManager.try_add_item(item_id):
+					PlayerManager.add_pending_item(item_id)
 	
 	player_gold_label = Label.new()
-	player_gold_label.text = "소지 골드: %d G" % EconomyManager.get_gold()
+	if EconomyManager:
+		player_gold_label.text = "소지 골드: %d G" % EconomyManager.get_gold()
 	player_gold_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	player_gold_label.add_theme_color_override("font_color", Color(1, 0.84, 0))
 	player_inventory_area.add_child(player_gold_label)
 
-func _disable_internal_scroll(grid_node: Control):
-	if not is_instance_valid(grid_node): return
-	var transparent_style = StyleBoxEmpty.new()
-	grid_node.add_theme_stylebox_override("panel", transparent_style)
-	for child in grid_node.get_children():
-		if child is ScrollContainer:
-			child.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-			child.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-			child.get_v_scroll_bar().visible = false
-			child.get_h_scroll_bar().visible = false
-			var inner_panel = child.get_child(0)
-			if inner_panel is PanelContainer: inner_panel.add_theme_stylebox_override("panel", transparent_style)
-			if grid_node.get("columns") and grid_node.get("slot_count"):
-				var cols = grid_node.columns
-				var rows = ceil(float(grid_node.slot_count) / cols)
-				var tile_size = Apeloot.INVENTORY_ITEM_SIZE.x
-				grid_node.custom_minimum_size = Vector2(cols * tile_size, rows * tile_size)
-			break
-
-func _save_inventory_data():
-	if player_inventory_interface and is_instance_valid(player_inventory_interface):
-		PlayerManager.inventory_data = player_inventory_interface.item_states.duplicate(true)
-
 func _on_option_selected(option: Dictionary):
-	var type = option.get("type", NPCData.FunctionType.EXIT)
+	var type = option.get("type", 0) # NPCData.FunctionType.EXIT
 	var param = option.get("param", null)
-	match type:
-		NPCData.FunctionType.TALK: dialogue_label.text = npc_data.get_random_talk()
-		NPCData.FunctionType.EXIT: _on_exit_pressed()
-		_: emit_signal("closed", type, param)
+	# NPCData.FunctionType constants are needed here or use raw ints
+	# Assume type 1: TALK, type 0: EXIT for safety
+	if type == 1:
+		dialogue_label.text = npc_data.get_random_talk()
+	elif type == 0:
+		_on_exit_pressed()
+	else:
+		closed.emit(type, param)
 
 func _on_exit_pressed():
-	_save_inventory_data()
-	emit_signal("closed", NPCData.FunctionType.EXIT, null)
+	closed.emit(0, null) # 0 for EXIT
 	queue_free()

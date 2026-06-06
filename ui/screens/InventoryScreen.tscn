@@ -1,9 +1,10 @@
-[gd_scene load_steps=6 format=3 uid="uid://byb34d40xkc11"]
+[gd_scene load_steps=6 format=3]
 
-[ext_resource type="Script" uid="uid://dni0feyt1bs7x" path="res://ui/screens/InventoryScreen.gd" id="1_inv_script"]
-[ext_resource type="Script" uid="uid://dfrl4e0x3aw7k" path="res://addons/apeloot/inventory/grid_inventory/inventory_interface.gd" id="2_inventory_script"]
-[ext_resource type="PackedScene" uid="uid://c3ov6txoccv0v" path="res://addons/apeloot/inventory/item_slot/item_slot.tscn" id="3_slot_scene"]
-[ext_resource type="Script" uid="uid://beujqjwx1cw04" path="res://ui/elements/TrashBin.gd" id="4_trash_script"]
+[ext_resource type="Script" path="res://ui/screens/InventoryScreen.gd" id="1_inv_script"]
+[ext_resource type="PackedScene" path="res://ui/inventory/CustomInventoryGrid.tscn" id="2_grid_scene"]
+[ext_resource type="PackedScene" path="res://ui/inventory/InventorySlotUI.tscn" id="3_slot_scene"]
+[ext_resource type="Script" path="res://ui/inventory/CustomEquipmentSlotUI.gd" id="4_slot_script"]
+[ext_resource type="Script" path="res://ui/elements/TrashBin.gd" id="5_trash_script"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
 bg_color = Color(0.18, 0.2, 0.25, 1)
@@ -75,11 +76,6 @@ layout_mode = 2
 text = "장착 장비"
 horizontal_alignment = 1
 
-[node name="EquipmentItems" type="Control" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection"]
-unique_name_in_owner = true
-layout_mode = 2
-mouse_filter = 2
-
 [node name="SlotsGrid" type="GridContainer" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection"]
 layout_mode = 2
 theme_override_constants/h_separation = 10
@@ -88,33 +84,53 @@ columns = 2
 
 [node name="HeadSlot" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
 layout_mode = 2
+script = ExtResource("4_slot_script")
+slot_key = "head"
 
 [node name="TopSlot" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
 layout_mode = 2
+script = ExtResource("4_slot_script")
+slot_key = "top"
 
 [node name="BottomSlot" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
 layout_mode = 2
+script = ExtResource("4_slot_script")
+slot_key = "bottom"
 
 [node name="ShoesSlot" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
 layout_mode = 2
+script = ExtResource("4_slot_script")
+slot_key = "shoes"
 
 [node name="LeftHandSlot" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
 layout_mode = 2
+script = ExtResource("4_slot_script")
+slot_key = "left_hand"
 
 [node name="RightHandSlot" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
 layout_mode = 2
+script = ExtResource("4_slot_script")
+slot_key = "right_hand"
 
 [node name="Acc1" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
 layout_mode = 2
+script = ExtResource("4_slot_script")
+slot_key = "accessory_1"
 
 [node name="Acc2" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
 layout_mode = 2
+script = ExtResource("4_slot_script")
+slot_key = "accessory_2"
 
 [node name="Acc3" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
 layout_mode = 2
+script = ExtResource("4_slot_script")
+slot_key = "accessory_3"
 
 [node name="Acc4" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
 layout_mode = 2
+script = ExtResource("4_slot_script")
+slot_key = "accessory_4"
 
 [node name="InventorySection" type="VBoxContainer" parent="CenterContainer/MainPanel/VBox/MainHBox"]
 layout_mode = 2
@@ -124,13 +140,8 @@ layout_mode = 2
 text = "가방"
 horizontal_alignment = 1
 
-[node name="InventoryInterface" type="PanelContainer" parent="CenterContainer/MainPanel/VBox/MainHBox/InventorySection"]
-custom_minimum_size = Vector2(600, 360)
+[node name="InventoryInterface" parent="CenterContainer/MainPanel/VBox/MainHBox/InventorySection" instance=ExtResource("2_grid_scene")]
 layout_mode = 2
-script = ExtResource("2_inventory_script")
-id = "player_inventory"
-slot_count = 60
-columns = 10
 
 [node name="Footer" type="HBoxContainer" parent="CenterContainer/MainPanel/VBox"]
 layout_mode = 2
@@ -144,7 +155,7 @@ layout_mode = 2
 tooltip_text = "아이템을 여기로 드래그하여 버릴 수 있습니다."
 theme_override_colors/font_hover_color = Color(1, 0.2, 0.2, 1)
 text = "아이템 파기 🗑️"
-script = ExtResource("4_trash_script")
+script = ExtResource("5_trash_script")
 
 [node name="GoldLabel" type="Label" parent="CenterContainer/MainPanel/VBox/Footer"]
 layout_mode = 2

@@ -6,7 +6,7 @@ signal hit_target(target: Character, damage: int)
 signal action_started(stance: Stance)
 signal turn_started()
 
-enum Stance { ATTACK, DEFENSE }
+enum Stance { ATTACK, DEFENSE, EVADE }
 
 # Battle variables
 var action_gauge: float = 0.0
@@ -16,6 +16,7 @@ var is_in_battle: bool = false
 var is_acting: bool = false # 현재 행동 수행 중 여부
 var is_selected: bool = false # 현재 선택된 타겟인지 여부
 var is_player: bool = false # 플레이어 여부
+var is_evading: bool = false # [신규] 회피 상태 여부
 var current_stance: Stance = Stance.ATTACK # 현재 스탠스
 var active_status_effects: Array[StatusEffect] = [] # 활성 상태 효과
 var character_data: CharacterData 

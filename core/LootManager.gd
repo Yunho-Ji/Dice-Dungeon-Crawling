@@ -3,7 +3,7 @@
 extends Node
 
 signal loot_updated # 전리품 상태가 변경되었을 때 (아이템 획득 등)
-signal reward_claimed(type, data) # 특정 보상이 성공적으로 지급되었을 때
+signal reward_claimed(type: String, data) # 특정 보상이 성공적으로 지급되었을 때
 
 var current_loot = {
 	"gold": 0,
@@ -22,14 +22,14 @@ func claim_item(item_data: Dictionary) -> bool:
 	var item_id = item_data.get("id", "")
 	if item_id == "": return false
 	
-	# InventoryManager를 통해 실제 가방에 추가 시도
+	# InventoryManager를 통해 실제 가방에 추가 시도 (신규 시스템)
 	if InventoryManager.try_add_item(item_id):
 		# 성공 시 현재 전리품 목록에서 제거
 		if current_loot.has("items") and current_loot["items"] is Array:
 			current_loot["items"].erase(item_data)
 		
-		emit_signal("loot_updated")
-		emit_signal("reward_claimed", "item", item_data)
+		loot_updated.emit()
+		reward_claimed.emit("item", item_data)
 		print("LootManager: 아이템 획득 성공 - ", item_id)
 		return true
 	
@@ -43,7 +43,7 @@ func claim_remaining_rewards():
 	if gold > 0:
 		EconomyManager.add_gold(gold)
 		current_loot["gold"] = 0
-		emit_signal("reward_claimed", "gold", gold)
+		reward_claimed.emit("gold", gold)
 		
 	# 주사위 지급
 	var dice = current_loot.get("dice", [])
@@ -53,9 +53,9 @@ func claim_remaining_rewards():
 			DiceManager.confirm_reward(DiceManager.pending_rewards.size() - 1)
 		current_loot["dice"] = []
 		DiceManager.enable_roll()
-		emit_signal("reward_claimed", "dice", dice)
+		reward_claimed.emit("dice", dice)
 		
-	emit_signal("loot_updated")
+	loot_updated.emit()
 	print("LootManager: 잔여 보상(골드/주사위) 처리 완료")
 
 # 현재 남아있는 아이템이 있는지 확인

@@ -7,7 +7,7 @@ signal enchant_success(item_data, stats_increased)
 signal enchant_failure(item_data)
 signal tier_up(item_data, new_grade)
 
-# 등급별 스텟 상한선 (Tier Caps) - Apeloot.Rarity Enum (int) 매핑
+# 등급별 스텟 상한선 (Tier Caps) - Enums.Rarity Enum (int) 매핑
 # 0: COMMON, 1: UNCOMMON, 2: RARE, 3: EPIC, 4: LEGENDARY
 const TIER_CAPS = {
 	0: { "atk": 20, "defense": 10, "max_hp": 100 },
@@ -58,7 +58,7 @@ func enchant_item(target_item: Dictionary, dice_value: int) -> bool:
 	return true
 
 func _check_tier_up(item: Dictionary, stat_key: String):
-	var current_grade = item.get("grade", 0) # int (Apeloot.Rarity)
+	var current_grade = item.get("grade", 0) # int (Enums.Rarity)
 	if current_grade >= 4: return # LEGENDARY (4) 이상은 승급 불가
 	
 	var caps = TIER_CAPS.get(current_grade, {})

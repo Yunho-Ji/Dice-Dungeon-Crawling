@@ -20,6 +20,7 @@ aseprite_executable_path="C:/Program Files (x86)/Steam/steamapps/common/Aseprite
 
 [autoload]
 
+Enums="*res://core/Enums.gd"
 SignalBus="*res://core/SignalBus.gd"
 DataManager="*res://core/DataManager.gd"
 PlatformManager="*res://core/PlatformManager.gd"
@@ -38,8 +39,6 @@ EnchantManager="*res://core/EnchantManager.gd"
 DifficultyManager="*res://core/DifficultyManager.gd"
 LootManager="*res://core/LootManager.gd"
 ProjectileManager="*res://core/combat/ProjectileManager.gd"
-Apeloot="*res://addons/apeloot/inventory/Apeloot.gd"
-InventoryScreen="*res://ui/screens/InventoryScreen.tscn"
 
 [display]
 
@@ -47,7 +46,7 @@ window/stretch/mode="canvas_items"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/apeloot/plugin.cfg", "res://addons/betterrandnumgen/plugin.cfg", "res://addons/godot-4-aseprite-importers-main/addons/nklbdev.aseprite_importers/plugin.cfg", "res://addons/godot_mcp/plugin.cfg", "res://addons/gut/plugin.cfg", "res://addons/tree_maps/plugin.cfg")
+enabled=PackedStringArray("res://addons/betterrandnumgen/plugin.cfg", "res://addons/godot-4-aseprite-importers-main/addons/nklbdev.aseprite_importers/plugin.cfg", "res://addons/godot_mcp/plugin.cfg", "res://addons/gut/plugin.cfg", "res://addons/tree_maps/plugin.cfg")
 
 [gui]
 

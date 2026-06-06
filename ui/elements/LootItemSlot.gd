@@ -16,19 +16,20 @@ func setup(p_id: String, p_data: Dictionary):
 	item_id = p_id
 	item_data = p_data
 	
-	var item_def = Apeloot.items.get(item_id, {})
+	var item_def = DataManager.get_item(item_id)
 	var item_name = item_def.get("name", item_id)
 	var rarity_str = item_def.get("grade", "common")
 	
-	# 등급 색상
-	var rarity_idx = Apeloot.Rarity.COMMON
-	match rarity_str:
-		"common": rarity_idx = Apeloot.Rarity.COMMON
-		"uncommon": rarity_idx = Apeloot.Rarity.UNCOMMON
-		"rare": rarity_idx = Apeloot.Rarity.RARE
-		"epic": rarity_idx = Apeloot.Rarity.EPIC
-		"relic": rarity_idx = Apeloot.Rarity.LEGENDARY
-	var rarity_color = Apeloot.rarities[rarity_idx]["color"]
+	# 등급 색상 (Enums 활용)
+	var rarity_idx = Enums.Rarity.COMMON
+	match rarity_str.to_lower():
+		"common": rarity_idx = Enums.Rarity.COMMON
+		"uncommon": rarity_idx = Enums.Rarity.UNCOMMON
+		"rare": rarity_idx = Enums.Rarity.RARE
+		"epic": rarity_idx = Enums.Rarity.EPIC
+		"legendary", "relic": rarity_idx = Enums.Rarity.LEGENDARY
+	
+	var rarity_color = Enums.RARITY_COLORS.get(rarity_idx, Color.WHITE)
 	
 	# 스타일 설정
 	var style = StyleBoxFlat.new()

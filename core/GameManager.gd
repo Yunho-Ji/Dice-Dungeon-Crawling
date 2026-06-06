@@ -105,12 +105,10 @@ func initialize_game_scene(player: Character, enemy: Character, battle_mgr: Node
 	print("DEBUG: GameManager: initialize_game_scene called.")
 	player_node = player
 	
-	# 초기화 시 받은 enemy를 배열에 추가
+	# 초기화 시 받은 enemy를 배열에 추가 (임시 참조 유지)
 	enemy_node = enemy
 	enemy_nodes = [enemy_node]
 	
-	var enemy_character_data = (load("res://resources/characters/enemy/Goblin.tres") as CharacterData).duplicate(true)
-	enemy_node.initialize(enemy_character_data)
 	battle_manager = battle_mgr
 	ui_manager = ui_mgr
 	stage_info_hud = stage_hud
@@ -132,8 +130,8 @@ func initialize_game_scene(player: Character, enemy: Character, battle_mgr: Node
 		for i in range(4):
 			dice_manager.add_dice_to_pool(6)
 
-	battle_manager.prepare_battle(null, player_node, enemy_nodes, current_stage, current_battle_count, ui_manager, stage_info_hud)
-	emit_signal("battle_ended", true)
+	# [수정] 여기서 prepare_battle을 직접 호출하지 않고, Main.gd가 던전 노드에 맞춰 호출하도록 위임합니다.
+	# emit_signal("battle_ended", true) 
 
 
 func handle_attack_stance():
@@ -170,6 +168,17 @@ func handle_battle_end(win: bool, spawn_chest: bool = true):
 	current_game_phase = GamePhase.BATTLE_END
 	emit_signal("battle_ended", win)
 	if win:
+		# [신규] 승리 시 전장에 남은 적 개체들 제거 전, 타겟 및 노드 참조 초기화 (Freed Instance 오류 방지)
+		if is_instance_valid(player_node):
+			player_node.target = null
+		
+		# [수정] 개별 적 참조 변수도 명시적 null 처리
+		enemy_node = null
+		
+		for enemy in enemy_nodes:
+			if is_instance_valid(enemy):
+				enemy.target = null
+
 		# [신규] 승리 시 전장에 남은 적 개체들 제거 (그룹 기반 확실한 제거)
 		get_tree().call_group("active_enemies", "queue_free")
 		enemy_nodes.clear()
@@ -224,12 +233,12 @@ func _generate_loot_for_node(node_type: String) -> Dictionary:
 		"elite":
 			loot.gold = randi_range(100, 200)
 			loot.dice.append(8)
-			loot.items.append(_pick_random_item_with_weight(Apeloot.Rarity.UNCOMMON))
+			loot.items.append(_pick_random_item_with_weight(Enums.Rarity.UNCOMMON))
 		"boss":
 			loot.gold = randi_range(500, 1000)
 			loot.dice.append(12)
-			loot.items.append(_pick_random_item_with_weight(Apeloot.Rarity.RARE))
-			loot.items.append(_pick_random_item_with_weight(Apeloot.Rarity.UNCOMMON))
+			loot.items.append(_pick_random_item_with_weight(Enums.Rarity.RARE))
+			loot.items.append(_pick_random_item_with_weight(Enums.Rarity.UNCOMMON))
 		"special":
 			loot.gold = randi_range(50, 150)
 			if randf() < 0.5:
@@ -237,14 +246,24 @@ func _generate_loot_for_node(node_type: String) -> Dictionary:
 	
 	return loot
 
-func _pick_random_item_with_weight(min_rarity: int = Apeloot.Rarity.COMMON) -> Dictionary:
+func _pick_random_item_with_weight(min_rarity: int = Enums.Rarity.COMMON) -> Dictionary:
 	var possible_items = []
-	for id in Apeloot.items.keys():
-		var data = Apeloot.items[id]
-		if data.get("rarity", 0) >= min_rarity:
+	for id in DataManager.items.keys():
+		var data = DataManager.items[id]
+		# grade 문자열을 int 등급으로 변환하여 비교
+		var grade_str = data.get("grade", "common")
+		var grade_idx = Enums.Rarity.COMMON
+		match grade_str.to_lower():
+			"common": grade_idx = Enums.Rarity.COMMON
+			"uncommon": grade_idx = Enums.Rarity.UNCOMMON
+			"rare": grade_idx = Enums.Rarity.RARE
+			"epic": grade_idx = Enums.Rarity.EPIC
+			"legendary": grade_idx = Enums.Rarity.LEGENDARY
+			
+		if grade_idx >= min_rarity:
 			possible_items.append(id)
 	
-	var selected_id = possible_items.pick_random() if not possible_items.is_empty() else "ketchup"
+	var selected_id = possible_items.pick_random() if not possible_items.is_empty() else "test_sword_common"
 	return {"id": selected_id, "is_identified": false}
 
 func _show_loot_offer(loot: Dictionary):
@@ -275,12 +294,9 @@ func handle_retry():
 			for node_id in visited_node_ids:
 				if not node_id in permanently_discovered_nodes[selected_dungeon_id]: permanently_discovered_nodes[selected_dungeon_id].append(node_id)
 	
-	var inventory = Apeloot.inventory_refs.get("player_inventory")
-	if inventory:
-		for item in inventory.items.duplicate():
-			inventory.remove_item(item)
-	
+	# [수정] 신규 인벤토리 데이터 초기화
 	if player_manager:
+		player_manager.inventory_data = InventoryData.new(Vector2i(10, 5))
 		for slot in player_manager.equipment.keys():
 			player_manager.unequip_item(slot)
 		if player_manager.player_data and player_manager.player_data.base_stats:
@@ -316,11 +332,7 @@ func prepare_dungeon_battle(node: DungeonNode):
 		if node.node_id in permanently_discovered_nodes[selected_dungeon_id]:
 			is_revisit = true
 
-	if current_battle_node_type == "start":
-		# [핵심] 시작 노드에서는 적을 절대 소환하지 않고 즉시 종료 처리
-		print("GameManager: 시작 노드에 진입했습니다. 전투가 없습니다.")
-		handle_battle_end(true, false)
-		return
+	# [수정] 시작 노드(start) 우회 로직 삭제. 이제 시작 노드에서도 첫 전투가 발생합니다.
 		
 	if current_battle_node_type == "special" or current_battle_node_type == "rest" or current_battle_node_type == "shop":
 		if is_revisit:
