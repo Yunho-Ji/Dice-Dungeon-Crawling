@@ -4,6 +4,8 @@
 .gemini/
 *.tmp
 *.uid
+daily_log_*.md
+export_presets.cfg
 
 # --- DDC Protection Section (저작권 및 보안 보호) ---
 # 아트 및 사운드 리소스 제외 (상업적 권리 보호)
