@@ -1,5 +1,5 @@
 # GameManager.gd
-# 역할: 게임의 전체적인 흐름과 상태를 관리하는 중앙 관리자입니다。
+# 역할: 게임의 전체적인 흐름과 상태를 관리하는 중앙 관리자입니다.
 extends Node
 
 # =============================================================================
@@ -14,23 +14,23 @@ enum GamePhase {
 	READY_TO_BATTLE, # 전투 시작 대기 중
 	COMBAT, BATTLE_END, LOOT_OFFER
 }
-var current_game_phase: GamePhase
+var current_game_phase: int = GamePhase.MAIN_MENU
 
 # =============================================================================
 # 참조 변수 (References)
 # =============================================================================
 var battle_manager: Node
-var player_node: Character
-var enemy_node: Character # 하위 호환성을 위해 첫 번째 적 유지
-var enemy_nodes: Array[Character] = []
-var ui_manager: UIManager
+var player_node: CharacterBody2D # Character -> CharacterBody2D (순환 참조 방지)
+var enemy_node: CharacterBody2D
+var enemy_nodes: Array[CharacterBody2D] = []
+var ui_manager: Node # UIManager -> Node
 var stage_info_hud: Control
-var scene_manager: SceneManager
-var player_manager: PlayerManager
-var dice_manager: DiceManager
+var scene_manager: Node # SceneManager -> Node
+var player_manager: Node # PlayerManager -> Node
+var dice_manager: Node
 
 func _ready():
-	dice_manager = get_node("/root/DiceManager")
+	dice_manager = get_node_or_null("/root/DiceManager")
 	
 	# 마을 시간 패널티 시그널 연결
 	var town_manager = get_node_or_null("/root/TownManager")
@@ -65,7 +65,7 @@ var selected_dungeon_id: int = 0
 var current_battle_count: int = 0
 var current_stage: int = 1
 var current_battle_node_type: String = ""
-var current_dungeon_node: DungeonNode
+var current_dungeon_node: Resource # DungeonNode -> Resource
 var cleared_dungeons: Dictionary = {}
 var permanently_discovered_nodes: Dictionary = {}
 const BOSS_BATTLE_COUNT = 8
@@ -98,10 +98,10 @@ func _get_enemy_data_for_node_type(node_type: String) -> Dictionary:
 	if not enemy_data_res:
 		enemy_data_res = load("res://resources/characters/enemy/Goblin.tres")
 		
-	var enemy_character_data = (enemy_data_res as CharacterData).duplicate(true)
+	var enemy_character_data = (enemy_data_res as Resource).duplicate(true)
 	return {"scene": enemy_scene, "data": enemy_character_data}
 
-func initialize_game_scene(player: Character, enemy: Character, battle_mgr: Node, ui_mgr: UIManager, stage_hud: Control, scene_mgr: SceneManager, player_mgr: PlayerManager):
+func initialize_game_scene(player: Node, enemy: Node, battle_mgr: Node, ui_mgr: Node, stage_hud: Control, scene_mgr: Node, player_mgr: Node):
 	print("DEBUG: GameManager: initialize_game_scene called.")
 	player_node = player
 	
@@ -116,29 +116,32 @@ func initialize_game_scene(player: Character, enemy: Character, battle_mgr: Node
 	player_manager = player_mgr
 
 	if player_node and player_manager and player_manager.player_data:
-		player_node.initialize(player_manager.player_data)
-		player_node.update_stats_from_player_manager(player_manager)
+		if player_node.has_method("initialize"):
+			player_node.initialize(player_manager.player_data)
+		if player_node.has_method("update_stats_from_player_manager"):
+			player_node.update_stats_from_player_manager(player_manager)
 		# [신규] 씬 생성 시 장비의 트리거 효과(ActionTriggerEffect) 재적용
-		player_manager.reapply_equipment_effects(player_node)
+		if player_manager.has_method("reapply_equipment_effects"):
+			player_manager.reapply_equipment_effects(player_node)
 
-	if ui_manager and ui_manager.battle_hud:
-		player_node.damage_taken.connect(Callable(ui_manager.battle_hud, "_on_character_damage_taken").bind(true))
+	if ui_manager and ui_manager.get("battle_hud"):
+		var bh = ui_manager.get("battle_hud")
+		if bh and player_node.has_signal("damage_taken"):
+			player_node.damage_taken.connect(Callable(bh, "_on_character_damage_taken").bind(true))
 		for e in enemy_nodes:
-			e.damage_taken.connect(Callable(ui_manager.battle_hud, "_on_character_damage_taken").bind(false))
+			if e.has_signal("damage_taken"):
+				e.damage_taken.connect(Callable(bh, "_on_character_damage_taken").bind(false))
 
-	if dice_manager.get_player_dice_pool().is_empty():
+	if dice_manager and dice_manager.has_method("get_player_dice_pool") and dice_manager.get_player_dice_pool().is_empty():
 		for i in range(4):
 			dice_manager.add_dice_to_pool(6)
 
-	# [수정] 여기서 prepare_battle을 직접 호출하지 않고, Main.gd가 던전 노드에 맞춰 호출하도록 위임합니다.
-	# emit_signal("battle_ended", true) 
-
 
 func handle_attack_stance():
-	if battle_manager: battle_manager.set_player_stance(Character.Stance.ATTACK)
+	if battle_manager: battle_manager.set_player_stance(0) # enum Stance.ATTACK = 0
 
 func handle_defense_stance():
-	if battle_manager: battle_manager.set_player_stance(Character.Stance.DEFENSE)
+	if battle_manager: battle_manager.set_player_stance(1) # enum Stance.DEFENSE = 1
 
 func use_skill_1():
 	print("GameManager: 스킬 1 사용")
@@ -152,12 +155,12 @@ func handle_start_combat():
 	
 	# 플레이어의 타겟 설정 (첫 번째 적)
 	if not enemy_nodes.is_empty():
-		player_node.target = enemy_nodes[0]
+		player_node.set("target", enemy_nodes[0])
 	
 	# 모든 적의 타겟을 플레이어로 설정
 	for enemy in enemy_nodes:
 		if is_instance_valid(enemy):
-			enemy.target = player_node
+			enemy.set("target", player_node)
 			
 	if battle_manager: 
 		battle_manager.start_battle(player_node, enemy_nodes, self)
@@ -168,25 +171,23 @@ func handle_battle_end(win: bool, spawn_chest: bool = true):
 	current_game_phase = GamePhase.BATTLE_END
 	emit_signal("battle_ended", win)
 	if win:
-		# [신규] 승리 시 전장에 남은 적 개체들 제거 전, 타겟 및 노드 참조 초기화 (Freed Instance 오류 방지)
 		if is_instance_valid(player_node):
-			player_node.target = null
+			player_node.set("target", null)
 		
-		# [수정] 개별 적 참조 변수도 명시적 null 처리
 		enemy_node = null
 		
 		for enemy in enemy_nodes:
 			if is_instance_valid(enemy):
-				enemy.target = null
+				enemy.set("target", null)
 
 		# [신규] 승리 시 전장에 남은 적 개체들 제거 (그룹 기반 확실한 제거)
 		get_tree().call_group("active_enemies", "queue_free")
 		enemy_nodes.clear()
 		
 		# [신규] 승리 시 해당 노드를 클리어 처리 (MapManager 진행 상태 갱신)
-		var map_manager = get_node("/root/MapManager")
+		var map_manager = get_node_or_null("/root/MapManager")
 		if map_manager and current_dungeon_node:
-			map_manager.clear_node(current_dungeon_node.node_id)
+			map_manager.clear_node(current_dungeon_node.get("node_id"))
 			
 		current_battle_count += 1
 		
@@ -196,23 +197,23 @@ func handle_battle_end(win: bool, spawn_chest: bool = true):
 			_spawn_treasure_chest(loot)
 		
 		if current_battle_node_type == "boss":
-			# 보스 클리어 데이터 보존 로직 유지
 			if map_manager and selected_dungeon_id != 0:
-				cleared_dungeons[selected_dungeon_id] = { "seed": map_manager.dungeon_seed, "transformed_nodes": map_manager.select_transformed_nodes() }
+				cleared_dungeons[selected_dungeon_id] = { "seed": map_manager.get("dungeon_seed"), "transformed_nodes": map_manager.select_transformed_nodes() }
 				var visited_node_ids = map_manager.get_current_dungeon_visited_node_ids()
 				if not permanently_discovered_nodes.has(selected_dungeon_id): permanently_discovered_nodes[selected_dungeon_id] = []
 				for node_id in visited_node_ids:
 					if not node_id in permanently_discovered_nodes[selected_dungeon_id]: permanently_discovered_nodes[selected_dungeon_id].append(node_id)
 			
-			if player_node and player_manager and player_manager.current_player_stats:
-				player_manager.current_player_stats.sync_from(player_node.current_stats)
+			if player_node and player_manager and player_manager.get("current_player_stats"):
+				if player_manager.get("current_player_stats").has_method("sync_from"):
+					player_manager.get("current_player_stats").sync_from(player_node.get("current_stats"))
 			
 			print("GameManager: 보스 클리어 완료. 전리품 획득 후 지도를 통해 이동하거나 정비하십시오.")
-			# [수정] show_end_of_dungeon_options() 호출을 제거하여 루팅을 방해하지 않음
 			return
 		
-		if player_node and player_manager and player_manager.current_player_stats:
-			player_manager.current_player_stats.sync_from(player_node.current_stats)
+		if player_node and player_manager and player_manager.get("current_player_stats"):
+			if player_manager.get("current_player_stats").has_method("sync_from"):
+				player_manager.get("current_player_stats").sync_from(player_node.get("current_stats"))
 	else:
 		handle_retry()
 
@@ -233,12 +234,12 @@ func _generate_loot_for_node(node_type: String) -> Dictionary:
 		"elite":
 			loot.gold = randi_range(100, 200)
 			loot.dice.append(8)
-			loot.items.append(_pick_random_item_with_weight(Enums.Rarity.UNCOMMON))
+			loot.items.append(_pick_random_item_with_weight(1)) # Enums.Rarity.UNCOMMON = 1
 		"boss":
 			loot.gold = randi_range(500, 1000)
 			loot.dice.append(12)
-			loot.items.append(_pick_random_item_with_weight(Enums.Rarity.RARE))
-			loot.items.append(_pick_random_item_with_weight(Enums.Rarity.UNCOMMON))
+			loot.items.append(_pick_random_item_with_weight(2)) # Enums.Rarity.RARE = 2
+			loot.items.append(_pick_random_item_with_weight(1))
 		"special":
 			loot.gold = randi_range(50, 150)
 			if randf() < 0.5:
@@ -246,19 +247,21 @@ func _generate_loot_for_node(node_type: String) -> Dictionary:
 	
 	return loot
 
-func _pick_random_item_with_weight(min_rarity: int = Enums.Rarity.COMMON) -> Dictionary:
+func _pick_random_item_with_weight(min_rarity: int = 0) -> Dictionary:
 	var possible_items = []
-	for id in DataManager.items.keys():
-		var data = DataManager.items[id]
-		# grade 문자열을 int 등급으로 변환하여 비교
+	var dm = get_node_or_null("/root/DataManager")
+	if not dm: return {"id": "test_sword_common", "is_identified": false}
+	
+	for id in dm.items.keys():
+		var data = dm.items[id]
 		var grade_str = data.get("grade", "common")
-		var grade_idx = Enums.Rarity.COMMON
+		var grade_idx = 0
 		match grade_str.to_lower():
-			"common": grade_idx = Enums.Rarity.COMMON
-			"uncommon": grade_idx = Enums.Rarity.UNCOMMON
-			"rare": grade_idx = Enums.Rarity.RARE
-			"epic": grade_idx = Enums.Rarity.EPIC
-			"legendary": grade_idx = Enums.Rarity.LEGENDARY
+			"common": grade_idx = 0
+			"uncommon": grade_idx = 1
+			"rare": grade_idx = 2
+			"epic": grade_idx = 3
+			"legendary": grade_idx = 4
 			
 		if grade_idx >= min_rarity:
 			possible_items.append(id)
@@ -268,48 +271,53 @@ func _pick_random_item_with_weight(min_rarity: int = Enums.Rarity.COMMON) -> Dic
 
 func _show_loot_offer(loot: Dictionary):
 	if ui_manager:
-		# [수정] LootManager에 데이터 등록
 		var loot_manager = get_node("/root/LootManager")
-		loot_manager.set_pending_loot(loot)
-		
-		ui_manager.show_screen(UIManager.Screen.LOOT_OFFER)
-		var loot_screen = ui_manager.screen_nodes.get(UIManager.Screen.LOOT_OFFER)
-		if loot_screen:
-			loot_screen.setup(loot_manager.get_loot_data())
+		if loot_manager:
+			loot_manager.set_pending_loot(loot)
+			
+			if ui_manager.has_method("show_screen"):
+				ui_manager.show_screen(6) # Screen.LOOT_OFFER = 6
+				var loot_screen = ui_manager.get("screen_nodes").get(6)
+				if loot_screen and loot_screen.has_method("setup"):
+					loot_screen.setup(loot_manager.get_loot_data())
 
 func _spawn_treasure_chest(loot: Dictionary):
 	var chest = TREASURE_CHEST_SCENE.instantiate()
 	get_tree().current_scene.add_child(chest)
 	var spawn_pos = Vector2(800, 300) 
 	chest.global_position = spawn_pos
-	chest.setup(loot)
+	if chest.has_method("setup"):
+		chest.setup(loot)
 
 func handle_retry():
-	var map_manager = get_node("/root/MapManager")
+	var map_manager = get_node_or_null("/root/MapManager")
 	if map_manager:
-		map_manager.set_should_generate_new_dungeon(true)
+		map_manager.set("should_generate_new_dungeon", true)
 		if selected_dungeon_id != 0:
 			var visited_node_ids = map_manager.get_current_dungeon_visited_node_ids()
 			if not permanently_discovered_nodes.has(selected_dungeon_id): permanently_discovered_nodes[selected_dungeon_id] = []
 			for node_id in visited_node_ids:
 				if not node_id in permanently_discovered_nodes[selected_dungeon_id]: permanently_discovered_nodes[selected_dungeon_id].append(node_id)
 	
-	# [수정] 신규 인벤토리 데이터 초기화
 	if player_manager:
-		player_manager.inventory_data = InventoryData.new(Vector2i(10, 5))
-		for slot in player_manager.equipment.keys():
-			player_manager.unequip_item(slot)
-		if player_manager.player_data and player_manager.player_data.base_stats:
-			player_manager.current_player_stats = player_manager.player_data.base_stats.duplicate(true)
+		var inv_script = load("res://core/inventory/InventoryData.gd")
+		if inv_script:
+			player_manager.set("inventory_data", inv_script.new(Vector2i(10, 5)))
+		
+		if player_manager.has_method("unequip_item"):
+			for slot in player_manager.get("equipment").keys():
+				player_manager.unequip_item(slot)
+		if player_manager.get("player_data") and player_manager.get("player_data").get("base_stats"):
+			player_manager.set("current_player_stats", player_manager.get("player_data").get("base_stats").duplicate(true))
 
-	EconomyManager.set_gold(0)
+	var em = get_node_or_null("/root/EconomyManager")
+	if em: em.set_gold(0)
 	current_stage = 1
 	current_battle_count = 0
-	if dice_manager.player_dice_pool: dice_manager.player_dice_pool.clear()
-	scene_manager.go_to_main_menu()
+	if dice_manager and dice_manager.get("player_dice_pool"): dice_manager.get("player_dice_pool").clear()
+	if scene_manager: scene_manager.go_to_main_menu()
 
-func prepare_dungeon_battle(node: DungeonNode):
-	# [수정] 이전 노드의 적 개체들을 즉시 제거하여 특수 노드 등에서 잔상이 남지 않게 함
+func prepare_dungeon_battle(node: Resource):
 	for e in enemy_nodes:
 		if is_instance_valid(e):
 			e.queue_free()
@@ -317,7 +325,7 @@ func prepare_dungeon_battle(node: DungeonNode):
 	enemy_node = null
 
 	if node:
-		current_battle_node_type = node.node_type
+		current_battle_node_type = node.get("node_type")
 		current_dungeon_node = node
 	else:
 		current_battle_node_type = "normal"
@@ -326,13 +334,11 @@ func prepare_dungeon_battle(node: DungeonNode):
 		printerr("GameManager: BattleManager is not valid!")
 		return
 
-	var map_manager = get_node("/root/MapManager")
+	var map_manager = get_node_or_null("/root/MapManager")
 	var is_revisit = false
 	if map_manager and permanently_discovered_nodes.has(selected_dungeon_id):
-		if node.node_id in permanently_discovered_nodes[selected_dungeon_id]:
+		if node and node.get("node_id") in permanently_discovered_nodes[selected_dungeon_id]:
 			is_revisit = true
-
-	# [수정] 시작 노드(start) 우회 로직 삭제. 이제 시작 노드에서도 첫 전투가 발생합니다.
 		
 	if current_battle_node_type == "special" or current_battle_node_type == "rest" or current_battle_node_type == "shop":
 		if is_revisit:
@@ -374,13 +380,15 @@ func prepare_dungeon_battle(node: DungeonNode):
 		var instantiated_enemy = info.scene.instantiate()
 		current_scene_root.add_child(instantiated_enemy)
 		instantiated_enemy.name = "Enemy_" + str(i)
-		instantiated_enemy.initialize(info.data)
-		instantiated_enemy.add_to_group("active_enemies") # [신규] 일괄 제거를 위한 그룹 등록
+		if instantiated_enemy.has_method("initialize"):
+			instantiated_enemy.initialize(info.data)
+		instantiated_enemy.add_to_group("active_enemies")
 		if i == 0:
 			enemy_node = instantiated_enemy
 		enemy_nodes.append(instantiated_enemy)
-		if ui_manager and ui_manager.battle_hud:
-			instantiated_enemy.damage_taken.connect(Callable(ui_manager.battle_hud, "_on_character_damage_taken").bind(false))
+		if ui_manager and ui_manager.get("battle_hud"):
+			if instantiated_enemy.has_signal("damage_taken"):
+				instantiated_enemy.damage_taken.connect(Callable(ui_manager.get("battle_hud"), "_on_character_damage_taken").bind(false))
 
 	var hp_multiplier = 1.0 + (current_stage - 1) * 0.1 + current_battle_count * 0.05
 	if active_penalties.has("stronger_enemies"):
@@ -390,12 +398,14 @@ func prepare_dungeon_battle(node: DungeonNode):
 
 	for e in enemy_nodes:
 		var final_multiplier = hp_multiplier
-		if enemy_nodes.size() > 1 and not e.is_boss:
+		if enemy_nodes.size() > 1 and not e.get("is_boss"):
 			final_multiplier *= 0.8
-		e.set_level(current_stage, current_battle_count, final_multiplier)
+		if e.has_method("set_level"):
+			e.set_level(current_stage, current_battle_count, final_multiplier)
 
 	current_game_phase = GamePhase.READY_TO_BATTLE
-	battle_manager.prepare_battle(node, player_node, enemy_nodes, current_stage, current_battle_count, ui_manager, stage_info_hud)
+	if battle_manager.has_method("prepare_battle"):
+		battle_manager.prepare_battle(node, player_node, enemy_nodes, current_stage, current_battle_count, ui_manager, stage_info_hud)
 
 
 func _show_trap_event():
@@ -403,7 +413,6 @@ func _show_trap_event():
 	var popup = EVENT_POPUP_SCENE.instantiate()
 	ui_manager.add_child(popup)
 	
-	# [신규] 함정 유형 무작위 결정 (기획 명세 기반)
 	var trap_types = ["physical", "poison", "magic", "mental"]
 	var selected_type = trap_types.pick_random()
 	
@@ -425,15 +434,17 @@ func _show_trap_event():
 			trap_name = "정신적 공포 함정"
 
 	var bonus = 0
-	if player_node and player_node.current_stats: 
-		var stat = player_node.current_stats.get_stat(stat_key)
-		if stat:
-			# [공식] 스탯 10단위당 +1 보정치 (수치 * 0.1)
-			bonus = int(stat.computed_value * 0.1)
+	if player_node and player_node.get("current_stats"): 
+		var stats = player_node.get("current_stats")
+		if stats.has_method("get_stat"):
+			var stat = stats.get_stat(stat_key)
+			if stat:
+				bonus = int(stat.get("computed_value") * 0.1)
 	
-	popup.setup_event(popup.EventType.TRAP, 15, 20, bonus)
-	# 팝업 타이틀 및 설명 커스텀
-	popup.title_label.text = trap_name
+	if popup.has_method("setup_event"):
+		popup.setup_event(0, 15, 20, bonus) # EventType.TRAP = 0
+	if popup.get("title_label"):
+		popup.get("title_label").text = trap_name
 	
 	popup.event_completed.connect(_on_event_completed.bind(popup))
 
@@ -441,21 +452,24 @@ func _show_treasure_event():
 	if not ui_manager: return
 	var popup = EVENT_POPUP_SCENE.instantiate()
 	ui_manager.add_child(popup)
-	popup.setup_event(popup.EventType.TREASURE) 
+	if popup.has_method("setup_event"):
+		popup.setup_event(1) # EventType.TREASURE = 1
 	popup.event_completed.connect(_on_event_completed.bind(popup))
 
 func _show_altar_event():
 	if not ui_manager: return
 	var popup = EVENT_POPUP_SCENE.instantiate()
 	ui_manager.add_child(popup)
-	popup.setup_event(popup.EventType.ALTAR) 
+	if popup.has_method("setup_event"):
+		popup.setup_event(2) # EventType.ALTAR = 2
 	popup.event_completed.connect(_on_event_completed.bind(popup))
 
 func _show_sanctuary_event():
 	if not ui_manager: return
 	var popup = EVENT_POPUP_SCENE.instantiate()
 	ui_manager.add_child(popup)
-	popup.setup_event(popup.EventType.SANCTUARY)
+	if popup.has_method("setup_event"):
+		popup.setup_event(3) # EventType.SANCTUARY = 3
 	popup.event_completed.connect(_on_event_completed.bind(popup))
 
 func _on_event_completed(popup_instance):
@@ -463,25 +477,28 @@ func _on_event_completed(popup_instance):
 	handle_battle_end(true, false)
 
 func handle_return_to_town():
-	var map_manager = get_node("/root/MapManager")
-	# 던전을 새로 생성하지 않고 기존 레이아웃(시드)을 보존함
+	var map_manager = get_node_or_null("/root/MapManager")
 	if map_manager:
-		map_manager.set_should_generate_new_dungeon(false, true) 
+		map_manager.set("should_generate_new_dungeon", false)
 	
 	current_battle_count = 0
 	current_stage = 1
 	is_additional_exploration_mode = false
-	scene_manager.go_to_town(true)
+	if scene_manager:
+		scene_manager.go_to_town(true)
 
 func update_player_node_stats():
-	if player_node and player_manager: player_node.update_stats_from_player_manager(player_manager)
+	if player_node and player_node.has_method("update_stats_from_player_manager"):
+		player_node.update_stats_from_player_manager(player_manager)
 
 func start_dungeon_initial_sequence():
 	current_game_phase = GamePhase.PREPARE
-	if ui_manager:
-		ui_manager.show_screen(UIManager.Screen.DESTINY_DESIGN)
+	if ui_manager and ui_manager.has_method("show_screen"):
+		ui_manager.show_screen(1) # Screen.DESTINY_DESIGN = 1
 
 func handle_additional_exploration():
 	is_additional_exploration_mode = true
-	get_node("/root/MapManager").set_should_generate_new_dungeon(false, true)
-	scene_manager.start_dungeon(selected_dungeon_id, true)
+	var mm = get_node_or_null("/root/MapManager")
+	if mm: mm.set("should_generate_new_dungeon", false)
+	if scene_manager:
+		scene_manager.start_dungeon(selected_dungeon_id, true)

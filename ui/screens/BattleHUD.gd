@@ -20,6 +20,15 @@ func _ready():
 	print("DEBUG BattleHUD: map_button is ", "valid" if is_instance_valid(map_button) else "NULL")
 	print("DEBUG BattleHUD: start_combat_button is ", "valid" if is_instance_valid(start_combat_button) else "NULL")
 
+	# [신규] 마우스 플레이어를 위한 그리드 시야 토글 버튼 동적 생성
+	var grid_toggle_btn = Button.new()
+	grid_toggle_btn.text = "👁️ 그리드"
+	grid_toggle_btn.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	grid_toggle_btn.position = Vector2(20, 20)
+	grid_toggle_btn.add_theme_font_size_override("font_size", 16)
+	grid_toggle_btn.pressed.connect(_on_grid_toggle_button_pressed)
+	add_child(grid_toggle_btn)
+
 	$BattleControls/AttackButton.pressed.connect(_on_attack_button_pressed)
 	$BattleControls/DefenseButton.pressed.connect(_on_defense_button_pressed)
 	$BattleControls/Skill1Button.pressed.connect(_on_skill_1_button_pressed)
@@ -95,6 +104,15 @@ func _on_map_button_pressed():
 
 func _on_start_combat_button_pressed():
 	emit_signal("start_combat_requested")
+
+# [신규] 동적 그리드 토글 버튼 핸들러
+func _on_grid_toggle_button_pressed():
+	var gm = get_node_or_null("/root/GameManager")
+	if gm and gm.get("battle_manager"):
+		var bm = gm.get("battle_manager")
+		var hgm = bm.get("hex_grid_manager")
+		if hgm and hgm.has_method("toggle_grid_visibility"):
+			hgm.toggle_grid_visibility()
 
 func _on_character_damage_taken(amount: int, position: Vector2, is_player_character: bool):
 	if not damage_popup_scene:

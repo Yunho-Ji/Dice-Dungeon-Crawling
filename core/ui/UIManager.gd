@@ -12,7 +12,7 @@ enum Screen { NONE, DESTINY_DESIGN, BATTLE_HUD, INVENTORY, DUNGEON_MAP, END_OF_D
 
 @onready var advantage_container = get_node_or_null("AdvantageContainer")
 @onready var battle_hud = get_node_or_null("BattleHUD")
-@onready var game_manager: GameManager = get_node("/root/GameManager") as GameManager
+@onready var game_manager: Node = get_node("/root/GameManager")
 
 const STATUS_POPUP_SCENE = preload("res://ui/StatusPopup.tscn")
 var status_popup: Node = null

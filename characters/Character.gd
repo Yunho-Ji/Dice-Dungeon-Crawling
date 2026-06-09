@@ -23,6 +23,29 @@ var character_data: CharacterData
 var _stat_signals_connected: bool = false # 스탯 신호 연결 여부
 var current_stats: MyCharacterStats # 실제 런타임 스탯 데이터
 
+# [v7.4 육각 그리드 시스템 통합]
+var grid_manager: Node # HexGridManager 타입 인식 문제 방지를 위해 Node로 변경
+@export var grid_pos: Vector2i:
+	set(value):
+		# 기존 위치 점유 해제
+		if grid_manager and grid_manager.has_method("clear_tile_occupancy"):
+			grid_manager.clear_tile_occupancy(grid_pos)
+			
+		grid_pos = value
+		
+		if grid_manager:
+			# 시각적 위치 동기화
+			if grid_manager.has_method("map_to_local"):
+				global_position = grid_manager.map_to_local(value)
+			# 새로운 위치 점유 설정
+			if grid_manager.has_method("set_tile_occupied"):
+				grid_manager.set_tile_occupied(value, self)
+
+@export var move_range: int = 3 # MOV: 이동력 (기본값)
+@export var attack_range: int = 1 # RNG: 사거리 (기본값)
+var is_pursuit_mode: bool = false # 추격 모드 활성화 여부
+signal pursuit_state_changed(is_pursuit: bool) # 게이지 색상 변경 알림용
+
 # 방어구 유형별 장착 정보
 var cloth_pieces: int = 0
 var light_pieces: int = 0
@@ -60,8 +83,27 @@ func _ready():
 	
 	if is_instance_valid(action_gauge_bar):
 		action_gauge_bar.position = Vector2(-32, -45)
+		# 기본 스타일 생성
+		var style = StyleBoxFlat.new()
+		style.bg_color = Color(0.2, 0.6, 0.8) # 기본 AP 색상 (파란색 계열)
+		action_gauge_bar.add_theme_stylebox_override("fill", style)
+	
 	if is_instance_valid(hp_label):
 		hp_label.position = Vector2(-32, 20)
+		
+	# 추격 상태 변경 시그널 연결
+	if not pursuit_state_changed.is_connected(_on_pursuit_state_changed):
+		pursuit_state_changed.connect(_on_pursuit_state_changed)
+
+func _on_pursuit_state_changed(is_pursuit: bool):
+	if is_instance_valid(action_gauge_bar):
+		var style = action_gauge_bar.get_theme_stylebox("fill")
+		if style and style is StyleBoxFlat:
+			if is_pursuit:
+				style.bg_color = Color(0.8, 0.4, 0.2) # 추격 AP 색상 (주황/빨강 계열)
+			else:
+				style.bg_color = Color(0.2, 0.6, 0.8) # 기본 AP 색상
+			print(name, " AP 게이지 색상 변경: ", "추격(주황)" if is_pursuit else "기본(파랑)")
 
 func _process(delta: float):
 	if not current_stats: return
@@ -90,6 +132,27 @@ func _process(delta: float):
 		for effect in active_status_effects:
 			if is_instance_valid(effect): effect.update_duration(delta)
 
+		# --- [v7.4 추격 AP 시스템] ---
+		var ap_multiplier = 1.0
+		var was_pursuit = is_pursuit_mode
+		
+		if is_instance_valid(target) and target.current_stats.get_stat("health").current_value > 0:
+			var dist = get_grid_dist_to(target.grid_pos if "grid_pos" in target else Vector2i.ZERO)
+			
+			if dist > attack_range:
+				# 사거리 밖: 추격 모드 활성화 (1.5배 가속)
+				is_pursuit_mode = true
+				ap_multiplier = 1.5
+			else:
+				if is_pursuit_mode:
+					# 사거리 진입: 추격 AP 리셋 (v7.4 설계)
+					action_gauge = 0.0
+					is_pursuit_mode = false
+					print(name, ": 사거리 진입으로 인한 AP 초기화")
+			
+			if was_pursuit != is_pursuit_mode:
+				emit_signal("pursuit_state_changed", is_pursuit_mode)
+
 		# 행동 게이지 충전 (공격속도 SPD 기반 - StatManager 공식 사용)
 		if target != null and is_instance_valid(target) and target.current_stats.get_stat("health").current_value > 0:
 			if current_stance != Stance.DEFENSE and not is_acting:
@@ -98,13 +161,44 @@ func _process(delta: float):
 				if GameManager.active_penalties.has("fatigue"):
 					charge_speed *= 0.85 
 					
-				action_gauge += charge_speed * delta
+				action_gauge += charge_speed * ap_multiplier * delta
 			
 			if is_instance_valid(action_gauge_bar):
 				action_gauge_bar.value = action_gauge
 
 			if current_stance != Stance.DEFENSE and action_gauge >= 100.0:
-				perform_stance_action()
+				if is_pursuit_mode:
+					# [피드백 반영] 사거리 밖이면 공격 대신 타일 1칸 이동
+					execute_move_step()
+				else:
+					# 사거리 안이면 기존대로 공격 수행
+					perform_stance_action()
+
+func execute_move_step():
+	if not target or not grid_manager: return
+	
+	is_acting = true
+	var path = []
+	if grid_manager.has_method("get_hex_path"):
+		path = grid_manager.get_hex_path(grid_pos, target.get("grid_pos") if target.get("grid_pos") else Vector2i.ZERO)
+	
+	if path.size() > 1:
+		var next_pos = path[1]
+		
+		# [피드백 반영] 타일 점유(Occupancy) 검사
+		var is_occupied = false
+		if grid_manager.has_method("is_tile_occupied"):
+			is_occupied = grid_manager.is_tile_occupied(next_pos)
+			
+		if not is_occupied:
+			grid_pos = next_pos
+			print(name, " 한 칸 이동 -> ", next_pos)
+		else:
+			print(name, " 이동 대기: 타일이 이미 점유됨 -> ", next_pos)
+		
+	# 이동 후 AP 게이지 초기화
+	action_gauge = 0.0
+	is_acting = false
 
 func update_hp_label():
 	if not current_stats: return
@@ -233,17 +327,19 @@ func _on_input_event(_viewport, event, _shape_idx):
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			if not is_player and is_in_battle:
 				print("DEBUG: Target Selected: ", name)
-				if GameManager.battle_manager: 
-					GameManager.battle_manager.set_player_target(self)
+				var gm = get_node_or_null("/root/GameManager")
+				if gm and gm.get("battle_manager") and gm.get("battle_manager").has_method("set_player_target"): 
+					gm.get("battle_manager").set_player_target(self)
 			return # 이벤트 처리 완료 후 종료
 
 		if event.button_index == MOUSE_BUTTON_RIGHT:
 			print("DEBUG: Info Popup Requested: ", name)
-			if GameManager.ui_manager: 
-				GameManager.ui_manager.show_character_info(self)
+			var gm = get_node_or_null("/root/GameManager")
+			if gm and gm.get("ui_manager") and gm.get("ui_manager").has_method("show_character_info"): 
+				gm.get("ui_manager").show_character_info(self)
 			return # 이벤트 처리 완료 후 종료
 
-func update_stats_from_player_manager(pm: PlayerManager):
+func update_stats_from_player_manager(pm: Node):
 	if pm and pm.current_player_stats:
 		current_stats.sync_from(pm.current_player_stats)
 		if not _stat_signals_connected:
@@ -299,3 +395,21 @@ func remove_status_effect(effect: StatusEffect):
 		effect.remove_effect(self)
 		active_status_effects.erase(effect)
 		print(name, "에게서 상태 효과 제거: ", effect.get_effect_name())
+
+# --- [v7.4 육각 그리드 유틸리티] ---
+
+## 육각 그리드 거리 계산 (Axial distance)
+func get_grid_dist_to(target_pos: Vector2i) -> int:
+	var d_col = target_pos.x - grid_pos.x
+	var d_row = target_pos.y - grid_pos.y
+	# 지그재그 그리드에서의 정교한 거리 계산 (v7.4)
+	return (abs(d_col) + abs(d_col + d_row) + abs(d_row)) / 2
+
+## 유닛 배치 (배치 페이즈 전용)
+func place_at(new_pos: Vector2i) -> bool:
+	if not grid_manager: return false
+	
+	if grid_manager.has_method("is_valid_spawn_zone") and grid_manager.is_valid_spawn_zone(new_pos):
+		grid_pos = new_pos
+		return true
+	return false

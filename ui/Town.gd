@@ -9,7 +9,7 @@ var current_dialogue_screen: Control = null
 @onready var location_buttons = $ContentArea/LocationButtons
 @onready var closing_message_label = $ContentArea/ClosingMessageLabel
 @onready var start_expedition_button = $ContentArea/StartExpeditionButton
-@onready var scene_manager: SceneManager = get_node("/root/SceneManager")
+@onready var scene_manager: Node = get_node("/root/SceneManager")
 
 @onready var player_name_label = $PlayerInfoPanel/HBox/VBox_Basic/PlayerName
 @onready var level_info_label = $PlayerInfoPanel/HBox/VBox_Basic/LevelInfo

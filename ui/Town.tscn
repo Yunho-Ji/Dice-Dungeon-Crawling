@@ -1,7 +1,7 @@
 [gd_scene load_steps=7 format=3 uid="uid://fureneyqqdx4"]
 
 [ext_resource type="Script" uid="uid://j64urwfurset" path="res://ui/Town.gd" id="1_town_script"]
-[ext_resource type="Script" uid="uid://dv2al5gu4e1mu" path="res://core/UIManager.gd" id="2_uimanager_script"]
+[ext_resource type="Script" uid="uid://dv2al5gu4e1mu" path="res://core/ui/UIManager.gd" id="2_uimanager_script"]
 [ext_resource type="PackedScene" uid="uid://rgdcm18nf3jm" path="res://ui/screens/DestinyDesignScreen.tscn" id="3_destiny_design_scene"]
 [ext_resource type="PackedScene" uid="uid://byb34d40xkc11" path="res://ui/screens/InventoryScreen.tscn" id="4_inventory_scene"]
 [ext_resource type="PackedScene" uid="uid://dungeon_end_screen" path="res://ui/screens/EndOfDungeonScreen.tscn" id="5_end_of_dungeon_scene"]

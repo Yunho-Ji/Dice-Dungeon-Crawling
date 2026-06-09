@@ -2,8 +2,8 @@
 # 보스 클리어 후 흐름(루팅 보장, 추가 탐험 위치 초기화)을 검증하는 테스트
 extends "res://addons/gut/test.gd"
 
-var GameManagerClass = load("res://core/GameManager.gd")
-var MapManagerClass = load("res://core/MapManager.gd")
+var GameManagerClass = load("res://core/system/GameManager.gd")
+var MapManagerClass = load("res://core/world/MapManager.gd")
 var DungeonNodeClass = load("res://core/dungeon/DungeonNode.gd")
 
 var game_manager

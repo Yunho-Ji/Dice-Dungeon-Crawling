@@ -7,8 +7,8 @@ extends Control
 
 var selected_character_type: String = ""
 
-@onready var scene_manager: SceneManager = get_node("/root/SceneManager")
-@onready var game_manager: GameManager = get_node("/root/GameManager")
+@onready var scene_manager: Node = get_node("/root/SceneManager")
+@onready var game_manager: Node = get_node("/root/GameManager")
 
 func _ready():
 	novice_button.pressed.connect(func(): _on_character_selected("novice"))

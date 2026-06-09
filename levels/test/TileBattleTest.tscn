@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://dcxukqmg8hbr2"]
+
+[node name="TileBattleTest" type="Node2D"]
+
+[node name="GridManager" type="Node2D" parent="."]
+
+[node name="GridLayer" type="TileMapLayer" parent="."]
+
+[node name="Units" type="Node2D" parent="."]
+
+[node name="UI" type="CanvasLayer" parent="."]

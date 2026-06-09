@@ -1,11 +1,11 @@
-[gd_scene load_steps=14 format=3 uid="uid://fauknsa3k37i"]
+[gd_scene load_steps=15 format=3 uid="uid://fauknsa3k37i"]
 
 [ext_resource type="Script" uid="uid://c74nrfoj7d6oe" path="res://levels/Main.gd" id="1_main_gd"]
 [ext_resource type="PackedScene" uid="uid://bd8mbroqs0yvb" path="res://characters/player/novice/Novice.tscn" id="2_3mabw"]
 [ext_resource type="PackedScene" uid="uid://bujnofxyh5kmq" path="res://characters/enemy/Enemy.tscn" id="2_enemy_tscn"]
 [ext_resource type="PackedScene" uid="uid://cbh8cvxaj6yvc" path="res://characters/player/archer/Archer.tscn" id="3_3pm0d"]
-[ext_resource type="Script" uid="uid://dimsdn2erifyp" path="res://core/BattleManager.gd" id="3_vmibe"]
-[ext_resource type="Script" uid="uid://dv2al5gu4e1mu" path="res://core/UIManager.gd" id="4_bvijt"]
+[ext_resource type="Script" uid="uid://dimsdn2erifyp" path="res://core/combat/BattleManager.gd" id="3_vmibe"]
+[ext_resource type="Script" uid="uid://dv2al5gu4e1mu" path="res://core/ui/UIManager.gd" id="4_bvijt"]
 [ext_resource type="PackedScene" uid="uid://b56sttf5fvs7m" path="res://ui/screens/BattleHUD.tscn" id="5_3mabw"]
 [ext_resource type="PackedScene" path="res://ui/screens/StageInfoHUD.tscn" id="6_3pm0d"]
 [ext_resource type="PackedScene" uid="uid://b1y2x3c4d5e6" path="res://ui/StatusPopup.tscn" id="7_ko617"]
@@ -13,6 +13,7 @@
 [ext_resource type="PackedScene" path="res://ui/screens/InventoryScreen.tscn" id="8_rak1d"]
 [ext_resource type="PackedScene" path="res://ui/screens/AdvantageLabel.tscn" id="9_3ubmn"]
 [ext_resource type="PackedScene" path="res://ui/screens/EndOfDungeonScreen.tscn" id="9_n3j8x"]
+[ext_resource type="Script" path="res://core/combat/HexGridManager.gd" id="10_grid"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main_gd")
@@ -44,3 +45,8 @@ offset_bottom = 40.0
 [node name="StageInfoHUD" parent="UIManager" instance=ExtResource("6_3pm0d")]
 
 [node name="StatusPopup" parent="." instance=ExtResource("7_ko617")]
+
+[node name="HexGridManager" type="Node2D" parent="."]
+script = ExtResource("10_grid")
+
+[node name="GridLayer" type="TileMapLayer" parent="."]

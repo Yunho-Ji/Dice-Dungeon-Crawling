@@ -91,6 +91,12 @@ static func parse_stats(stats_data: Dictionary) -> Array[ItemEffect]:
 			"mp_max", "max_mp":
 				target_key = "current_mp" # StatManager 표준 키 사용 (보통 max_mp 스탯이 따로 없으면 current_mp의 computed_value를 늘림)
 				modifier_value = int(value)
+			"attack_range", "rng":
+				target_key = "attack_range"
+				modifier_value = int(value)
+			"move_range", "mov":
+				target_key = "move_range"
+				modifier_value = int(value)
 			"str":
 				target_key = "atk" # DDC 프로토타입 특성상 STR이 ATK로 직결되는 경우가 많음 (확인 필요)
 				modifier_value = int(value)

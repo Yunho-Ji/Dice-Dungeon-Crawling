@@ -1,4 +1,45 @@
 {
+	"basic_sword": {
+		"name": "낡은 연습용 검",
+		"atlas_index": 12,
+		"equip_type": "right_hand",
+		"grade": "common",
+		"stats": {
+			"atk": 5,
+			"attack_range": 1
+		}
+	},
+	"basic_bow": {
+		"name": "수습용 단궁",
+		"atlas_index": 45,
+		"equip_type": "right_hand",
+		"grade": "common",
+		"stats": {
+			"atk": 3,
+			"attack_range": 4
+		}
+	},
+	"basic_cloth_armor": {
+		"name": "여행자의 누비옷",
+		"atlas_index": 350,
+		"equip_type": "top",
+		"armor_type": "cloth",
+		"grade": "common",
+		"stats": {
+			"dr_rate": 2,
+			"move_range": 0
+		}
+	},
+	"basic_leather_boots": {
+		"name": "낡은 가죽 장화",
+		"atlas_index": 830,
+		"equip_type": "shoes",
+		"armor_type": "light",
+		"grade": "common",
+		"stats": {
+			"move_range": 1
+		}
+	},
 	"test_necklace_common": {
 		"name": "수습생의 목걸이",
 		"atlas_index": 288,

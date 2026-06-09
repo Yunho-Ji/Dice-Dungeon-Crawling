@@ -11,39 +11,39 @@
 
 ```mermaid
 graph TD
-    %% Global Layer (Autoloads)
-    subgraph Global_Managers [Core System - Autoloads]
-        GM[GameManager<br/>전체 게임 흐름 제어]
-        SB[SignalBus<br/>전역 이벤트 허브]
-        PM[PlayerManager<br/>스탯/장비 데이터 관리]
-        MM[MapManager<br/>던전 진행 상태 관리]
-        IM[InventoryManager<br/>아이템 획득/이동 중재]
-    end
+	%% Global Layer (Autoloads)
+	subgraph Global_Managers [Core System - Autoloads]
+		GM[GameManager<br/>전체 게임 흐름 제어]
+		SB[SignalBus<br/>전역 이벤트 허브]
+		PM[PlayerManager<br/>스탯/장비 데이터 관리]
+		MM[MapManager<br/>던전 진행 상태 관리]
+		IM[InventoryManager<br/>아이템 획득/이동 중재]
+	end
 
-    %% Logic Layer
-    subgraph Logic_Modules [Logic Modules]
-        DG[DungeonGenerator<br/>DAG 기반 트리 생성]
-        SI[StatInterpreter<br/>JSON -> ItemEffect 변환]
-        DiceMgr[DiceManager<br/>주사위 확률/결과 계산]
-    end
+	%% Logic Layer
+	subgraph Logic_Modules [Logic Modules]
+		DG[DungeonGenerator<br/>DAG 기반 트리 생성]
+		SI[StatInterpreter<br/>JSON -> ItemEffect 변환]
+		DiceMgr[DiceManager<br/>주사위 확률/결과 계산]
+	end
 
-    %% UI Layer
-    subgraph UI_System [UI Framework]
-        UM[UIManager<br/>레이어/화면 전환 제어]
-        InvUI[InventoryScreen<br/>그리드 기반 가방]
-        MapUI[DungeonMap<br/>절차적 맵 시각화]
-        DiceUI[DestinyDesignScreen<br/>주사위 물리 연출/배분]
-    end
+	%% UI Layer
+	subgraph UI_System [UI Framework]
+		UM[UIManager<br/>레이어/화면 전환 제어]
+		InvUI[InventoryScreen<br/>그리드 기반 가방]
+		MapUI[DungeonMap<br/>절차적 맵 시각화]
+		DiceUI[DestinyDesignScreen<br/>주사위 물리 연출/배분]
+	end
 
-    %% Key Features & Connections
-    SI -->|Strategy Pattern| PM
-    PM -->|Pending Queue| IM
-    IM -->|Sync| InvUI
-    DG -->|DAG Structure| MM
-    MM -->|Visualization| MapUI
-    SB -.->|Decoupling| GM
-    SB -.->|Decoupling| UM
-    Physics[PhysicsDie<br/>RigidBody2D Fail-safe] --> DiceMgr
+	%% Key Features & Connections
+	SI -->|Strategy Pattern| PM
+	PM -->|Pending Queue| IM
+	IM -->|Sync| InvUI
+	DG -->|DAG Structure| MM
+	MM -->|Visualization| MapUI
+	SB -.->|Decoupling| GM
+	SB -.->|Decoupling| UM
+	Physics[PhysicsDie<br/>RigidBody2D Fail-safe] --> DiceMgr
 ```
 
 ---

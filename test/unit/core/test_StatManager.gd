@@ -2,7 +2,7 @@
 # StatManager의 핵심 계산 로직이 의도대로 작동하는지 검증합니다.
 extends "res://addons/gut/test.gd"
 
-var StatManagerClass = load("res://core/StatManager.gd")
+var StatManagerClass = load("res://core/combat/StatManager.gd")
 var stat_manager
 
 func before_each():

@@ -1,7 +1,7 @@
 extends Control
 
 @onready var dungeon_buttons_container = $DungeonButtonsContainer
-@onready var scene_manager: SceneManager = get_node("/root/SceneManager")
+@onready var scene_manager: Node = get_node("/root/SceneManager")
 
 func _ready():
 	print("DEBUG: Map.gd: _ready called.") # New line
