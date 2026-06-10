@@ -4,6 +4,7 @@
 .gemini/
 *.tmp
 *.uid
+PROJECT_MILESTONE.md
 daily_log_*.md
 export_presets.cfg
 
