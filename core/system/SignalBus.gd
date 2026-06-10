@@ -13,6 +13,8 @@ signal entity_died(entity) # entity: Node (Player or Enemy)
 signal gold_changed(new_amount: int, delta: int)
 signal transaction_failed(reason: String)
 signal inventory_updated # 인벤토리 변경 시 (아이템 추가/삭제/이동)
+signal inventory_item_rotated(item)
+signal equipment_changed(slot_key, item_data)
 
 # [스탯/성장 관련]
 signal stat_changed(owner_node, stat_key, new_value)

@@ -7,22 +7,22 @@ signal inventory_closed
 
 # --- 노드 참조 ---
 @onready var main_panel = $CenterContainer/MainPanel
-@onready var inventory_interface: CustomInventoryGrid = $CenterContainer/MainPanel/VBox/MainHBox/InventorySection/InventoryInterface
+@onready var inventory_interface: CustomInventoryGrid = $CenterContainer/MainPanel/VBox/MainVBox/InventorySection/InventoryInterface
 @onready var gold_label = $CenterContainer/MainPanel/VBox/Footer/GoldLabel
 @onready var close_button = $CenterContainer/MainPanel/VBox/Header/CloseButton
 
 # 장비 슬롯 참조
-@onready var head_slot = $CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid/HeadSlot
-@onready var top_slot = $CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid/TopSlot
-@onready var bottom_slot = $CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid/BottomSlot
-@onready var shoes_slot = $CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid/ShoesSlot
-@onready var left_hand_slot = $CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid/LeftHandSlot
-@onready var right_hand_slot = $CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid/RightHandSlot
+@onready var head_slot = $CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/HeadSlot
+@onready var top_slot = $CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/TopSlot
+@onready var bottom_slot = $CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/BottomSlot
+@onready var shoes_slot = $CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/ShoesSlot
+@onready var left_hand_slot = $CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/LeftHandSlot
+@onready var right_hand_slot = $CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/RightHandSlot
 @onready var acc_slots = [
-	$CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid/Acc1,
-	$CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid/Acc2,
-	$CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid/Acc3,
-	$CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid/Acc4
+	$CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/AccessoryGroup/Acc1,
+	$CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/AccessoryGroup/Acc2,
+	$CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/AccessoryGroup/Acc3,
+	$CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/AccessoryGroup/Acc4
 ]
 @onready var trash_bin = %TrashBin
 

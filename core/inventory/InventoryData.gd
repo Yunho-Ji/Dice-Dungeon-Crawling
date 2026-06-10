@@ -36,6 +36,9 @@ func _add_item_to_grid_cache(item: InventoryItem):
 				_grid[gy][gx] = item
 
 func can_place_item(item_id: String, pos: Vector2i, rotated: bool = false) -> bool:
+	return can_place_item_at(item_id, pos, rotated, null)
+
+func can_place_item_at(item_id: String, pos: Vector2i, rotated: bool, ignore_item: InventoryItem = null) -> bool:
 	var temp_item = InventoryItem.new()
 	temp_item.id = item_id
 	temp_item.is_rotated = rotated
@@ -46,9 +49,21 @@ func can_place_item(item_id: String, pos: Vector2i, rotated: bool = false) -> bo
 	
 	for y in range(item_size.y):
 		for x in range(item_size.x):
-			if _grid[pos.y + y][pos.x + x] != null:
+			var existing_item = _grid[pos.y + y][pos.x + x]
+			if existing_item != null and existing_item != ignore_item:
 				return false
 	return true
+
+func try_rotate_item(item: InventoryItem) -> bool:
+	if not items.has(item): return false
+	
+	var new_rotation = !item.is_rotated
+	if can_place_item_at(item.id, item.grid_position, new_rotation, item):
+		item.is_rotated = new_rotation
+		_rebuild_grid()
+		items_changed.emit()
+		return true
+	return false
 
 func add_item(item_id: String, pos: Vector2i = Vector2i(-1, -1), rotated: bool = false) -> bool:
 	# 위치가 -1, -1이면 빈 공간 자동 찾기

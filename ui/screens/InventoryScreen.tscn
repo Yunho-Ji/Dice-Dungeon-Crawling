@@ -64,83 +64,120 @@ custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
 text = "X"
 
-[node name="MainHBox" type="HBoxContainer" parent="CenterContainer/MainPanel/VBox"]
+[node name="MainVBox" type="VBoxContainer" parent="CenterContainer/MainPanel/VBox"]
 layout_mode = 2
-theme_override_constants/separation = 40
+theme_override_constants/separation = 20
 
-[node name="EquipmentSection" type="VBoxContainer" parent="CenterContainer/MainPanel/VBox/MainHBox"]
+[node name="EquipmentSection" type="VBoxContainer" parent="CenterContainer/MainPanel/VBox/MainVBox"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection"]
+[node name="Label" type="Label" parent="CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection"]
 layout_mode = 2
 text = "장착 장비"
 horizontal_alignment = 1
 
-[node name="SlotsGrid" type="GridContainer" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection"]
+[node name="SilhouetteContainer" type="Control" parent="CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection"]
+custom_minimum_size = Vector2(300, 350)
 layout_mode = 2
-theme_override_constants/h_separation = 10
-theme_override_constants/v_separation = 10
-columns = 2
 
-[node name="HeadSlot" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
-layout_mode = 2
+[node name="HeadSlot" parent="CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer" instance=ExtResource("3_slot_scene")]
+layout_mode = 0
+offset_left = 130.0
+offset_top = 0.0
+offset_right = 170.0
+offset_bottom = 40.0
 script = ExtResource("4_slot_script")
 slot_key = "head"
+slot_size = Vector2i(1, 1)
 
-[node name="TopSlot" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
-layout_mode = 2
+[node name="TopSlot" parent="CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer" instance=ExtResource("3_slot_scene")]
+layout_mode = 0
+offset_left = 110.0
+offset_top = 50.0
+offset_right = 190.0
+offset_bottom = 130.0
 script = ExtResource("4_slot_script")
 slot_key = "top"
+slot_size = Vector2i(2, 2)
 
-[node name="BottomSlot" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
-layout_mode = 2
+[node name="BottomSlot" parent="CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer" instance=ExtResource("3_slot_scene")]
+layout_mode = 0
+offset_left = 110.0
+offset_top = 140.0
+offset_right = 190.0
+offset_bottom = 220.0
 script = ExtResource("4_slot_script")
 slot_key = "bottom"
+slot_size = Vector2i(2, 2)
 
-[node name="ShoesSlot" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
-layout_mode = 2
+[node name="ShoesSlot" parent="CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer" instance=ExtResource("3_slot_scene")]
+layout_mode = 0
+offset_left = 110.0
+offset_top = 230.0
+offset_right = 190.0
+offset_bottom = 270.0
 script = ExtResource("4_slot_script")
 slot_key = "shoes"
+slot_size = Vector2i(2, 1)
 
-[node name="LeftHandSlot" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
-layout_mode = 2
-script = ExtResource("4_slot_script")
-slot_key = "left_hand"
-
-[node name="RightHandSlot" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
-layout_mode = 2
+[node name="RightHandSlot" parent="CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer" instance=ExtResource("3_slot_scene")]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 50.0
+offset_right = 100.0
+offset_bottom = 170.0
 script = ExtResource("4_slot_script")
 slot_key = "right_hand"
+slot_size = Vector2i(2, 3)
 
-[node name="Acc1" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
+[node name="LeftHandSlot" parent="CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer" instance=ExtResource("3_slot_scene")]
+layout_mode = 0
+offset_left = 200.0
+offset_top = 50.0
+offset_right = 280.0
+offset_bottom = 170.0
+script = ExtResource("4_slot_script")
+slot_key = "left_hand"
+slot_size = Vector2i(2, 3)
+
+[node name="AccessoryGroup" type="GridContainer" parent="CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 290.0
+offset_right = 280.0
+offset_bottom = 330.0
+theme_override_constants/h_separation = 10
+columns = 4
+
+[node name="Acc1" parent="CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/AccessoryGroup" instance=ExtResource("3_slot_scene")]
 layout_mode = 2
 script = ExtResource("4_slot_script")
 slot_key = "accessory_1"
 
-[node name="Acc2" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
+[node name="Acc2" parent="CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/AccessoryGroup" instance=ExtResource("3_slot_scene")]
 layout_mode = 2
 script = ExtResource("4_slot_script")
 slot_key = "accessory_2"
 
-[node name="Acc3" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
+[node name="Acc3" parent="CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/AccessoryGroup" instance=ExtResource("3_slot_scene")]
 layout_mode = 2
 script = ExtResource("4_slot_script")
 slot_key = "accessory_3"
 
-[node name="Acc4" parent="CenterContainer/MainPanel/VBox/MainHBox/EquipmentSection/SlotsGrid" instance=ExtResource("3_slot_scene")]
+[node name="Acc4" parent="CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/AccessoryGroup" instance=ExtResource("3_slot_scene")]
 layout_mode = 2
 script = ExtResource("4_slot_script")
 slot_key = "accessory_4"
 
-[node name="InventorySection" type="VBoxContainer" parent="CenterContainer/MainPanel/VBox/MainHBox"]
+[node name="InventorySection" type="VBoxContainer" parent="CenterContainer/MainPanel/VBox/MainVBox"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="CenterContainer/MainPanel/VBox/MainHBox/InventorySection"]
+[node name="Label" type="Label" parent="CenterContainer/MainPanel/VBox/MainVBox/InventorySection"]
 layout_mode = 2
 text = "가방"
 horizontal_alignment = 1
 
-[node name="InventoryInterface" parent="CenterContainer/MainPanel/VBox/MainHBox/InventorySection" instance=ExtResource("2_grid_scene")]
+[node name="InventoryInterface" parent="CenterContainer/MainPanel/VBox/MainVBox/InventorySection" instance=ExtResource("2_grid_scene")]
 layout_mode = 2
 
 [node name="Footer" type="HBoxContainer" parent="CenterContainer/MainPanel/VBox"]

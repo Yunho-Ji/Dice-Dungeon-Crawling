@@ -1,6 +1,7 @@
 {
 	"basic_sword": {
 		"name": "낡은 연습용 검",
+		"pattern": "1x3",
 		"atlas_index": 12,
 		"equip_type": "right_hand",
 		"grade": "common",
@@ -11,6 +12,7 @@
 	},
 	"basic_bow": {
 		"name": "수습용 단궁",
+		"pattern": "2x3",
 		"atlas_index": 45,
 		"equip_type": "right_hand",
 		"grade": "common",
@@ -21,6 +23,7 @@
 	},
 	"basic_cloth_armor": {
 		"name": "여행자의 누비옷",
+		"pattern": "2x2",
 		"atlas_index": 350,
 		"equip_type": "top",
 		"armor_type": "cloth",
@@ -32,6 +35,7 @@
 	},
 	"basic_leather_boots": {
 		"name": "낡은 가죽 장화",
+		"pattern": "2x1",
 		"atlas_index": 830,
 		"equip_type": "shoes",
 		"armor_type": "light",
@@ -274,5 +278,32 @@
 			"hit_rate": 90.0
 		},
 		"enchant_level": 0
+	},
+	"gold_pile_small": {
+		"name": "금화 주머니 (소)",
+		"pattern": "2x2",
+		"atlas_index": 650,
+		"grade": "common",
+		"description": "주머니가 버티지 못하고 터져나왔습니다. 가방 한 구석을 차지하기 시작합니다.",
+		"price": 0,
+		"can_sell": false
+	},
+	"gold_pile_medium": {
+		"name": "무너지는 금화더미 (중)",
+		"pattern": "3x3",
+		"atlas_index": 651,
+		"grade": "rare",
+		"description": "돈이 기하급수적으로 불어나며 자꾸만 쏟아집니다. 당신은 부자입니까, 아니면 짐꾼입니까?",
+		"price": 0,
+		"can_sell": false
+	},
+	"gold_pile_large": {
+		"name": "집어삼키는 금화궤짝 (대)",
+		"pattern": "4x4",
+		"atlas_index": 652,
+		"grade": "epic",
+		"description": "이쯤 되면 금화가 당신을 소유하고 있는지도 모릅니다. 가방의 모든 공간이 황금빛 무게에 짓눌려 비명을 지릅니다.",
+		"price": 0,
+		"can_sell": false
 	}
 }

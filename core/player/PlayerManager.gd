@@ -43,6 +43,8 @@ func equip_item(slot_key: String, item_data: Dictionary):
 		equipment[slot_key] = item_data
 		_apply_equipment_stats(slot_key, item_data, true)
 		_update_armor_counts()
+		
+		SignalBus.emit_signal("equipment_changed", slot_key, item_data)
 		print("DEBUG: ", slot_key, " 부위에 ", item_data.get("name", "아이템"), " 장착 완료.")
 
 # [신규] 아이템 해제 함수
@@ -56,10 +58,10 @@ func unequip_item(slot_key: String):
 		equipment[slot_key] = null
 		_update_armor_counts()
 		
+		SignalBus.emit_signal("equipment_changed", slot_key, null)
+		
 		if item_id != "":
-			var inv_mgr = get_node_or_null("/root/InventoryManager")
-			if inv_mgr and inv_mgr.has_method("try_add_item"):
-				inv_mgr.try_add_item(item_id)
+			InventoryManager.try_add_item(item_id)
 
 # [신규] 아이템 장착 가능 여부 확인
 func can_equip_item(item_data: Dictionary) -> bool:
@@ -177,6 +179,8 @@ func _ready():
 	var inv_script = load("res://core/inventory/InventoryData.gd")
 	if inv_script:
 		inventory_data = inv_script.new(Vector2i(10, 5))
+		# 인벤토리 변경 시 패시브 효과 갱신 연결
+		inventory_data.items_changed.connect(update_passive_effects)
 		
 	if player_data == null:
 		player_data = load("res://resources/characters/player/Novice.tres")
@@ -187,7 +191,55 @@ func _ready():
 	
 	if current_player_stats == null and player_data:
 		current_player_stats = player_data.get("base_stats").duplicate(true)
+
+# [신규] 소지/장착 효과 통합 갱신
+func update_passive_effects():
+	if not current_player_stats: return
 	
+	print("PlayerManager: 패시브 및 장착 효과 갱신 시작...")
+	# 1. 기존 모든 가변 효과 제거 (초기화)
+	_clear_all_applied_modifiers()
+	
+	# 2. 현재 장착 중인 아이템 효과 적용
+	for slot in equipment.keys():
+		var item_data = equipment[slot]
+		if item_data:
+			_apply_item_effects(item_data, true) # 장착 상태
+			
+	# 3. 인벤토리에 소지 중인 아이템 효과 적용
+	for item in inventory_data.items:
+		var item_data = item.get_data()
+		_apply_item_effects(item_data, false) # 소지 상태
+
+func _clear_all_applied_modifiers():
+	# 기존에 적용된 모든 StatModifierEffect를 StatManager에서 제거하는 로직
+	# (현재는 단순화하여 기본 스탯으로 복구하거나 모디파이어 리스트 초기화)
+	if current_player_stats.has_method("clear_all_modifiers"):
+		current_player_stats.clear_all_modifiers()
+
+func _apply_item_effects(item_data: Dictionary, is_equipped: bool):
+	var effects = item_data.get("effects", []) # 아이템 데이터 내 effects 배열
+	# 기존 'stats' 필드도 하위 호환을 위해 처리
+	var stats_data = item_data.get("stats", {})
+	
+	for stat_key in stats_data.keys():
+		var value = stats_data[stat_key]
+		# 장착 시에만 적용되는 기본 스탯들
+		if is_equipped:
+			_apply_stat_modifier(stat_key, value)
+		
+	# [참고] 금화 더미 등 인벤토리 아이템은 존재 자체로 공간을 점유하는 패널티 역할을 수행함.
+	# 추가적인 스탯 감소 패널티는 적용하지 않음 (윤호님 가이드 준수)
+
+func _apply_stat_modifier(stat_key: String, value):
+	var stat = current_player_stats.get_stat(stat_key)
+	if stat:
+		var mod_script = load("res://resources/stats/MyStatModifier.gd")
+		var mod = mod_script.new()
+		mod.set("value", value)
+		mod.set("target_stat_key", stat_key)
+		stat.call("add_modifier", mod)
+
 func initialize_session():
 	if current_player_stats == null and player_data:
 		current_player_stats = player_data.get("base_stats").duplicate(true)
