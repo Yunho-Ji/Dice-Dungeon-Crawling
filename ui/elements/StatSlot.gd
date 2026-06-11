@@ -67,7 +67,7 @@ func _drop_data(_at_position: Vector2, data: Variant):
 
 func _get_design_screen():
 	var p = get_parent()
-	while p:
+	while is_instance_valid(p):
 		if p.name == "DestinyDesignScreen" or p.has_signal("closed"):
 			return p
 		p = p.get_parent()

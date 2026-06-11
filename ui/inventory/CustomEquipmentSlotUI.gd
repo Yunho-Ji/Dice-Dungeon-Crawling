@@ -59,11 +59,24 @@ func _drop_data(_at_position, data):
 	var item_def = DataManager.get_item(inv_item.id)
 	if not item_def.has("id"): item_def["id"] = inv_item.id
 	
-	# 1. 기존 위치에서 제거
+	# 1. 기존 위치에서 제거 및 상점 구매 처리
 	if data.get("source_node"):
 		var source = data["source_node"]
-		if source.get_parent().name == "ItemsContainer": # 가방에서 온 경우
-			PlayerManager.inventory_data.remove_item(inv_item)
+		if source.get_parent().name == "ItemsContainer":
+			var source_grid = source.get_parent().get_parent() as CustomInventoryGrid
+			
+			if source_grid and source_grid.is_shop:
+				var em = get_node_or_null("/root/EconomyManager")
+				var base_price = item_def.get("price", 10)
+				if em and not em.has_gold(base_price):
+					print("골드가 부족하여 장착(구매)할 수 없습니다!")
+					return
+				if em:
+					em.spend_gold(base_price)
+				source_grid.inventory_data.remove_item(inv_item)
+			else:
+				PlayerManager.inventory_data.remove_item(inv_item)
+				
 		elif source.get_parent() is CustomEquipmentSlotUI: # 다른 장비 슬롯에서 온 경우 (위치 교환 등)
 			var old_slot = source.get_parent() as CustomEquipmentSlotUI
 			PlayerManager.unequip_item(old_slot.slot_key)

@@ -3,7 +3,18 @@
 extends Control
 class_name CustomInventoryGrid
 
-@export var inventory_data: InventoryData
+@export var inventory_data: InventoryData:
+	set(value):
+		if inventory_data and inventory_data.items_changed.is_connected(refresh_ui):
+			inventory_data.items_changed.disconnect(refresh_ui)
+		inventory_data = value
+		if inventory_data and not inventory_data.items_changed.is_connected(refresh_ui):
+			inventory_data.items_changed.connect(refresh_ui)
+		if is_node_ready():
+			setup_grid()
+			refresh_ui()
+
+@export var is_shop: bool = false
 
 @onready var grid_container = $GridContainer
 @onready var items_container = $ItemsContainer
@@ -14,9 +25,10 @@ const TILE_SIZE = 40
 
 func _ready():
 	if not inventory_data:
-		inventory_data = InventoryData.new(Vector2i(10, 5))
-	
-	inventory_data.items_changed.connect(refresh_ui)
+		inventory_data = InventoryData.new(Vector2i(10, 5)) # setter automatically handles connections
+	elif not inventory_data.items_changed.is_connected(refresh_ui):
+		inventory_data.items_changed.connect(refresh_ui)
+		
 	setup_grid()
 	refresh_ui()
 
@@ -51,6 +63,14 @@ func _can_drop_data(at_position, data):
 		var item = data["item"] as InventoryItem
 		var grid_pos = Vector2i(at_position / TILE_SIZE)
 		
+		# 상점 내부 이동(정렬) 방지
+		if is_shop and data.get("source_node"):
+			var source = data["source_node"]
+			if source.get_parent().name == "ItemsContainer":
+				var source_grid = source.get_parent().get_parent() as CustomInventoryGrid
+				if source_grid == self:
+					return false
+		
 		# 자기 자신을 제외하고 해당 위치에 놓을 수 있는지 확인
 		return inventory_data.can_place_item_at(item.id, grid_pos, item.is_rotated, item)
 	return false
@@ -59,23 +79,60 @@ func _drop_data(at_position, data):
 	var item = data["item"] as InventoryItem
 	var grid_pos = Vector2i(at_position / TILE_SIZE)
 	
-	# 트랜잭션: 기존 위치에서 제거
+	var is_buy_action = false
+	var is_sell_action = false
+	var source_grid = null
+	var source = null
+	
 	if data.get("source_node"):
-		var source = data["source_node"]
-		if source.get_parent().name == "ItemsContainer": # 가방 내 이동
-			inventory_data.remove_item(item)
-		elif source.get_parent() is CustomEquipmentSlotUI: # 장비창에서 가방으로 (해제)
+		source = data["source_node"]
+		if source.get_parent().name == "ItemsContainer":
+			source_grid = source.get_parent().get_parent() as CustomInventoryGrid
+
+	# 상점 관련 로직 판별
+	if source_grid != null and source_grid != self:
+		if source_grid.is_shop and not self.is_shop:
+			is_buy_action = true
+		elif not source_grid.is_shop and self.is_shop:
+			is_sell_action = true
+
+	var em = get_node_or_null("/root/EconomyManager")
+	var item_data = item.get_data()
+	var base_price = item_data.get("price", 10)
+	
+	if is_buy_action:
+		var buy_price = base_price
+		if em and not em.has_gold(buy_price):
+			print("골드가 부족합니다!")
+			return # 드롭 취소
+		if em:
+			em.spend_gold(buy_price)
+			
+	elif is_sell_action:
+		var sell_price = max(1, int(base_price * 0.5))
+		if em:
+			em.add_gold(sell_price)
+	
+	# 트랜잭션: 기존 위치에서 제거
+	if source:
+		if source.get_parent().name == "ItemsContainer": # 가방/상점 내 이동
+			if source_grid == self:
+				# 내부 이동: move_item 호출하여 인스턴스 유지
+				if not inventory_data.move_item(item, grid_pos, item.is_rotated):
+					printerr("CustomInventoryGrid: Internal move failed at ", grid_pos)
+				return
+			else:
+				# 다른 그리드에서 온 경우
+				source_grid.inventory_data.remove_item(item)
+		elif source.get_parent() is CustomEquipmentSlotUI: # 장비창에서 가방으로
 			var old_slot = source.get_parent() as CustomEquipmentSlotUI
-			# unequip_item 내부에서 InventoryManager.try_add_item을 호출하여
-			# 가방에 넣으려 시도하므로, 여기서는 unequip만 호출하고
-			# inventory_data.add_item은 별도로 하지 않거나 (중복 방지)
-			# 혹은 unequip의 기본 동작을 가방에 넣지 않도록 하고 여기서 넣어야 함.
-			# 현재 PlayerManager.unequip_item은 try_add_item을 호출하므로, 
-			# 특정 위치(grid_pos)에 넣기 위해 로직 수정이 필요할 수 있음.
-			PlayerManager.unequip_item(old_slot.slot_key)
-			# unequip 후 자동 수납된 아이템의 위치를 grid_pos로 강제 조정 (필요 시)
-			return # unequip_item에서 이미 처리함
+			PlayerManager.unequip_item_without_add(old_slot.slot_key)
 
 	# 새 위치 및 회전 상태 적용하여 다시 추가
+	# 외부에서 온 아이템이므로 새 인스턴스로 추가됨
 	if not inventory_data.add_item(item.id, grid_pos, item.is_rotated):
 		printerr("CustomInventoryGrid: Drop failed at ", grid_pos)
+		# 실패 시 롤백 (단순화: 돈은 환불하지 않고 아이템만 삭제되므로 복잡한 롤백은 추가 구현 필요)
+		if is_buy_action and em: em.add_gold(base_price)
+		elif is_sell_action and em: em.spend_gold(max(1, int(base_price * 0.5)))
+		if source_grid: source_grid.inventory_data.add_item(item.id, item.grid_position, item.is_rotated)

@@ -3,7 +3,7 @@ extends Control
 const NPCData = preload("res://resources/characters/npc/NPCData.gd")
 
 var town_manager # TownManager 싱글톤 인스턴스를 저장할 변수
-var current_dialogue_screen: Control = null
+var current_dialogue_screen: Node = null
 
 @onready var time_display_label = $ContentArea/TimeDisplay
 @onready var location_buttons = $ContentArea/LocationButtons
@@ -32,8 +32,9 @@ func _ready():
 	start_expedition_button.pressed.connect(_on_start_expedition_button_pressed)
 	
 	_update_player_info()
-	if economy_manager.has_signal("gold_changed"):
-		economy_manager.gold_changed.connect(func(_val): _update_player_info())
+	var em = get_node_or_null("/root/EconomyManager")
+	if em and em.has_signal("gold_changed"):
+		em.gold_changed.connect(func(_val): _update_player_info())
 	
 	_on_time_updated(town_manager.get_current_time_string())
 
@@ -71,21 +72,30 @@ func _on_location_button_pressed(button_name: String):
 			if npc_data: _open_npc_dialogue(npc_data)
 		_:
 			print(button_name, " 방문 로직 미구현")
-
 func _open_npc_dialogue(data: NPCData):
 	if current_dialogue_screen:
 		current_dialogue_screen.queue_free()
-		
+
+	# 건물 내부로 진입하는 느낌을 주기 위해 마을 배경/UI 숨김
+	if has_node("ContentArea"):
+		$ContentArea.visible = false
+
 	var dialogue_script = load("res://ui/screens/NPCDialogueScreen.gd")
-	var dialogue_screen = PanelContainer.new()
+	var dialogue_screen = CanvasLayer.new()
 	dialogue_screen.set_script(dialogue_script)
 	add_child(dialogue_screen)
-	
-	_center_node(dialogue_screen)
+
 	dialogue_screen.setup(data)
 	dialogue_screen.closed.connect(_on_npc_dialogue_closed.bind(dialogue_screen))
 	current_dialogue_screen = dialogue_screen
 
+# 대화창을 화면 좌측에 배치하고 뒷배경을 어둡게 처리하는 함수
+# NPCDialogueScreen 내부에서 자체적으로 처리하도록 개선됨
+func _setup_dialogue_layout(node: Node):
+	# 이전의 중복된 dimmer 로직 제거 (NPCDialogueScreen이 자체 CanvasLayer와 Dimmer를 가짐)
+	pass
+
+# 노드를 화면 중앙에 배치하고 뒷배경을 어둡게 처리하는 헬퍼 함수 (기타 팝업용)
 func _on_npc_dialogue_closed(action_type, param, screen):
 	match action_type:
 		NPCData.FunctionType.SHOP:
@@ -99,8 +109,12 @@ func _on_npc_dialogue_closed(action_type, param, screen):
 			if town_manager.spend_time_for_facility():
 				print("Town: 대화 종료 후 시간이 흘렀습니다.")
 			current_dialogue_screen = null
+			
+			# 마을 배경/UI 다시 표시
+			if has_node("ContentArea"):
+				$ContentArea.visible = true
 
-func _open_enchant_screen(parent_screen: Control):
+func _open_enchant_screen(parent_screen: Node):
 	var enchant_script = load("res://ui/screens/EnchantScreen.gd")
 	var enchant_screen = PanelContainer.new()
 	enchant_screen.set_script(enchant_script)
@@ -114,10 +128,13 @@ func _open_enchant_screen(parent_screen: Control):
 	if parent_screen.has_method("show_player_inventory"):
 		parent_screen.show_player_inventory(true)
 
-func _open_shop_screen(parent_screen: Control):
+func _open_shop_screen(parent_screen: Node):
 	# [디아블로 방식] 하나의 큰 그리드 생성
 	var grid_scene = load("res://ui/inventory/CustomInventoryGrid.tscn")
 	var shop_grid = grid_scene.instantiate()
+	
+	# 상점 그리드로 명시
+	shop_grid.is_shop = true
 	
 	# 상점용 데이터 생성 (임시로 빈 10x10 그리드)
 	shop_grid.inventory_data = InventoryData.new(Vector2i(10, 10))
@@ -125,6 +142,12 @@ func _open_shop_screen(parent_screen: Control):
 	# 임시 상품 추가
 	shop_grid.inventory_data.add_item("test_grimoire_epic")
 	shop_grid.inventory_data.add_item("test_cloth_top_rare")
+	
+	# 테스트를 위한 다양한 가격의 아이템 추가
+	shop_grid.inventory_data.add_item("basic_sword")
+	shop_grid.inventory_data.add_item("basic_leather_boots")
+	shop_grid.inventory_data.add_item("test_consumable_585")
+	shop_grid.inventory_data.add_item("test_necklace_common")
 	
 	parent_screen.set_grid_content(shop_grid)
 	
@@ -141,7 +164,12 @@ func _open_inn_screen():
 	inn_screen.set_script(inn_script)
 	add_child(inn_screen)
 	_center_node(inn_screen)
-	inn_screen.closed.connect(func(): _update_player_info())
+	inn_screen.closed.connect(func(): 
+		_update_player_info()
+		# 여관을 닫을 때 마을 UI 복구
+		if has_node("ContentArea"):
+			$ContentArea.visible = true
+	)
 
 # 노드를 화면 중앙에 배치하고 뒷배경을 어둡게 처리하는 헬퍼 함수
 func _center_node(node: Control):
@@ -154,9 +182,15 @@ func _center_node(node: Control):
 	
 	var opaque_style = StyleBoxFlat.new()
 	opaque_style.bg_color = Color(0.12, 0.14, 0.18, 1.0)
-	opaque_style.set_border_width_all(2)
+	opaque_style.border_width_left = 2
+	opaque_style.border_width_top = 2
+	opaque_style.border_width_right = 2
+	opaque_style.border_width_bottom = 2
 	opaque_style.border_color = Color(0.35, 0.4, 0.5, 1.0)
-	opaque_style.set_corner_radius_all(12)
+	opaque_style.corner_radius_top_left = 12
+	opaque_style.corner_radius_top_right = 12
+	opaque_style.corner_radius_bottom_right = 12
+	opaque_style.corner_radius_bottom_left = 12
 	opaque_style.content_margin_left = 20
 	opaque_style.content_margin_right = 20
 	opaque_style.content_margin_top = 20

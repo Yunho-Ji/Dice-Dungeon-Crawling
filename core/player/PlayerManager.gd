@@ -49,6 +49,11 @@ func equip_item(slot_key: String, item_data: Dictionary):
 
 # [신규] 아이템 해제 함수
 func unequip_item(slot_key: String):
+	var item_id = unequip_item_without_add(slot_key)
+	if item_id != "":
+		InventoryManager.try_add_item(item_id)
+
+func unequip_item_without_add(slot_key: String) -> String:
 	if equipment.has(slot_key) and equipment[slot_key]:
 		var item_data = equipment[slot_key]
 		var item_id = item_data.get("id", "")
@@ -59,9 +64,8 @@ func unequip_item(slot_key: String):
 		_update_armor_counts()
 		
 		SignalBus.emit_signal("equipment_changed", slot_key, null)
-		
-		if item_id != "":
-			InventoryManager.try_add_item(item_id)
+		return item_id
+	return ""
 
 # [신규] 아이템 장착 가능 여부 확인
 func can_equip_item(item_data: Dictionary) -> bool:

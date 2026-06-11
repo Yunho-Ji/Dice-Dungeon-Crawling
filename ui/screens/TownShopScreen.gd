@@ -21,6 +21,13 @@ var shop_item_ids = [
 func _ready():
 	custom_minimum_size = Vector2(550, 500)
 	
+	# 화면 좌측 배치 설정
+	set_anchors_and_offsets_preset(Control.PRESET_LEFT_WIDE, Control.PRESET_MODE_MINSIZE, 20)
+	offset_left = 20
+	offset_top = 20
+	offset_right = 570
+	offset_bottom = -20
+	
 	# 기존 자식 노드 제거 (새로운 레이아웃 구성을 위해)
 	for child in get_children():
 		child.queue_free()

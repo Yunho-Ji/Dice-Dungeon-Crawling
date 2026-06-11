@@ -54,6 +54,16 @@ func can_place_item_at(item_id: String, pos: Vector2i, rotated: bool, ignore_ite
 				return false
 	return true
 
+func move_item(item: InventoryItem, new_pos: Vector2i, new_rotation: bool) -> bool:
+	if not items.has(item): return false
+	
+	if can_place_item_at(item.id, new_pos, new_rotation, item):
+		item.grid_position = new_pos
+		item.is_rotated = new_rotation
+		_rebuild_grid()
+		items_changed.emit()
+		return true
+	return false
 func try_rotate_item(item: InventoryItem) -> bool:
 	if not items.has(item): return false
 	

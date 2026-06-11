@@ -16,6 +16,7 @@ enum Screen { NONE, DESTINY_DESIGN, BATTLE_HUD, INVENTORY, DUNGEON_MAP, END_OF_D
 
 const STATUS_POPUP_SCENE = preload("res://ui/StatusPopup.tscn")
 var status_popup: Node = null
+var item_tooltip: Control = null # ItemTooltip 인스턴스 저장용
 
 var screen_nodes: Dictionary = {}
 var current_screen: Screen = Screen.NONE
@@ -40,6 +41,11 @@ func _ready():
 		show_screen(Screen.BATTLE_HUD)
 	else:
 		show_screen(Screen.NONE)
+
+func get_screen_node(screen_type: Screen) -> Node:
+	if screen_nodes.has(screen_type):
+		return screen_nodes[screen_type]
+	return null
 
 func show_character_info(character: Character):
 	if not is_instance_valid(status_popup):
@@ -76,13 +82,13 @@ func show_screen(screen_type: Screen, instance: Node = null):
 				Screen.INVENTORY:
 					if inventory_screen_scene:
 						new_screen_instance = inventory_screen_scene.instantiate()
-						if new_screen_instance.has_signal("inventory_closed"):
+						if is_instance_valid(new_screen_instance) and new_screen_instance.has_signal("inventory_closed"):
 							new_screen_instance.inventory_closed.connect(_on_inventory_closed)
 				Screen.LOOT_OFFER:
 					if not loot_offer_screen_scene:
 						loot_offer_screen_scene = load("res://ui/screens/LootOfferScreen.tscn")
 					new_screen_instance = loot_offer_screen_scene.instantiate()
-					if new_screen_instance.has_signal("closed"):
+					if is_instance_valid(new_screen_instance) and new_screen_instance.has_signal("closed"):
 						new_screen_instance.closed.connect(_on_loot_offer_closed)
 				Screen.END_OF_DUNGEON_OPTIONS:
 					new_screen_instance = end_of_dungeon_screen_scene.instantiate()
@@ -139,3 +145,26 @@ func _on_loot_offer_closed():
 			show_screen(Screen.END_OF_DUNGEON_OPTIONS)
 		else:
 			show_screen(Screen.BATTLE_HUD)
+
+func show_item_tooltip(item: InventoryItem, global_pos: Vector2):
+	if not is_instance_valid(item_tooltip):
+		item_tooltip = ItemTooltip.new()
+		add_child(item_tooltip)
+	
+	if item_tooltip.has_method("setup"):
+		item_tooltip.setup(item)
+	
+	item_tooltip.global_position = global_pos + Vector2(20, 20)
+	
+	# 화면 밖으로 나가지 않게 조정
+	var viewport_size = get_viewport().get_visible_rect().size
+	if item_tooltip.global_position.x + item_tooltip.size.x > viewport_size.x:
+		item_tooltip.global_position.x = global_pos.x - item_tooltip.size.x - 20
+	if item_tooltip.global_position.y + item_tooltip.size.y > viewport_size.y:
+		item_tooltip.global_position.y = viewport_size.y - item_tooltip.size.y - 10
+		
+	item_tooltip.show()
+
+func hide_item_tooltip():
+	if is_instance_valid(item_tooltip):
+		item_tooltip.hide()
