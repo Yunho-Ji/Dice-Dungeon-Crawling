@@ -77,13 +77,28 @@ func setup(item: InventoryItem):
 var preview_rect: TextureRect
 
 func _get_drag_data(_at_position):
+	var source_grid = get_parent().get_parent()
+	# 상점 인벤토리일 경우, 구매 모드가 아니면(즉, 플레이어가 마음대로 위치 변경하는 것)
+	# 원칙적으로 상점에서는 내부에서 드래그 시작은 되지만 _can_drop_data에서 막아야 함.
+	# 하지만 드래그 자체를 막는 것보다 "상점에서 다른 곳으로 파는/사는 행위"는 허용해야 함.
+	
 	InventoryManager.start_drag(inventory_item, self)
+	
+	# 드래그 시작 시 툴팁 숨기기
+	var gm = get_node_or_null("/root/GameManager")
+	if gm and gm.ui_manager:
+		gm.ui_manager.hide_item_tooltip()
 	
 	var data = { "item": inventory_item, "source_node": self }
 	
 	# 드래그용 프리뷰 생성
 	var preview = Control.new()
 	preview_rect = texture_rect.duplicate()
+	
+	# Control에 넣을 때 크기가 0으로 줄어드는 것 방지
+	preview_rect.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	preview_rect.size = texture_rect.size
+	preview_rect.position = -preview_rect.size / 2
 	
 	_update_preview_rotation()
 	
@@ -100,13 +115,15 @@ func _update_preview_rotation():
 	if not preview_rect: return
 	
 	var item_size = inventory_item.get_size()
+	var center_offset = -preview_rect.size / 2
+	
 	if inventory_item.is_rotated:
 		preview_rect.rotation = PI/2
 		# 회전 시 앵커 포인트 보정
-		preview_rect.position = Vector2(item_size.x * tile_size.x, 0)
+		preview_rect.position = Vector2(item_size.x * tile_size.x, 0) + center_offset
 	else:
 		preview_rect.rotation = 0
-		preview_rect.position = Vector2.ZERO
+		preview_rect.position = center_offset
 
 func _on_mouse_entered():
 	is_hovering = true

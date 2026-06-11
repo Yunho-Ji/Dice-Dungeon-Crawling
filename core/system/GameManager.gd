@@ -126,10 +126,10 @@ func initialize_game_scene(player: Node, enemy: Node, battle_mgr: Node, ui_mgr: 
 
 	if ui_manager and ui_manager.get("battle_hud"):
 		var bh = ui_manager.get("battle_hud")
-		if bh and player_node.has_signal("damage_taken"):
+		if bh and is_instance_valid(player_node) and player_node.has_signal("damage_taken"):
 			player_node.damage_taken.connect(Callable(bh, "_on_character_damage_taken").bind(true))
 		for e in enemy_nodes:
-			if e.has_signal("damage_taken"):
+			if is_instance_valid(e) and e.has_signal("damage_taken"):
 				e.damage_taken.connect(Callable(bh, "_on_character_damage_taken").bind(false))
 
 	if dice_manager and dice_manager.has_method("get_player_dice_pool") and dice_manager.get_player_dice_pool().is_empty():
@@ -387,7 +387,7 @@ func prepare_dungeon_battle(node: Resource):
 			enemy_node = instantiated_enemy
 		enemy_nodes.append(instantiated_enemy)
 		if ui_manager and ui_manager.get("battle_hud"):
-			if instantiated_enemy.has_signal("damage_taken"):
+			if is_instance_valid(instantiated_enemy) and instantiated_enemy.has_signal("damage_taken"):
 				instantiated_enemy.damage_taken.connect(Callable(ui_manager.get("battle_hud"), "_on_character_damage_taken").bind(false))
 
 	var hp_multiplier = 1.0 + (current_stage - 1) * 0.1 + current_battle_count * 0.05

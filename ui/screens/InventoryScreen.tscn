@@ -31,56 +31,64 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.75)
+mouse_filter = 2
+color = Color(0, 0, 0, 0.1)
 
-[node name="CenterContainer" type="CenterContainer" parent="."]
-anchors_preset = 15
+[node name="MainPanel" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(380, 0)
+anchors_preset = 11
+anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-grow_horizontal = 2
+offset_left = -390.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 0
 grow_vertical = 2
-
-[node name="MainPanel" type="PanelContainer" parent="CenterContainer"]
-layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
 
-[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainPanel"]
+[node name="VBox" type="VBoxContainer" parent="MainPanel"]
 layout_mode = 2
-theme_override_constants/separation = 15
+theme_override_constants/separation = 8
 
-[node name="Header" type="HBoxContainer" parent="CenterContainer/MainPanel/VBox"]
+[node name="Header" type="HBoxContainer" parent="MainPanel/VBox"]
 layout_mode = 2
 alignment = 1
 
-[node name="Title" type="Label" parent="CenterContainer/MainPanel/VBox/Header"]
+[node name="Title" type="Label" parent="MainPanel/VBox/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 20
 text = "소지품 및 장비"
 horizontal_alignment = 1
 
-[node name="CloseButton" type="Button" parent="CenterContainer/MainPanel/VBox/Header"]
-custom_minimum_size = Vector2(30, 30)
+[node name="CloseButton" type="Button" parent="MainPanel/VBox/Header"]
+custom_minimum_size = Vector2(25, 25)
 layout_mode = 2
 text = "X"
 
-[node name="MainVBox" type="VBoxContainer" parent="CenterContainer/MainPanel/VBox"]
+[node name="MainVBox" type="VBoxContainer" parent="MainPanel/VBox"]
 layout_mode = 2
-theme_override_constants/separation = 20
+size_flags_vertical = 3
+theme_override_constants/separation = 12
 
-[node name="EquipmentSection" type="VBoxContainer" parent="CenterContainer/MainPanel/VBox/MainVBox"]
+[node name="EquipmentSection" type="VBoxContainer" parent="MainPanel/VBox/MainVBox"]
 layout_mode = 2
+theme_override_constants/separation = 5
 
-[node name="Label" type="Label" parent="CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection"]
+[node name="Label" type="Label" parent="MainPanel/VBox/MainVBox/EquipmentSection"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 14
 text = "장착 장비"
 horizontal_alignment = 1
 
-[node name="SilhouetteContainer" type="Control" parent="CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection"]
-custom_minimum_size = Vector2(300, 350)
+[node name="SilhouetteContainer" type="Control" parent="MainPanel/VBox/MainVBox/EquipmentSection"]
+custom_minimum_size = Vector2(300, 320)
 layout_mode = 2
+size_flags_horizontal = 4
 
-[node name="HeadSlot" parent="CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer" instance=ExtResource("3_slot_scene")]
+[node name="HeadSlot" parent="MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer" instance=ExtResource("3_slot_scene")]
 layout_mode = 0
 offset_left = 130.0
 offset_top = 0.0
@@ -90,7 +98,7 @@ script = ExtResource("4_slot_script")
 slot_key = "head"
 slot_size = Vector2i(1, 1)
 
-[node name="TopSlot" parent="CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer" instance=ExtResource("3_slot_scene")]
+[node name="TopSlot" parent="MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer" instance=ExtResource("3_slot_scene")]
 layout_mode = 0
 offset_left = 110.0
 offset_top = 50.0
@@ -100,7 +108,7 @@ script = ExtResource("4_slot_script")
 slot_key = "top"
 slot_size = Vector2i(2, 2)
 
-[node name="BottomSlot" parent="CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer" instance=ExtResource("3_slot_scene")]
+[node name="BottomSlot" parent="MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer" instance=ExtResource("3_slot_scene")]
 layout_mode = 0
 offset_left = 110.0
 offset_top = 140.0
@@ -110,7 +118,7 @@ script = ExtResource("4_slot_script")
 slot_key = "bottom"
 slot_size = Vector2i(2, 2)
 
-[node name="ShoesSlot" parent="CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer" instance=ExtResource("3_slot_scene")]
+[node name="ShoesSlot" parent="MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer" instance=ExtResource("3_slot_scene")]
 layout_mode = 0
 offset_left = 110.0
 offset_top = 230.0
@@ -120,7 +128,7 @@ script = ExtResource("4_slot_script")
 slot_key = "shoes"
 slot_size = Vector2i(2, 1)
 
-[node name="RightHandSlot" parent="CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer" instance=ExtResource("3_slot_scene")]
+[node name="RightHandSlot" parent="MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer" instance=ExtResource("3_slot_scene")]
 layout_mode = 0
 offset_left = 20.0
 offset_top = 50.0
@@ -130,7 +138,7 @@ script = ExtResource("4_slot_script")
 slot_key = "right_hand"
 slot_size = Vector2i(2, 3)
 
-[node name="LeftHandSlot" parent="CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer" instance=ExtResource("3_slot_scene")]
+[node name="LeftHandSlot" parent="MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer" instance=ExtResource("3_slot_scene")]
 layout_mode = 0
 offset_left = 200.0
 offset_top = 50.0
@@ -140,7 +148,7 @@ script = ExtResource("4_slot_script")
 slot_key = "left_hand"
 slot_size = Vector2i(2, 3)
 
-[node name="AccessoryGroup" type="GridContainer" parent="CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer"]
+[node name="AccessoryGroup" type="GridContainer" parent="MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer"]
 layout_mode = 0
 offset_left = 20.0
 offset_top = 290.0
@@ -149,43 +157,44 @@ offset_bottom = 330.0
 theme_override_constants/h_separation = 10
 columns = 4
 
-[node name="Acc1" parent="CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/AccessoryGroup" instance=ExtResource("3_slot_scene")]
+[node name="Acc1" parent="MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/AccessoryGroup" instance=ExtResource("3_slot_scene")]
 layout_mode = 2
 script = ExtResource("4_slot_script")
 slot_key = "accessory_1"
 
-[node name="Acc2" parent="CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/AccessoryGroup" instance=ExtResource("3_slot_scene")]
+[node name="Acc2" parent="MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/AccessoryGroup" instance=ExtResource("3_slot_scene")]
 layout_mode = 2
 script = ExtResource("4_slot_script")
 slot_key = "accessory_2"
 
-[node name="Acc3" parent="CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/AccessoryGroup" instance=ExtResource("3_slot_scene")]
+[node name="Acc3" parent="MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/AccessoryGroup" instance=ExtResource("3_slot_scene")]
 layout_mode = 2
 script = ExtResource("4_slot_script")
 slot_key = "accessory_3"
 
-[node name="Acc4" parent="CenterContainer/MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/AccessoryGroup" instance=ExtResource("3_slot_scene")]
+[node name="Acc4" parent="MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/AccessoryGroup" instance=ExtResource("3_slot_scene")]
 layout_mode = 2
 script = ExtResource("4_slot_script")
 slot_key = "accessory_4"
 
-[node name="InventorySection" type="VBoxContainer" parent="CenterContainer/MainPanel/VBox/MainVBox"]
+[node name="InventorySection" type="VBoxContainer" parent="MainPanel/VBox/MainVBox"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="CenterContainer/MainPanel/VBox/MainVBox/InventorySection"]
+[node name="Label" type="Label" parent="MainPanel/VBox/MainVBox/InventorySection"]
 layout_mode = 2
 text = "가방"
 horizontal_alignment = 1
 
-[node name="InventoryInterface" parent="CenterContainer/MainPanel/VBox/MainVBox/InventorySection" instance=ExtResource("2_grid_scene")]
+[node name="InventoryInterface" parent="MainPanel/VBox/MainVBox/InventorySection" instance=ExtResource("2_grid_scene")]
 layout_mode = 2
+size_flags_horizontal = 4
 
-[node name="Footer" type="HBoxContainer" parent="CenterContainer/MainPanel/VBox"]
+[node name="Footer" type="HBoxContainer" parent="MainPanel/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 20
 alignment = 2
 
-[node name="TrashBin" type="Button" parent="CenterContainer/MainPanel/VBox/Footer"]
+[node name="TrashBin" type="Button" parent="MainPanel/VBox/Footer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 40)
 layout_mode = 2
@@ -194,7 +203,8 @@ theme_override_colors/font_hover_color = Color(1, 0.2, 0.2, 1)
 text = "아이템 파기 🗑️"
 script = ExtResource("5_trash_script")
 
-[node name="GoldLabel" type="Label" parent="CenterContainer/MainPanel/VBox/Footer"]
+[node name="GoldLabel" type="Label" parent="MainPanel/VBox/Footer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.843137, 0, 1)
 text = "소지 골드: 0 G"
+
