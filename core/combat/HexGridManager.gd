@@ -40,6 +40,16 @@ func _initialize_grid():
 				grid_data[pos] = TileType.SAFE_ZONE
 			else:
 				grid_data[pos] = TileType.EMPTY
+				
+			# 초기화 시 가중치 1.0 부여
+			astar.set_point_weight_scale(pos, 1.0)
+
+# [신규] 함정 생성 함수
+func spawn_trap(coords: Vector2i):
+	if grid_data.has(coords) and grid_data[coords] == TileType.EMPTY:
+		grid_data[coords] = TileType.TRAP
+		astar.set_point_weight_scale(coords, 50.0) # AI가 돌아가도록 높은 가중치 부여
+		queue_redraw()
 
 # [신규] 타일 점유 설정 (다른 유닛이 접근 못하도록 AStar를 Solid로 만듦)
 func set_tile_occupied(coords: Vector2i, entity: Node):
@@ -81,6 +91,9 @@ func _draw():
 			if tile_type == TileType.SAFE_ZONE:
 				border_color = Color(0.2, 0.8, 0.2, 1.0) # 세이프존 뚜렷한 초록색 테두리
 				fill_color = Color(0.2, 0.8, 0.2, 0.05) # 내부는 거의 투명하게
+			elif tile_type == TileType.TRAP:
+				border_color = Color(0.8, 0.2, 0.2, 1.0) # 함정 빨간색 테두리
+				fill_color = Color(0.8, 0.2, 0.2, 0.3) # 붉은색 반투명 내부
 				
 			_draw_hex(center, tile_size.y * 0.5, border_color, fill_color)
 			

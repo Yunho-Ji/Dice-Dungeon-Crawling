@@ -40,6 +40,27 @@ var grid_manager: Node # HexGridManager 타입 인식 문제 방지를 위해 No
 			# 새로운 위치 점유 설정
 			if grid_manager.has_method("set_tile_occupied"):
 				grid_manager.set_tile_occupied(value, self)
+			
+			# [신규] 타일 위 효과 검사
+			_check_environmental_hazards()
+
+func _check_environmental_hazards():
+	if not grid_manager or not grid_manager.has_method("get_tile_type"): return
+	
+	# HexGridManager.TileType.TRAP
+	var TileType = grid_manager.get("TileType")
+	if not TileType: return
+	
+	var current_tile = grid_manager.get_tile_type(grid_pos)
+	if current_tile == TileType.TRAP:
+		print(name, " 앗! 함정을 밟았습니다! (", grid_pos, ")")
+		# 15 데미지 (가중치를 테스트와 맞춤)
+		take_damage(15)
+		
+		# (추가 기획) 상태 이상 부여 가능
+		# var sm = get_node_or_null("/root/StatusManager")
+		# if sm: sm.apply_effect(self, "bleed", 3)
+
 
 @export var move_range: int = 3 # MOV: 이동력 (기본값)
 @export var attack_range: int = 1 # RNG: 사거리 (기본값)
