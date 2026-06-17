@@ -49,17 +49,51 @@ func get_mp_regen_per_sec(stats: MyCharacterStats) -> float:
 	var base_regen = spi_val * 0.2
 	return base_regen
 
-## 행동 게이지(AP) 충전 속도 (SPD 기반)
-func get_ap_charge_speed(stats: MyCharacterStats) -> float:
+## 행동 게이지(AP) 충전 속도 (SPD 기반 + 방어구 보정)
+func get_ap_charge_speed(stats: MyCharacterStats, armor_profile: Dictionary = {}) -> float:
 	var spd_val = stats.get_stat("spd").computed_value
-	# 향후 SPD가 일정 수준 이상일 때 효율이 감소하는 Diminishing Returns 적용 가능 지점
-	return float(spd_val)
+	var multiplier = 1.0
+	
+	# 방어구 유형별 속도 보정 (v7.0)
+	# 중갑(Heavy): -20%, 경갑(Light): +20%, 천(Cloth): 0%
+	var heavy = armor_profile.get("heavy", 0)
+	var light = armor_profile.get("light", 0)
+	var cloth = armor_profile.get("cloth", 0)
+	var total_pieces = heavy + light + cloth
+	
+	if total_pieces > 0:
+		# 가중 평균 방식으로 속도 보정치 계산 (3부위 풀세트 기준 최대 보정치 도달)
+		# 3부위 이상일 때 100% 보정, 미만일 때 비율 적용
+		var weight = min(1.0, float(total_pieces) / 3.0)
+		var heavy_mod = (float(heavy) / total_pieces) * -0.20
+		var light_mod = (float(light) / total_pieces) * 0.20
+		multiplier += (heavy_mod + light_mod) * weight
+	
+	return float(spd_val) * max(0.1, multiplier)
+
+## 데미지 감소(DR) 상한선 계산 (방어구 유형 기반)
+func get_dr_cap(armor_profile: Dictionary) -> float:
+	var heavy = armor_profile.get("heavy", 0)
+	var light = armor_profile.get("light", 0)
+	var cloth = armor_profile.get("cloth", 0)
+	var total = heavy + light + cloth
+	
+	if total == 0: return 0.15 # 기본 15% (천 수준)
+	
+	# 가중치 기반 DR 캡 결정 (v7.0)
+	# 중갑: 60%, 경갑: 35%, 천: 15%
+	var cap = (float(heavy) * 0.60 + float(light) * 0.35 + float(cloth) * 0.15) / float(total)
+	return cap
 
 ## 회피 확률 (AGI + 장비 기반): 민첩 1당 0.5% + 경갑 보너스
-func get_evade_chance(stats: MyCharacterStats, light_armor_count: int) -> float:
+func get_evade_chance(stats: MyCharacterStats, armor_profile: Dictionary) -> float:
 	var agi_val = stats.get_stat("agi").computed_value
 	var base_evade = agi_val * 0.5
+	
+	# 경갑 1부위당 5% 보너스
+	var light_armor_count = armor_profile.get("light", 0)
 	var armor_bonus = light_armor_count * 5.0
+	
 	return base_evade + armor_bonus
 
 ## 퍼펙트 가드 AP 요구량 (RES 기반): 저항 1당 요구량 0.5 감소
@@ -88,12 +122,25 @@ func calculate_ap_stun(damage: int, stats: MyCharacterStats) -> float:
 	var mitigation = res_val * 0.5
 	return max(0.0, raw_stun - mitigation)
 
-## 최종 피해 계산 (방어력 적용)
-func calculate_final_damage(raw_damage: int, defender_stats: MyCharacterStats, p_rate: float = 0.0) -> int:
+## 최종 피해 계산 (방어력 및 DR 캡 적용)
+func calculate_final_damage(raw_damage: int, defender_stats: MyCharacterStats, armor_profile: Dictionary = {}, p_rate: float = 0.0) -> int:
 	var def_val = defender_stats.get_stat("defense").computed_value
-	# 관통력 적용: 방어자의 방어력을 p_rate 비율만큼 무시
+	
+	# 1. 방어력에 의한 기본 감쇄 (정수 차감)
 	var effective_def = int(def_val * (1.0 - p_rate))
-	return max(1, raw_damage - effective_def)
+	var reduced_dmg = max(1, raw_damage - effective_def)
+	
+	# 2. DR 캡(Damage Reduction Cap) 적용
+	# 방어력으로 깎을 수 있는 최대 비율을 방어구 타입에 따라 제한
+	var dr_cap = get_dr_cap(armor_profile)
+	var max_reduction = float(raw_damage) * dr_cap
+	
+	# 실제 감쇄된 수치가 캡을 넘지 않도록 조정
+	var actual_reduction = float(raw_damage - reduced_dmg)
+	if actual_reduction > max_reduction:
+		reduced_dmg = int(float(raw_damage) - max_reduction)
+		
+	return max(1, reduced_dmg)
 
 # --------------------------------------------------------------------------
 # 4. 데이터 연동 및 매핑 (Data Normalization)

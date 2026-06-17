@@ -21,9 +21,23 @@ func add_modifier(modifier: MyStatModifier):
 		_emit_value_changed()
 
 func remove_modifier(modifier: MyStatModifier):
-	if not modifiers.has(modifier):
+	if modifiers.has(modifier):
 		modifiers.erase(modifier)
 		_emit_value_changed()
+
+# [신규] 특정 출처(Source)의 모든 수정자를 안전하게 제거 (리팩토링 핵심)
+# 예: 장비 해제 시 remove_modifiers_by_source(MyStatModifier.Source.EQUIPMENT) 호출
+func remove_modifiers_by_source(p_source: int):
+	var to_remove = []
+	for mod in modifiers:
+		if mod is MyStatModifier and mod.source == p_source:
+			to_remove.append(mod)
+	
+	if not to_remove.is_empty():
+		for mod in to_remove:
+			modifiers.erase(mod)
+		_emit_value_changed()
+		print("DEBUG: MyStat: '", key, "' 스탯에서 출처(", p_source, ") 보너스 ", to_remove.size(), "개 제거 완료.")
 
 func clear_modifiers():
 	if not modifiers.is_empty():
@@ -51,6 +65,9 @@ func sync_from(source_stat):
 		new_modifier.value = modifier.value
 		new_modifier.operation = modifier.operation
 		new_modifier.target_stat_key = modifier.target_stat_key
+		# [버그 수정] 수정자의 출처(source) 데이터도 복사해야 전역 효과나 주사위 성장이 날아가지 않음
+		if "source" in modifier:
+			new_modifier.source = modifier.source
 		self.modifiers.append(new_modifier)
 	
 	_emit_value_changed()

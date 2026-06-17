@@ -4,19 +4,37 @@ class_name HexGridManager
 
 enum TileType { EMPTY, VOID, TRAP, SAFE_ZONE }
 
-@export var grid_width: int = 7
+@export var grid_width: int = 9
 @export var grid_height: int = 5
 @export var tile_size: Vector2 = Vector2(80, 80)
 
 var show_grid: bool = true
+var grid_offset: Vector2 = Vector2.ZERO # 중앙 정렬을 위한 오프셋
 
 var grid_data: Dictionary = {}
 var occupied_tiles: Dictionary = {} # [신규] 타일 점유 상태 (Vector2i -> Node)
 var astar: AStarGrid2D = AStarGrid2D.new()
 
 func _ready():
+	_calculate_grid_offset()
 	_initialize_grid()
 	queue_redraw()
+
+func _calculate_grid_offset():
+	# 육각 타일의 실제 픽셀 크기 계산
+	var w = tile_size.y * sqrt(3) / 2.0
+	var h = tile_size.y * 0.75
+	
+	# 그리드 전체의 대략적인 픽셀 너비와 높이
+	var total_grid_width = (grid_width - 1) * w + (w / 2.0 if grid_height > 1 else 0.0)
+	var total_grid_height = (grid_height - 1) * h
+	
+	# 화면(뷰포트) 중앙 좌표 계산
+	var viewport_size = get_viewport_rect().size
+	grid_offset.x = (viewport_size.x - total_grid_width) / 2.0
+	grid_offset.y = (viewport_size.y - total_grid_height) / 2.0
+	
+	print("HexGridManager: Grid Offset calculated for centering -> ", grid_offset)
 
 func toggle_grid_visibility():
 	show_grid = !show_grid
@@ -136,10 +154,10 @@ func map_to_local(coords: Vector2i) -> Vector2:
 	var w = tile_size.y * sqrt(3) / 2.0
 	var h = tile_size.y * 0.75
 	
-	var x = coords.x * w + 100 # X 시작 오프셋
+	var x = coords.x * w + grid_offset.x
 	if coords.y % 2 == 1:
 		x += w / 2.0 # 지그재그 보정
-	var y = coords.y * h + 150 # Y 시작 오프셋
+	var y = coords.y * h + grid_offset.y
 	
 	return Vector2(x, y)
 
@@ -147,8 +165,8 @@ func local_to_map(world_pos: Vector2) -> Vector2i:
 	var h = tile_size.y * 0.75
 	var w = tile_size.y * sqrt(3) / 2.0
 	
-	var y_rough = roundi((world_pos.y - 150) / h)
-	var x_offset = 100.0
+	var y_rough = roundi((world_pos.y - grid_offset.y) / h)
+	var x_offset = grid_offset.x
 	if y_rough % 2 == 1:
 		x_offset += w / 2.0
 	

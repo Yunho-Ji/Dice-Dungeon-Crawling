@@ -149,6 +149,32 @@ func use_skill_1():
 func use_skill_2():
 	print("GameManager: 스킬 2 사용")
 
+# [신규] 단축키 처리
+func _unhandled_input(event: InputEvent):
+	if event is InputEventKey and event.pressed and not event.is_echo():
+		if event.keycode == KEY_C:
+			if ui_manager and ui_manager.has_method("show_screen"):
+				# UIManager.Screen.CHARACTER_INFO = 2
+				if ui_manager.get("current_screen") == 2:
+					if current_game_phase == GamePhase.TOWN:
+						ui_manager.show_screen(0) # Screen.NONE
+					else:
+						ui_manager.show_screen(3) # Screen.BATTLE_HUD
+				else:
+					ui_manager.show_screen(2)
+		
+		# 인벤토리 단축키 (I)
+		if event.keycode == KEY_I:
+			if ui_manager and ui_manager.has_method("show_screen"):
+				# UIManager.Screen.INVENTORY = 4
+				if ui_manager.get("current_screen") == 4:
+					if current_game_phase == GamePhase.TOWN:
+						ui_manager.show_screen(0)
+					else:
+						ui_manager.show_screen(3)
+				else:
+					ui_manager.show_screen(4)
+
 func handle_start_combat():
 	current_game_phase = GamePhase.COMBAT
 	emit_signal("battle_started")
@@ -274,18 +300,33 @@ func _show_loot_offer(loot: Dictionary):
 		var loot_manager = get_node("/root/LootManager")
 		if loot_manager:
 			loot_manager.set_pending_loot(loot)
-			
+
 			if ui_manager.has_method("show_screen"):
-				ui_manager.show_screen(6) # Screen.LOOT_OFFER = 6
-				var loot_screen = ui_manager.get("screen_nodes").get(6)
+				# [리팩토링] 하드코딩된 숫자 대신 명시적 Enum 사용
+				ui_manager.show_screen(UIManager.Screen.LOOT_OFFER) 
+				var loot_screen = ui_manager.get("screen_nodes").get(UIManager.Screen.LOOT_OFFER)
 				if loot_screen and loot_screen.has_method("setup"):
 					loot_screen.setup(loot_manager.get_loot_data())
 
 func _spawn_treasure_chest(loot: Dictionary):
 	var chest = TREASURE_CHEST_SCENE.instantiate()
 	get_tree().current_scene.add_child(chest)
-	var spawn_pos = Vector2(800, 300) 
-	chest.global_position = spawn_pos
+	
+	# [v7.5 수정] 상자를 아레나 타일 위에 배치 (기본적으로 중앙 근처 빈 칸)
+	var spawn_grid_pos = Vector2i(4, 2)
+	var hgm = get_node_or_null("/root/HexGridManager") # Autoload가 아닐 경우를 대비
+	if not hgm:
+		# BattleManager 등을 통해 참조 시도
+		if battle_manager and battle_manager.get("hex_grid_manager"):
+			hgm = battle_manager.get("hex_grid_manager")
+			
+	if hgm and hgm.has_method("map_to_local"):
+		chest.global_position = hgm.map_to_local(spawn_grid_pos)
+		print("GameManager: 전리품 상자를 타일 ", spawn_grid_pos, " 위치에 배치했습니다.")
+	else:
+		var spawn_pos = Vector2(500, 300) 
+		chest.global_position = spawn_pos
+		
 	if chest.has_method("setup"):
 		chest.setup(loot)
 
@@ -329,6 +370,8 @@ func prepare_dungeon_battle(node: Resource):
 		current_dungeon_node = node
 	else:
 		current_battle_node_type = "normal"
+	
+	print("[DEBUG] GameManager: prepare_dungeon_battle - node_type: ", current_battle_node_type, " (ID: ", node.get("node_id") if node else "null", ")")
 
 	if not is_instance_valid(battle_manager):
 		printerr("GameManager: BattleManager is not valid!")

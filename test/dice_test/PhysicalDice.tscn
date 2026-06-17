@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3 uid="uid://c6f3e4g5h6j7k"]
+
+[ext_resource type="Script" path="res://test/dice_test/PhysicalDice.gd" id="1_script"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_1"]
+radius = 20.0
+
+[node name="PhysicalDice" type="RigidBody2D"]
+contact_monitor = true
+max_contacts_reported = 3
+script = ExtResource("1_script")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_1")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]

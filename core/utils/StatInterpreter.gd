@@ -110,5 +110,6 @@ static func parse_stats(stats_data: Dictionary) -> Array[ItemEffect]:
 			effect.value = modifier_value
 			effect.is_multiplier = is_multiplier
 			effects.append(effect)
+			print("StatInterpreter: Effect Created - Key: ", target_key, " | Value: ", modifier_value, " (Source: ", stat_key, ")")
 			
 	return effects

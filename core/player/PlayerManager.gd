@@ -4,14 +4,14 @@ extends Node
 @export var player_data: Resource # CharacterData -> Resource
 var current_player_stats: Resource # MyCharacterStats -> Resource
 
-# [신규] 장비 데이터 (10개 슬롯)
+# [신규] 장비 데이터 (10개 슬롯 -> 하의 제거로 9개)
 var equipment: Dictionary = {
 	"head": null,
 	"top": null,
-	"bottom": null,
+	#"bottom": null,
 	"shoes": null,
-	"left_hand": null,
-	"right_hand": null,
+	"main_weapon": null,
+	"sub_weapon": null,
 	"accessory_1": null,
 	"accessory_2": null,
 	"accessory_3": null,
@@ -58,10 +58,16 @@ func unequip_item_without_add(slot_key: String) -> String:
 		var item_data = equipment[slot_key]
 		var item_id = item_data.get("id", "")
 		
-		_apply_equipment_stats(slot_key, item_data, false)
-		
 		equipment[slot_key] = null
+		
+		# [수정] 해제 시에도 전체 패시브/장비 스탯 재계산 호출
+		update_passive_effects()
 		_update_armor_counts()
+		
+		# 스탯 변경 후 실제 플레이어 노드에 즉시 동기화
+		var gm = get_node_or_null("/root/GameManager")
+		if gm and gm.has_method("update_player_node_stats"):
+			gm.update_player_node_stats()
 		
 		SignalBus.emit_signal("equipment_changed", slot_key, null)
 		return item_id
@@ -201,8 +207,8 @@ func update_passive_effects():
 	if not current_player_stats: return
 	
 	print("PlayerManager: 패시브 및 장착 효과 갱신 시작...")
-	# 1. 기존 모든 가변 효과 제거 (초기화)
-	_clear_all_applied_modifiers()
+	# 1. 기존 장비/패시브 효과만 제거 (성장 데이터는 보존)
+	_clear_equipment_and_passive_modifiers()
 	
 	# 2. 현재 장착 중인 아이템 효과 적용
 	for slot in equipment.keys():
@@ -215,11 +221,20 @@ func update_passive_effects():
 		var item_data = item.get_data()
 		_apply_item_effects(item_data, false) # 소지 상태
 
-func _clear_all_applied_modifiers():
-	# 기존에 적용된 모든 StatModifierEffect를 StatManager에서 제거하는 로직
-	# (현재는 단순화하여 기본 스탯으로 복구하거나 모디파이어 리스트 초기화)
-	if current_player_stats.has_method("clear_all_modifiers"):
-		current_player_stats.clear_all_modifiers()
+func _clear_equipment_and_passive_modifiers():
+	if not current_player_stats: return
+	
+	var mod_script = load("res://resources/stats/MyStatModifier.gd")
+	if not mod_script: return
+	
+	# 모든 스탯에서 장비(EQUIPMENT)와 패시브(PASSIVE) 출처만 골라 제거
+	for stat_key in current_player_stats.get_all_stat_keys():
+		var stat = current_player_stats.get_stat(stat_key)
+		if stat:
+			stat.remove_modifiers_by_source(mod_script.Source.EQUIPMENT)
+			stat.remove_modifiers_by_source(mod_script.Source.PASSIVE)
+	
+	print("PlayerManager: 장비 및 패시브 보너스만 초기화 완료. (성장 데이터 유지)")
 
 func _apply_item_effects(item_data: Dictionary, is_equipped: bool):
 	var effects = item_data.get("effects", []) # 아이템 데이터 내 effects 배열
@@ -230,18 +245,20 @@ func _apply_item_effects(item_data: Dictionary, is_equipped: bool):
 		var value = stats_data[stat_key]
 		# 장착 시에만 적용되는 기본 스탯들
 		if is_equipped:
-			_apply_stat_modifier(stat_key, value)
+			_apply_stat_modifier(stat_key, value, true) # 장비 출처
 		
 	# [참고] 금화 더미 등 인벤토리 아이템은 존재 자체로 공간을 점유하는 패널티 역할을 수행함.
 	# 추가적인 스탯 감소 패널티는 적용하지 않음 (윤호님 가이드 준수)
 
-func _apply_stat_modifier(stat_key: String, value):
+func _apply_stat_modifier(stat_key: String, value, is_equipment: bool = true):
 	var stat = current_player_stats.get_stat(stat_key)
 	if stat:
 		var mod_script = load("res://resources/stats/MyStatModifier.gd")
 		var mod = mod_script.new()
 		mod.set("value", value)
 		mod.set("target_stat_key", stat_key)
+		# 출처 설정: 장비인지 패시브인지 구분
+		mod.set("source", mod_script.Source.EQUIPMENT if is_equipment else mod_script.Source.PASSIVE)
 		stat.call("add_modifier", mod)
 
 func initialize_session():
@@ -266,13 +283,13 @@ func _equip_starting_gear():
 		
 	if p_class_name == "Novice":
 		starter_items = [
-			{"id": "basic_sword", "slot": "right_hand"},
+			{"id": "basic_sword", "slot": "main_weapon"},
 			{"id": "basic_cloth_armor", "slot": "top"},
 			{"id": "basic_leather_boots", "slot": "shoes"}
 		]
 	elif p_class_name == "Archer":
 		starter_items = [
-			{"id": "basic_bow", "slot": "right_hand"},
+			{"id": "basic_bow", "slot": "main_weapon"},
 			{"id": "basic_cloth_armor", "slot": "top"},
 			{"id": "basic_leather_boots", "slot": "shoes"}
 		]

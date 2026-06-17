@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://d1e2f3g4h5j6k"]
+
+[ext_resource type="Script" path="res://test/dice_test/DicePhysicsTest.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://test/dice_test/PhysicalDice.tscn" id="2_dice_scene"]
+
+[node name="DicePhysicsTest" type="Node2D"]
+script = ExtResource("1_script")
+dice_scene = ExtResource("2_dice_scene")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+anchor_mode = 1

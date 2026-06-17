@@ -32,9 +32,10 @@ func refresh_visual():
 		add_child(item_ui)
 		item_ui.setup(inv_item)
 		
-		# [수정] 슬롯 중앙 정렬 로직
-		var item_px_size = item_ui.custom_minimum_size
-		item_ui.position = (custom_minimum_size - item_px_size) / 2
+		# [v7.5 수정] 슬롯 중앙 정렬 로직 (아이템 실제 픽셀 크기 기반)
+		# DraggableItemUI.setup에서 custom_minimum_size가 설정되므로 이를 즉시 반영
+		var item_px_size = Vector2(inv_item.get_size()) * TILE_SIZE
+		item_ui.position = (custom_minimum_size - item_px_size) / 2.0
 
 func _on_equipment_changed(changed_slot, _item_data):
 	if changed_slot == slot_key:

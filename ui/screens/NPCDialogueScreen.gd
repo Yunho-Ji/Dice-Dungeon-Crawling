@@ -19,8 +19,15 @@ var background_rect: ColorRect # 마을 지도를 가릴 불투명 배경
 func _ready():
 	# CanvasLayer이므로 layer 값을 인벤토리(보통 1)보다 높게 설정하여 우선순위 확보
 	layer = 10
+	_ensure_ui_initialized()
+
+func _ensure_ui_initialized():
+	if main_layout: return # 이미 초기화됨
+	_setup_ui_manually()
+
+func _setup_ui_manually():
+	if background_rect: return
 	
-	# 마을 지도를 완전히 가리는 불투명 배경 (나중에 TextureRect로 변경 가능)
 	background_rect = ColorRect.new()
 	background_rect.color = Color(0.05, 0.07, 0.1, 1.0) # 어두운 남색 계열의 불투명 배경
 	background_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -149,6 +156,7 @@ func _ready():
 
 func setup(data: NPCData):
 	npc_data = data
+	_ensure_ui_initialized()
 	name_label.text = data.npc_name
 	dialogue_label.text = data.get_random_greeting()
 	if data.portrait_path != "" and FileAccess.file_exists(data.portrait_path):
@@ -161,39 +169,33 @@ func set_transaction_mode(active: bool):
 		bottom_panel.visible = not active
 	
 	if active:
-		# 거래 모드: 물리적 점유 영역을 좌측으로 축소 (인벤토리는 우측에 표시됨)
 		main_layout.anchor_right = 0.0
 		main_layout.offset_right = 700 
-		
 		portrait_rect.modulate.a = 0.3
 		dialogue_label.text = "어떤 물건을 찾으시나요?"
 		
-		# 인벤토리 열기 및 레이어 동기화 (상점 레이어 10보다 높은 11로 설정)
 		var gm = get_node_or_null("/root/GameManager")
 		if gm and gm.ui_manager:
 			gm.ui_manager.show_screen(UIManager.Screen.INVENTORY)
 			var inv_node = gm.ui_manager.get_screen_node(UIManager.Screen.INVENTORY)
 			if inv_node and inv_node is CanvasLayer:
-				inv_node.layer = self.layer + 1 # 레이어 11로 설정
+				inv_node.layer = self.layer + 1
 	else:
-		# 대화 모드: 물리적 점유 영역을 전체 화면으로 복구
 		main_layout.anchor_right = 1.0
 		main_layout.offset_right = 0
-		
 		portrait_rect.modulate.a = 1.0
 		dialogue_label.text = npc_data.get_random_greeting() if npc_data else "..."
 		
-		# 인벤토리 닫기 및 레이어 원복
 		var gm = get_node_or_null("/root/GameManager")
 		if gm and gm.ui_manager:
 			var inv_node = gm.ui_manager.get_screen_node(UIManager.Screen.INVENTORY)
 			if inv_node and inv_node is CanvasLayer:
-				inv_node.layer = 100 # 기본값인 100으로 복구
-			
+				inv_node.layer = 100
 			gm.ui_manager.show_screen(UIManager.Screen.NONE)
 		set_grid_content(null)
 
 func _create_option_buttons():
+	if not button_container: _ensure_ui_initialized()
 	for child in button_container.get_children():
 		child.queue_free()
 	
@@ -215,6 +217,7 @@ func _create_option_buttons():
 	button_container.add_child(exit_btn)
 
 func set_grid_content(content_node: Control):
+	if not npc_grid_area: _ensure_ui_initialized()
 	for child in npc_grid_area.get_children(): child.queue_free()
 	if content_node:
 		var tile_size = 40
@@ -222,7 +225,6 @@ func set_grid_content(content_node: Control):
 		content_node.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		content_node.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		npc_grid_area.add_child(content_node)
-		# 그리드 영역이 마우스 입력을 막지 않도록 설정 (버튼 클릭 허용)
 		npc_grid_area.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	else:
 		npc_grid_area.mouse_filter = Control.MOUSE_FILTER_STOP

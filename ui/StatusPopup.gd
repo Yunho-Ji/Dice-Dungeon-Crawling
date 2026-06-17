@@ -76,8 +76,9 @@ func show_stats(character: Character):
 			value_text = "%d / %d" % [stat.current_value, stat.computed_value]
 		else:
 			# 그 외 모든 스탯(공격력, 방어력 등)은 기본값과 보너스를 구분하여 표기
-			var final_val = stat.computed_value
-			var base_val = stat.base_value
+			# [v7.5 수정] 실시간 연산값(computed_value) 강제 참조
+			var final_val = stat.computed_value if "computed_value" in stat else stat.get("computed_value")
+			var base_val = stat.base_value if "base_value" in stat else stat.get("base_value")
 			var bonus_val = final_val - base_val
 			
 			if bonus_val > 0:

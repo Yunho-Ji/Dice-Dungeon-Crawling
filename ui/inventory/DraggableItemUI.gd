@@ -22,8 +22,14 @@ func setup(item: InventoryItem):
 	var data = item.get_data()
 	var item_size = item.get_size()
 	
+	# [v7.5 수정] UI 크기 및 텍스처 크기 그리드에 맞게 강제
 	custom_minimum_size = Vector2(item_size.x * tile_size.x, item_size.y * tile_size.y)
 	size = custom_minimum_size
+	
+	if is_instance_valid(texture_rect):
+		texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		texture_rect.stretch_mode = TextureRect.STRETCH_SCALE
+		texture_rect.size = size # 텍스처를 그리드 크기에 꽉 채움
 	
 	# 회전 반영 (UI 갱신 시)
 	if item.is_rotated:
@@ -55,10 +61,10 @@ func setup(item: InventoryItem):
 		texture_rect.texture = loaded_tex
 		texture_rect.modulate = Color.WHITE
 	else:
-		# 아이콘이 없는 경우: 등급 색상의 사각형으로 표시 (플레이스홀더)
+		# 아이콘이 없는 경우: 그리드 크기에 맞는 사각형 생성
 		var placeholder_tex = GradientTexture2D.new()
-		placeholder_tex.width = 32
-		placeholder_tex.height = 32
+		placeholder_tex.width = int(size.x)
+		placeholder_tex.height = int(size.y)
 		var grad = Gradient.new()
 		grad.set_color(0, rarity_color.darkened(0.3))
 		grad.set_color(1, rarity_color)
@@ -127,10 +133,17 @@ func _update_preview_rotation():
 
 func _on_mouse_entered():
 	is_hovering = true
-	# 호버 시 시각적 효과 (예: 테두리 강조 등 추가 가능)
+	# 호버 시 아이템 툴팁 표시
+	var gm = get_node_or_null("/root/GameManager")
+	if gm and gm.ui_manager:
+		gm.ui_manager.show_item_tooltip(inventory_item, global_position)
 
 func _on_mouse_exited():
 	is_hovering = false
+	# 툴팁 숨기기
+	var gm = get_node_or_null("/root/GameManager")
+	if gm and gm.ui_manager:
+		gm.ui_manager.hide_item_tooltip()
 
 func _input(event):
 	# 1. 드래그 중인 경우 회전 처리

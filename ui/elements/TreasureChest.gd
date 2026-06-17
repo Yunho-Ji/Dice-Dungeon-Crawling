@@ -21,7 +21,7 @@ func _on_input_event(_viewport, event, _shape_idx):
 
 func open_chest():
 	is_opened = true
-	print("보물상자를 열었습니다!")
+	print("[DEBUG] TreasureChest: 상자를 열었습니다. 데이터: ", loot_data)
 	
 	# GameManager에게 전리품 화면 표시 요청
 	var gm = get_node("/root/GameManager")

@@ -5,7 +5,7 @@ signal defense_stance_selected
 signal skill_1_used
 signal skill_2_used
 signal inventory_opened
-signal destiny_design_opened
+signal growth_opened
 signal map_requested
 signal start_combat_requested
 
@@ -97,7 +97,7 @@ func _on_inventory_button_pressed():
 	emit_signal("inventory_opened")
 
 func _on_destiny_design_button_pressed():
-	emit_signal("destiny_design_opened")
+	emit_signal("growth_opened")
 
 func _on_map_button_pressed():
 	emit_signal("map_requested")

@@ -139,15 +139,14 @@ func _open_shop_screen(parent_screen: Node):
 	# 상점용 데이터 생성 (임시로 빈 10x10 그리드)
 	shop_grid.inventory_data = InventoryData.new(Vector2i(10, 10))
 	
-	# 임시 상품 추가
-	shop_grid.inventory_data.add_item("test_grimoire_epic")
-	shop_grid.inventory_data.add_item("test_cloth_top_rare")
-	
-	# 테스트를 위한 다양한 가격의 아이템 추가
-	shop_grid.inventory_data.add_item("basic_sword")
+	# 임시 상품 추가 (v7.5 테스트 장비 포함)
+	shop_grid.inventory_data.add_item("test_plate_armor") # 중갑
+	shop_grid.inventory_data.add_item("test_leather_armor") # 경갑
+	shop_grid.inventory_data.add_item("basic_cloth_armor") # 천
+	shop_grid.inventory_data.add_item("test_plate_boots")
 	shop_grid.inventory_data.add_item("basic_leather_boots")
-	shop_grid.inventory_data.add_item("test_consumable_585")
-	shop_grid.inventory_data.add_item("test_necklace_common")
+	
+	shop_grid.inventory_data.add_item("test_grimoire_epic")
 	
 	parent_screen.set_grid_content(shop_grid)
 	

@@ -14,20 +14,18 @@ signal inventory_closed
 # 장비 슬롯 참조
 @onready var head_slot = $MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/HeadSlot
 @onready var top_slot = $MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/TopSlot
-@onready var bottom_slot = $MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/BottomSlot
 @onready var shoes_slot = $MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/ShoesSlot
-@onready var left_hand_slot = $MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/LeftHandSlot
-@onready var right_hand_slot = $MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/RightHandSlot
+@onready var main_weapon_slot = $MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/MainWeaponSlot
+@onready var sub_weapon_slot = $MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/SubWeaponSlot
 @onready var acc_slots = [
-	$MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/AccessoryGroup/Acc1,
-	$MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/AccessoryGroup/Acc2,
-	$MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/AccessoryGroup/Acc3,
-	$MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/AccessoryGroup/Acc4
+	$MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/Acc1,
+	$MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/Acc2,
+	$MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/Acc3,
+	$MainPanel/VBox/MainVBox/EquipmentSection/SilhouetteContainer/Acc4
 ]
 @onready var trash_bin = %TrashBin
 
 # --- 장비 시스템 관련 변수 ---
-var slot_to_key = {}
 var all_slots = []
 
 func _ready():
@@ -65,39 +63,11 @@ func _process_pending_items():
 
 func _setup_equipment_slots():
 	all_slots = [
-		head_slot, top_slot, bottom_slot, shoes_slot,
-		left_hand_slot, right_hand_slot
+		head_slot, top_slot, shoes_slot,
+		main_weapon_slot, sub_weapon_slot
 	] + acc_slots
 	
-	var keys = [
-		"head", "top", "bottom", "shoes",
-		"left_hand", "right_hand",
-		"accessory_1", "accessory_2", "accessory_3", "accessory_4"
-	]
-	
-	var allowed_types_map = {
-		"head": ["head"],
-		"top": ["top"],
-		"bottom": ["bottom"],
-		"shoes": ["shoes"],
-		"left_hand": ["weapon", "shield", "left_hand", "two_hand"],
-		"right_hand": ["weapon", "shield", "right_hand", "two_hand"],
-		"accessory_1": ["accessory"],
-		"accessory_2": ["accessory"],
-		"accessory_3": ["accessory"],
-		"accessory_4": ["accessory"]
-	}
-	
-	for i in range(all_slots.size()):
-		var slot = all_slots[i]
-		var key = keys[i]
-		slot_to_key[i] = key
-		
-		# [수정] 속성 설정 시 안전성 강화
-		if slot.has_method("set"):
-			slot.set("slot_key", key)
-			slot.set("allowed_types", allowed_types_map.get(key, []))
-		
+	for slot in all_slots:
 		# 레이블 추가 (이미 있으면 무시)
 		var existing_label = null
 		for child in slot.get_children():
@@ -107,7 +77,7 @@ func _setup_equipment_slots():
 				
 		if not existing_label:
 			var label = Label.new()
-			label.text = _get_slot_name_korean(key)
+			label.text = _get_slot_name_korean(slot.slot_key)
 			label.add_theme_font_size_override("font_size", 10)
 			label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
@@ -119,12 +89,12 @@ func _get_slot_name_korean(key: String) -> String:
 	match key:
 		"head": return "머리"
 		"top": return "상의"
-		"bottom": return "하의"
 		"shoes": return "신발"
-		"left_hand": return "왼손"
-		"right_hand": return "오른손"
+		"main_weapon": return "무기"
+		"sub_weapon": return "보조무기"
 		"accessory_1", "accessory_2", "accessory_3", "accessory_4": return "장신구"
 	return ""
+
 
 func show_screen():
 	self.visible = true

@@ -67,10 +67,8 @@ func _check_environmental_hazards():
 var is_pursuit_mode: bool = false # 추격 모드 활성화 여부
 signal pursuit_state_changed(is_pursuit: bool) # 게이지 색상 변경 알림용
 
-# 방어구 유형별 장착 정보
-var cloth_pieces: int = 0
-var light_pieces: int = 0
-var heavy_pieces: int = 0
+# 방어구 유형별 장착 정보 (v7.5 통합)
+var armor_profile: Dictionary = {"cloth": 0, "light": 0, "heavy": 0}
 
 # 상태 이상 관련 변수
 var is_vulnerable: bool = false
@@ -158,10 +156,13 @@ func _process(delta: float):
 		var was_pursuit = is_pursuit_mode
 		
 		if is_instance_valid(target) and target.current_stats.get_stat("health").current_value > 0:
-			var dist = get_grid_dist_to(target.grid_pos if "grid_pos" in target else Vector2i.ZERO)
+			var target_pos = target.grid_pos if "grid_pos" in target else Vector2i.ZERO
+			var dist = get_grid_dist_to(target_pos)
 			
 			if dist > attack_range:
 				# 사거리 밖: 추격 모드 활성화 (1.5배 가속)
+				if not is_pursuit_mode:
+					print(name, ": 적이 사거리 밖임 (거리:", dist, ", 사거리:", attack_range, ") - 추격 시작")
 				is_pursuit_mode = true
 				ap_multiplier = 1.5
 			else:
@@ -169,15 +170,16 @@ func _process(delta: float):
 					# 사거리 진입: 추격 AP 리셋 (v7.4 설계)
 					action_gauge = 0.0
 					is_pursuit_mode = false
-					print(name, ": 사거리 진입으로 인한 AP 초기화")
+					print(name, ": 적 사거리 진입 (거리:", dist, ") - AP 초기화 및 대기")
 			
 			if was_pursuit != is_pursuit_mode:
 				emit_signal("pursuit_state_changed", is_pursuit_mode)
 
-		# 행동 게이지 충전 (공격속도 SPD 기반 - StatManager 공식 사용)
+		# 행동 게이지 충전 (공격속도 SPD 기반 + 방어구 시너지 보정)
 		if target != null and is_instance_valid(target) and target.current_stats.get_stat("health").current_value > 0:
 			if current_stance != Stance.DEFENSE and not is_acting:
-				var charge_speed = StatManager.get_ap_charge_speed(current_stats)
+				# [v7.5 수정] 방어구 프로필을 전달하여 속도 보정(중갑 -20%, 경갑 +20% 등) 적용
+				var charge_speed = StatManager.get_ap_charge_speed(current_stats, armor_profile)
 				
 				if GameManager.active_penalties.has("fatigue"):
 					charge_speed *= 0.85 
@@ -293,11 +295,10 @@ func attack(p_target: Character):
 func take_damage(amount: int, piercing_rate: float = 0.0, true_damage_rate: float = 0.0) -> int:
 	if not current_stats: return 0
 
-	# 0. 회피/빗겨맞음 (StatManager 공식 사용)
-	var evade_chance = StatManager.get_evade_chance(current_stats, light_pieces)
+	# 0. 회피/빗겨맞음 (StatManager 공식 사용 - armor_profile 기반)
+	var evade_chance = StatManager.get_evade_chance(current_stats, armor_profile)
 	if randf() * 100.0 < evade_chance:
 		# 경갑 보너스에 의한 완전 회피와 AGI에 의한 빗겨맞음(데미지 반감)을 통합 관리하거나 분리 가능
-		# 현재는 통합하여 일정 확률로 데미지 무시/반감 처리
 		if randf() < 0.5: # 50% 확률로 완전 회피
 			emit_signal("damage_taken", 0, global_position)
 			return 0
@@ -320,8 +321,8 @@ func take_damage(amount: int, piercing_rate: float = 0.0, true_damage_rate: floa
 		is_guarding = false
 		current_stance = Stance.ATTACK
 
-	# 2. 방어력 적용 (StatManager 공식 사용)
-	var final_dmg = StatManager.calculate_final_damage(norm_dmg, current_stats, piercing_rate)
+	# 2. 방어력 적용 (StatManager 공식 사용 - armor_profile 기반 DR 캡 적용)
+	var final_dmg = StatManager.calculate_final_damage(norm_dmg, current_stats, armor_profile, piercing_rate)
 	final_dmg = int(final_dmg * (1.0 - dr_pct)) + true_dmg
 	
 	var hp = current_stats.get_stat("health")
@@ -329,6 +330,14 @@ func take_damage(amount: int, piercing_rate: float = 0.0, true_damage_rate: floa
 		hp.current_value = max(0, hp.current_value - final_dmg)
 		emit_signal("damage_taken", final_dmg, global_position)
 		update_hp_label()
+		
+		# [v7.5 수정] 사망 시 즉시 타일 점유 해제
+		if hp.current_value <= 0:
+			if grid_manager and grid_manager.has_method("clear_tile_occupancy"):
+				grid_manager.clear_tile_occupancy(grid_pos)
+				print(name, " 사망: 타일 점유 해제 (", grid_pos, ")")
+			# (향후 기획) 방해물을 남기는 적의 경우 여기서 별도 오브젝트 스폰 가능
+		
 		if not is_perfect_guarding: _apply_hit_stun(final_dmg)
 	
 	return final_dmg
@@ -336,7 +345,13 @@ func take_damage(amount: int, piercing_rate: float = 0.0, true_damage_rate: floa
 func _apply_hit_stun(dmg: int):
 	# 피격 경직(AP 차감) 계산: StatManager 공식 사용
 	var stun_amount = StatManager.calculate_ap_stun(dmg, current_stats)
+	var old_ap = action_gauge
 	action_gauge = max(0.0, action_gauge - stun_amount)
+	
+	if is_instance_valid(action_gauge_bar):
+		action_gauge_bar.value = action_gauge
+	
+	print("[AP Stun] ", name, " | 피격 데미지: ", dmg, " | AP 차감량: ", stun_amount, " (", old_ap, " -> ", action_gauge, ")")
 
 func finish_action():
 	is_acting = false
@@ -370,10 +385,8 @@ func update_stats_from_player_manager(pm: Node):
 
 # [신규] 방어구 유형별 장착 정보 동기화
 func sync_armor_profile(armor_counts: Dictionary):
-	cloth_pieces = armor_counts.get("cloth", 0)
-	light_pieces = armor_counts.get("light", 0)
-	heavy_pieces = armor_counts.get("heavy", 0)
-	print("DEBUG: Character armor profile synced - C:", cloth_pieces, " L:", light_pieces, " H:", heavy_pieces)
+	armor_profile = armor_counts.duplicate()
+	print("DEBUG: Character armor profile synced - ", armor_profile)
 
 # [신규/복구] 상태 이상 부여 및 저항 로직
 func add_status_effect(effect_data: StatusEffectData, duration_override: float = -1.0):
@@ -396,17 +409,17 @@ func add_status_effect(effect_data: StatusEffectData, duration_override: float =
 
 	var new_effect = StatusEffect.new()
 	new_effect.data = effect_data
-	if duration_override > 0:
-		new_effect.data.duration = duration_override
 
-	# 중복 효과 갱신 로직
-	for i in range(active_status_effects.size()):
+	# [리팩토링] 중복 효과 갱신 시 인덱스 기반으로 안전하게 삭제
+	for i in range(active_status_effects.size() - 1, -1, -1):
 		if active_status_effects[i].get_effect_name() == new_effect.get_effect_name():
-			active_status_effects[i].remove_effect(self)
-			active_status_effects.erase(active_status_effects[i])
+			var old_effect = active_status_effects[i]
+			old_effect.remove_effect(self)
+			active_status_effects.remove_at(i)
 			break
 
-	new_effect._time_remaining = new_effect.data.duration
+	# 공유 Resource의 duration을 직접 수정하지 않고, 인스턴스의 개별 타이머만 덮어씁니다.
+	new_effect._time_remaining = duration_override if duration_override > 0 else effect_data.duration
 	active_status_effects.append(new_effect)
 	new_effect.apply_effect(self)
 	print(name, "에게 상태 효과 적용: ", new_effect.get_effect_name())
@@ -419,12 +432,17 @@ func remove_status_effect(effect: StatusEffect):
 
 # --- [v7.4 육각 그리드 유틸리티] ---
 
-## 육각 그리드 거리 계산 (Axial distance)
+## 육각 그리드 거리 계산 (Odd-r Offset distance)
 func get_grid_dist_to(target_pos: Vector2i) -> int:
-	var d_col = target_pos.x - grid_pos.x
-	var d_row = target_pos.y - grid_pos.y
-	# 지그재그 그리드에서의 정교한 거리 계산 (v7.4)
-	return (abs(d_col) + abs(d_col + d_row) + abs(d_row)) / 2
+	# Offset 좌표를 Cube/Axial 좌표로 변환하여 거리 계산
+	var r1 = grid_pos.y
+	var q1 = grid_pos.x - (grid_pos.y - (grid_pos.y & 1)) / 2
+	var r2 = target_pos.y
+	var q2 = target_pos.x - (target_pos.y - (target_pos.y & 1)) / 2
+	
+	var dq = q1 - q2
+	var dr = r1 - r2
+	return (abs(dq) + abs(dq + dr) + abs(dr)) / 2
 
 ## 유닛 배치 (배치 페이즈 전용)
 func place_at(new_pos: Vector2i) -> bool:

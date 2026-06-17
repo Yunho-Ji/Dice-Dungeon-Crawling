@@ -55,6 +55,8 @@ func _drop_data(_at_position: Vector2, data: Variant):
 		dice_modifier.value = data.value
 		dice_modifier.operation = MyStatModifier.Operation.ADD
 		dice_modifier.target_stat_key = stat_name
+		# [리팩토링 반영] 출처를 GROWTH(성장)로 명시하여 장비 초기화로부터 보호
+		dice_modifier.source = MyStatModifier.Source.GROWTH
 		current_stat_value.add_modifier(dice_modifier)
 		
 		# [수정] 데이터 삭제 대신 '사용됨' 상태로 플래그 업데이트

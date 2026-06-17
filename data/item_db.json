@@ -3,8 +3,9 @@
 		"name": "낡은 연습용 검",
 		"pattern": "1x3",
 		"atlas_index": 12,
-		"equip_type": "right_hand",
+		"equip_type": "main_weapon",
 		"grade": "common",
+		"price": 0,
 		"stats": {
 			"atk": 5,
 			"attack_range": 1
@@ -14,8 +15,9 @@
 		"name": "수습용 단궁",
 		"pattern": "2x3",
 		"atlas_index": 45,
-		"equip_type": "right_hand",
+		"equip_type": "main_weapon",
 		"grade": "common",
+		"price": 0,
 		"stats": {
 			"atk": 3,
 			"attack_range": 4
@@ -23,25 +25,66 @@
 	},
 	"basic_cloth_armor": {
 		"name": "여행자의 누비옷",
-		"pattern": "2x2",
+		"pattern": "2x3",
 		"atlas_index": 350,
 		"equip_type": "top",
 		"armor_type": "cloth",
 		"grade": "common",
+		"price": 0,
 		"stats": {
-			"dr_rate": 2,
+			"defense": 2,
 			"move_range": 0
+		}
+	},
+	"test_leather_armor": {
+		"name": "[테스트] 가죽 갑옷",
+		"pattern": "2x3",
+		"atlas_index": 820,
+		"equip_type": "top",
+		"armor_type": "light",
+		"grade": "uncommon",
+		"price": 0,
+		"stats": {
+			"defense": 5,
+			"agi": 2
+		}
+	},
+	"test_plate_armor": {
+		"name": "[테스트] 판금 갑옷",
+		"pattern": "2x3",
+		"atlas_index": 940,
+		"equip_type": "top",
+		"armor_type": "heavy",
+		"grade": "rare",
+		"price": 0,
+		"stats": {
+			"defense": 15,
+			"res": 5
 		}
 	},
 	"basic_leather_boots": {
 		"name": "낡은 가죽 장화",
-		"pattern": "2x1",
+		"pattern": "2x2",
 		"atlas_index": 830,
 		"equip_type": "shoes",
 		"armor_type": "light",
 		"grade": "common",
+		"price": 0,
 		"stats": {
 			"move_range": 1
+		}
+	},
+	"test_plate_boots": {
+		"name": "[테스트] 판금 장화",
+		"pattern": "2x2",
+		"atlas_index": 935,
+		"equip_type": "shoes",
+		"armor_type": "heavy",
+		"grade": "uncommon",
+		"price": 0,
+		"stats": {
+			"defense": 3,
+			"res": 2
 		}
 	},
 	"test_necklace_common": {
@@ -50,11 +93,9 @@
 		"equip_type": "accessory",
 		"grade": "common",
 		"stats": {
-			"spi": [
-				1.5,
-				2.5
-			]
-		}
+			"spi": 1.5
+		},
+		"price": 0
 	},
 	"test_necklace_relic": {
 		"name": "영혼의 눈 (유물)",
@@ -63,15 +104,10 @@
 		"grade": "relic",
 		"can_reforge": false,
 		"stats": {
-			"spi": [
-				12.0,
-				18.0
-			],
-			"res": [
-				15.0,
-				25.0
-			]
-		}
+			"spi": 12.0,
+			"res": 15.0
+		},
+		"price": 0
 	},
 	"test_ring_rare": {
 		"name": "숙련자의 반지",
@@ -79,11 +115,9 @@
 		"equip_type": "accessory",
 		"grade": "rare",
 		"stats": {
-			"int_stat": [
-				3.0,
-				5.0
-			]
-		}
+			"int_stat": 3.0
+		},
+		"price": 0
 	},
 	"test_ring_epic": {
 		"name": "대마법사의 인장",
@@ -91,15 +125,10 @@
 		"equip_type": "accessory",
 		"grade": "epic",
 		"stats": {
-			"int_stat": [
-				8.0,
-				12.0
-			],
-			"spi": [
-				5.0,
-				8.0
-			]
-		}
+			"spi": 5.0,
+			"int_stat": 8.0
+		},
+		"price": 0
 	},
 	"test_circlet_common": {
 		"name": "베이지 서클릿",
@@ -116,7 +145,8 @@
 				0.2,
 				0.5
 			]
-		}
+		},
+		"price": 0
 	},
 	"test_cloth_top_rare": {
 		"name": "푸른 자수 로브",
@@ -133,7 +163,8 @@
 				0.8,
 				1.2
 			]
-		}
+		},
+		"price": 0
 	},
 	"test_cloth_top_relic": {
 		"name": "별무리 성의 (유물)",
@@ -151,7 +182,8 @@
 				2.5,
 				4.0
 			]
-		}
+		},
+		"price": 0
 	},
 	"test_orb_rare": {
 		"name": "마력의 구슬",
@@ -159,26 +191,22 @@
 		"equip_type": "accessory",
 		"grade": "rare",
 		"stats": {
-			"int_stat": [
-				4.0,
-				6.0
-			],
-			"spi": [
-				2.0,
-				4.0
-			]
-		}
+			"spi": 2.0,
+			"int_stat": 4.0
+		},
+		"price": 0
 	},
 	"test_grimoire_epic": {
 		"name": "제니의 파괴적인 주문서",
+		"pattern": "2x2",
 		"atlas_index": 712,
-		"equip_type": "weapon",
+		"equip_type": "accessory",
 		"grade": "epic",
+		"price": 0,
 		"stats": {
-			"min_atk": 99999.0,
-			"max_atk": 99999.0,
-			"balance": 100.0,
-			"str": 999
+			"atk": 999,
+			"int_stat": 999,
+			"spi": 999
 		}
 	},
 	"test_leather_shoes_common": {
@@ -191,7 +219,8 @@
 			"dr_rate": 20.0,
 			"evade_rate": 100.0,
 			"hp_max": 1000.0
-		}
+		},
+		"price": 0
 	},
 	"test_heavy_boots_rare": {
 		"name": "기사의 강철 장화",
@@ -208,7 +237,8 @@
 				10.0,
 				15.0
 			]
-		}
+		},
+		"price": 0
 	},
 	"test_heavy_helm_epic": {
 		"name": "사자문양 투구",
@@ -225,12 +255,13 @@
 				15.0,
 				22.0
 			]
-		}
+		},
+		"price": 0
 	},
 	"test_shield_common": {
 		"name": "나무 원형 방패",
 		"atlas_index": 1008,
-		"equip_type": "shield",
+		"equip_type": "sub_weapon",
 		"grade": "common",
 		"stats": {
 			"dr_rate": [
@@ -241,12 +272,13 @@
 				10.0,
 				15.0
 			]
-		}
+		},
+		"price": 0
 	},
 	"test_shield_relic": {
 		"name": "성벽의 파편 (유물)",
 		"atlas_index": 1020,
-		"equip_type": "shield",
+		"equip_type": "sub_weapon",
 		"grade": "relic",
 		"can_reforge": false,
 		"stats": {
@@ -258,7 +290,8 @@
 				40.0,
 				60.0
 			]
-		}
+		},
+		"price": 0
 	},
 	"test_consumable_585": {
 		"name": "신비한 강화석 (임시)",
@@ -266,7 +299,7 @@
 		"type": "consumable",
 		"grade": "common",
 		"description": "아이템 강화에 사용되는 재료입니다.",
-		"price": 10
+		"price": 0
 	},
 	"test_enchant_sword": {
 		"name": "낡은 연습용 검",
@@ -277,7 +310,8 @@
 			"atk": 10,
 			"hit_rate": 90.0
 		},
-		"enchant_level": 0
+		"enchant_level": 0,
+		"price": 0
 	},
 	"gold_pile_small": {
 		"name": "금화 주머니 (소)",

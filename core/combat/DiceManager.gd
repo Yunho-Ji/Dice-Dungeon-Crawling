@@ -96,9 +96,17 @@ func get_player_dice_pool() -> Array:
 func roll_player_dice():
 	if not can_roll_new_dice: return
 	can_roll_new_dice = false
-	var rolled_results = []
+	last_roll_results.clear()
+	var rolled_values = []
+	
 	for dice_sides in player_dice_pool:
 		var roll = randi_range(1, dice_sides)
-		rolled_results.append(roll)
-	rolled_results.sort_custom(func(a, b): return a > b)
-	emit_signal("dice_rolled", rolled_results)
+		rolled_values.append(roll)
+		last_roll_results.append({
+			"sides": dice_sides,
+			"value": roll,
+			"is_used": false,
+			"position": Vector2.ZERO
+		})
+	
+	emit_signal("dice_rolled", rolled_values)

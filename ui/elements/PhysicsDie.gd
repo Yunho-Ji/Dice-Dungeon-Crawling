@@ -1,8 +1,16 @@
 extends RigidBody2D
 
+# -----------------------------------------------------------------------------
+# [혁신] 물리 모멘텀 기반 주사위 애니메이션 시스템 (PhysicsDie)
+# -----------------------------------------------------------------------------
+# - 기존의 await 기반 루프를 폐기하고 물리 속도와 프레임을 실시간 동기화합니다.
+# - 1~5 프레임: 속도 비례 롤링
+# - 6 프레임: 충돌 및 감속 시 잔상/흔들림
+# - 7 프레임: 완전 정지 후 결과 확정 및 정자세 보정
+# -----------------------------------------------------------------------------
+
 # --- 노드 참조 ---
 @onready var visual = $DiceVisual
-@onready var sfx_player = AudioStreamPlayer2D.new()
 
 # --- 주사위 데이터 ---
 var dice_sides: int = 6
@@ -12,35 +20,52 @@ var is_stopped: bool = false
 var roll_time: float = 0.0
 const MIN_ROLL_TIME = 0.6 
 
+# --- [신규] 애니메이션 제어 변수 ---
+var _rolling_frame_timer: float = 0.0
+var _current_rolling_idx: int = 0
+var _debug_label: Label = null
+const MOMENTUM_ROLL_THRESHOLD = 80.0 # 롤링 유지 임계치
+const MOMENTUM_STOP_THRESHOLD = 15.0 # 완전 정지 판단 임계치
+
 signal stopped(final_value)
 
 func _ready():
 	# 물리 설정: CCD(연속 충돌 감지) 활성화하여 벽 뚫림 방지
 	continuous_cd = 2 
-	linear_damp = 1.5 # [수정] 감속 대폭 강화 (0.8 -> 1.5)
-	angular_damp = 2.0 # [수정] 회전 감속 강화 (1.5 -> 2.0)
+	linear_damp = 1.6 # 감속 소폭 강화
+	angular_damp = 2.2 # 회전 감속 강화
 	
 	# 충돌 감지 활성화
 	contact_monitor = true
 	max_contacts_reported = 4
-	body_entered.connect(_on_body_entered)
 	
-	add_child(sfx_player)
 	rotation = randf() * TAU
 	input_event.connect(_on_input_event)
+	sleeping_state_changed.connect(_on_sleeping_state_changed)
+
+	# [디버그] 개발자 모드용 라벨 추가
+	var gm = get_node_or_null("/root/GameManager")
+	if gm and gm.get("is_developer_mode"):
+		_debug_label = Label.new()
+		_debug_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_debug_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		_debug_label.add_theme_font_size_override("font_size", 14)
+		_debug_label.modulate = Color.YELLOW
+		_debug_label.position = Vector2(-20, -40) # 주사위 위쪽
+		add_child(_debug_label)
 
 # 주사위 등급 및 질량 설정
 func setup(sides: int, p_is_judgment: bool = false):
 	dice_sides = maxi(1, sides)
 	is_judgment = p_is_judgment
 	
-	# 등급별 질량 차등 부여 (Legendary > Common)
-	var tier_color = _get_tier_color()
+	# 등급별 질량 차등 부여
 	if dice_sides >= 20:
-		mass = 2.0
+		mass = 2.2
 	else:
 		mass = 1.0
 		
+	var tier_color = _get_tier_color()
 	visual.setup(dice_sides, 1, tier_color)
 
 func _get_tier_color() -> Color:
@@ -54,88 +79,108 @@ func _get_tier_color() -> Color:
 func _physics_process(delta):
 	if is_stopped: return
 	
-	# [신규] 입체감(Depth) 연출을 위해 Y 좌표에 따라 z_index 조절
-	# 아래에 있는 주사위가 위로 보이게 하여 겹침 시 몰입도 방해 최소화
+	# 1. Y-Sorting (Z-index 기반 겹침 방지)
 	z_index = int(global_position.y / 10.0)
 
-	# [수정] 아레나 이탈 방지 Fail-safe 로직 (여유치 50px 추가)
-	# 주사위가 벽에 충돌하는 것은 정상이며, 벽을 완전히 뚫고 나갔을 때만 복구함
-	if global_position.x < 200 or global_position.x > 1002 or global_position.y < 10 or global_position.y > 638:
+	# 2. 아레나 이탈 방지 (Fail-safe)
+	if global_position.x < 150 or global_position.x > 1050 or global_position.y < -50 or global_position.y > 700:
 		global_position = Vector2(600, 324)
-		linear_velocity *= 0.2 # 속도를 대폭 줄여 안정화
-		print("DEBUG: 주사위 이탈 감지(실제 이탈) -> 중앙 복구")
+		linear_velocity *= 0.1
+		print("DEBUG: 주사위 장외 이탈 복구")
 
 	roll_time += delta
+	
+	# 3. [핵심] 물리 모멘텀 기반 애니메이션 동기화
+	var momentum = linear_velocity.length() + abs(angular_velocity)
+	_update_animation_by_momentum(momentum, delta)
+
+	# 4. 정지 판단 보강
 	if roll_time > MIN_ROLL_TIME:
-		if linear_velocity.length() < 12.0 and abs(angular_velocity) < 1.0:
+		# 속도가 충분히 낮거나 물리 엔진이 정지(sleeping) 상태면 즉시 정지 처리
+		if momentum < MOMENTUM_STOP_THRESHOLD or sleeping:
 			_on_stopped()
 
-# 충돌 시 'Clack' 사운드
-func _on_body_entered(_body):
-	if linear_velocity.length() > 20:
-		pass
+func _update_animation_by_momentum(momentum: float, delta: float):
+	# [개선] 멈추기 직전까지 저속 롤링을 유지하여 물리적 위화감 제거
+	if momentum > 5.0:
+		# 속도에 비례하여 프레임 속도를 조절 (속도가 낮을수록 프레임 전환이 느려짐)
+		var frame_speed = clamp(0.1 * (400.0 / (momentum + 50.0)), 0.05, 0.25)
+		_rolling_frame_timer += delta
+		
+		if _rolling_frame_timer > frame_speed:
+			_rolling_frame_timer = 0.0
+			_current_rolling_idx = (_current_rolling_idx + 1) % 5
+			visual.sync_rolling_frame(_current_rolling_idx, false)
+	
+func launch(direction: Vector2, power: float):
+	is_stopped = false
+	freeze = false
+	sleeping = false
+	roll_time = 0.0
+	
+	# 물리 임펄스 가함
+	var impulse_strength = (power * 5.5) + 250.0
+	var impulse = direction * impulse_strength
+	apply_central_impulse(impulse)
+	apply_torque_impulse(randf_range(-200.0, 200.0))
+	
+	visual.set_rolling(true)
 
-# 주사위가 멈췄을 때
+func _on_sleeping_state_changed():
+	if sleeping and not is_stopped:
+		_on_stopped()
+
 func _on_stopped():
 	if is_stopped: return
 	is_stopped = true
 	
-	if dice_sides >= 20:
-		Engine.time_scale = 0.2
-		await get_tree().create_timer(0.2 * Engine.time_scale).timeout
-		Engine.time_scale = 1.0
-
+	# 물리 연산 중지 및 동적 상태 해제
+	freeze = true
+	sleeping = true
 	linear_velocity = Vector2.ZERO
 	angular_velocity = 0.0
-	freeze = true
 	
-	# [수정] 멈춘 순간 결과값 확정
-	# 기존: 멈추고 나서 랜덤값 생성 -> 눈금 튐 발생
-	# 변경: 결과값은 생성하지만, 시각적 갱신 전에 '굴러가는 모션'을 정지하고 결과 프레임으로 즉시 교체하지 않음
+	# 결과값 확정
 	result_value = randi() % dice_sides + 1
 	
-	# 비주얼 업데이트: 결과값 설정
+	# 디버그 라벨 및 콘솔 출력
+	if _debug_label:
+		_debug_label.text = "Result: %d" % result_value
+	print("[Dice Debug] Sides: D%d, Result: %d, Pos: %s" % [dice_sides, result_value, global_position])
+	
+	# [마감 고도화] 단계별 안착 연출
+	# 1단계: 6프레임(index 5, 잔상)을 아주 짧게(0.06초) 보여주어 '충격' 표현
+	visual.sync_rolling_frame(5, false) 
+	await get_tree().create_timer(0.06).timeout
+	
+	# 2단계: 7프레임(index 6, 결과) 확정
 	visual.current_value = result_value
 	visual._update_number_texture()
+	visual.sync_frame(6)
 	
-	# [중요] '굴러가는 애니메이션' 코루틴이 프레임을 계속 바꾸지 못하게 막아야 함
-	# _animate_rolling 함수 내의 while loop 조건(is_stopped)에 의해 자동으로 멈춤
+	# 3단계: 시각적 정자세 보정 및 스케일 바운스 (착지 타격감 부여)
+	var tween = create_tween().set_parallel(true)
+	tween.set_ease(Tween.EASE_OUT)
+	tween.set_trans(Tween.TRANS_BACK)
 	
-	# 멈춘 후 최종 결과 프레임(보통 6번이나 정면 샷)으로 확실하게 고정
-	visual.sync_frame(6) 
+	# 회전값 보정
+	tween.tween_property(self, "rotation", 0.0, 0.25)
+	# 스케일 팝핑 (퉁~ 하고 튀어오르는 느낌)
+	tween.tween_property(visual, "scale", Vector2(1.2, 1.2), 0.1)
+	tween.chain().tween_property(visual, "scale", Vector2(1.0, 1.0), 0.1)
 	
-	await get_tree().create_timer(0.3).timeout
+	# 크리티컬 연출 (D20 최대값 등)
+	if result_value == dice_sides:
+		_play_critical_effect()
+	
+	await get_tree().create_timer(0.4).timeout
 	stopped.emit(result_value)
 
-func launch(direction: Vector2, power: float):
-	is_stopped = false
-	freeze = false
-	roll_time = 0.0
-	
-	# [수정] 물리 공식 4차 재조정 (입력: 0~100)
-	# 최소 힘(200), 최대 힘(700)으로 더 좁혀서 안정적인 속도 제공
-	var impulse_strength = (power * 5.0) + 200.0
-	var impulse = direction * impulse_strength
-	
-	apply_central_impulse(impulse)
-	apply_torque_impulse(randf_range(-150.0, 150.0))
-	
-	# 비주얼 상태 업데이트 (눈 숨기기 모드 진입)
-	if visual.has_method("set_rolling"):
-		visual.set_rolling(true)
-		
-	_animate_rolling()
-
-func _animate_rolling():
-	# [수정] is_stopped가 true가 되면 루프 즉시 종료
-	while not is_stopped:
-		# 구르는 동안은 비주얼의 구르기 전용 프레임 함수 호출
-		if visual.has_method("sync_rolling_frame"):
-			visual.sync_rolling_frame(randi() % 6)
-		
-		await get_tree().create_timer(randf_range(0.06, 0.12)).timeout
-	
-	# 루프 종료 후에는 _on_stopped에서 최종 정지 프레임 처리
+func _play_critical_effect():
+	# [임시] 향후 파티클이나 화면 진동 추가 가능
+	var tween = create_tween()
+	tween.tween_property(visual, "scale", Vector2(1.3, 1.3), 0.1)
+	tween.tween_property(visual, "scale", Vector2(1.0, 1.0), 0.2)
 
 func _on_input_event(_viewport, event, _shape_idx):
 	if is_stopped and event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:

@@ -33,6 +33,10 @@ func _ready():
 	refresh_ui()
 
 func setup_grid():
+	if not grid_container:
+		print("CustomInventoryGrid: grid_container가 아직 초기화되지 않았습니다.")
+		return
+		
 	# 기존 슬롯 제거
 	for child in grid_container.get_children():
 		child.queue_free()
@@ -47,6 +51,10 @@ func setup_grid():
 	custom_minimum_size = Vector2(inventory_data.size.x * TILE_SIZE, inventory_data.size.y * TILE_SIZE)
 
 func refresh_ui():
+	if not items_container:
+		print("CustomInventoryGrid: items_container가 아직 초기화되지 않았습니다.")
+		return
+		
 	# 기존 아이템 UI 제거
 	for child in items_container.get_children():
 		child.queue_free()
@@ -61,7 +69,10 @@ func refresh_ui():
 func _can_drop_data(at_position, data):
 	if data is Dictionary and data.has("item"):
 		var item = data["item"] as InventoryItem
-		var grid_pos = Vector2i(at_position / TILE_SIZE)
+		var item_size = item.get_size()
+		# [v7.5 정밀 보정] 마우스 위치에서 아이템 크기의 절반을 빼고, 하프 픽셀(0.5)을 더해 정확한 반올림 유도
+		var offset_pos = at_position - (Vector2(item_size) * TILE_SIZE / 2.0)
+		var grid_pos = Vector2i((offset_pos / float(TILE_SIZE)).round())
 		
 		# 상점 내부 이동(정렬) 방지
 		if is_shop and data.get("source_node"):
@@ -71,13 +82,15 @@ func _can_drop_data(at_position, data):
 				if source_grid == self:
 					return false
 		
-		# 자기 자신을 제외하고 해당 위치에 놓을 수 있는지 확인
 		return inventory_data.can_place_item_at(item.id, grid_pos, item.is_rotated, item)
 	return false
 
 func _drop_data(at_position, data):
 	var item = data["item"] as InventoryItem
-	var grid_pos = Vector2i(at_position / TILE_SIZE)
+	var item_size = item.get_size()
+	# [v7.5 정밀 보정]
+	var offset_pos = at_position - (Vector2(item_size) * TILE_SIZE / 2.0)
+	var grid_pos = Vector2i((offset_pos / float(TILE_SIZE)).round())
 	
 	var is_buy_action = false
 	var is_sell_action = false

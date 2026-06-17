@@ -2,9 +2,13 @@
 class_name UIManager
 extends CanvasLayer
 
-enum Screen { NONE, DESTINY_DESIGN, BATTLE_HUD, INVENTORY, DUNGEON_MAP, END_OF_DUNGEON_OPTIONS, LOOT_OFFER }
+func _init():
+	layer = 150 # 다른 모든 UI(100~120)보다 높게 설정
 
-@export var destiny_design_screen_scene: PackedScene
+enum Screen { NONE, GROWTH, CHARACTER_INFO, BATTLE_HUD, INVENTORY, DUNGEON_MAP, END_OF_DUNGEON_OPTIONS, LOOT_OFFER }
+
+@export var growth_screen_scene: PackedScene
+@export var character_info_screen_scene: PackedScene
 @export var inventory_screen_scene: PackedScene
 @export var end_of_dungeon_screen_scene: PackedScene
 @export var loot_offer_screen_scene: PackedScene
@@ -28,7 +32,7 @@ func _ready():
 	
 	if battle_hud:
 		screen_nodes[Screen.BATTLE_HUD] = battle_hud
-		battle_hud.destiny_design_opened.connect(_on_destiny_design_opened)
+		battle_hud.growth_opened.connect(_on_growth_opened)
 		battle_hud.inventory_opened.connect(_on_inventory_opened)
 		battle_hud.map_requested.connect(get_node("/root/MapManager").show_dungeon_map)
 		battle_hud.start_combat_requested.connect(game_manager.handle_start_combat)
@@ -62,24 +66,55 @@ func show_character_info(character: Character):
 func show_screen(screen_type: Screen, instance: Node = null):
 	if current_screen != Screen.NONE and screen_nodes.has(current_screen):
 		var current_screen_node = screen_nodes[current_screen]
-		current_screen_node.visible = false
+		if is_instance_valid(current_screen_node):
+			current_screen_node.visible = false
 		
-		var is_temp = current_screen in [Screen.DUNGEON_MAP, Screen.DESTINY_DESIGN, Screen.END_OF_DUNGEON_OPTIONS, Screen.LOOT_OFFER, Screen.INVENTORY]
+		var is_temp = current_screen in [Screen.DUNGEON_MAP, Screen.GROWTH, Screen.END_OF_DUNGEON_OPTIONS, Screen.LOOT_OFFER, Screen.INVENTORY, Screen.CHARACTER_INFO]
 		if is_temp:
-			current_screen_node.queue_free()
+			if is_instance_valid(current_screen_node):
+				current_screen_node.queue_free()
 			screen_nodes.erase(current_screen)
 
 	current_screen = screen_type
-	if screen_type == Screen.NONE: return
+	if screen_type == Screen.NONE: 
+		# [수정] 아무 화면도 띄우지 않을 때는 기본적으로 BATTLE_HUD를 보여줌 (마을이 아닐 때)
+		if game_manager and game_manager.current_game_phase != GameManager.GamePhase.TOWN:
+			if screen_nodes.has(Screen.BATTLE_HUD):
+				screen_nodes[Screen.BATTLE_HUD].visible = true
+		return
 
 	if not screen_nodes.has(screen_type):
 		var new_screen_instance = instance
 		if not new_screen_instance:
 			match screen_type:
-				Screen.DESTINY_DESIGN:
-					new_screen_instance = destiny_design_screen_scene.instantiate()
-					new_screen_instance.closed.connect(_on_destiny_design_closed)
+				Screen.GROWTH:
+					# [v7.5 수정] 변수명 변경으로 인한 참조 소실 방어 로직
+					if not growth_screen_scene:
+						growth_screen_scene = load("res://ui/screens/DestinyDesignScreen.tscn")
+					
+					if growth_screen_scene:
+						new_screen_instance = growth_screen_scene.instantiate()
+						if new_screen_instance.has_signal("closed"):
+							new_screen_instance.closed.connect(_on_growth_closed)
+					else:
+						printerr("UIManager: GROWTH 화면 씬을 로드할 수 없습니다.")
+						
+				Screen.CHARACTER_INFO:
+					if not character_info_screen_scene:
+						# 아직 생성되지 않은 경우를 대비해 나중에 경로 수정 필요
+						var p = "res://ui/screens/CharacterInfoScreen.tscn"
+						if FileAccess.file_exists(p):
+							character_info_screen_scene = load(p)
+					
+					if character_info_screen_scene:
+						new_screen_instance = character_info_screen_scene.instantiate()
+					else:
+						print("UIManager: CHARACTER_INFO 화면이 아직 구현되지 않았습니다.")
+						
 				Screen.INVENTORY:
+					if not inventory_screen_scene:
+						inventory_screen_scene = load("res://ui/screens/InventoryScreen.tscn")
+					
 					if inventory_screen_scene:
 						new_screen_instance = inventory_screen_scene.instantiate()
 						if is_instance_valid(new_screen_instance) and new_screen_instance.has_signal("inventory_closed"):
@@ -130,18 +165,29 @@ func _on_inventory_closed():
 	else:
 		show_screen(Screen.BATTLE_HUD)
 
-func _on_destiny_design_opened():
-	show_screen(Screen.DESTINY_DESIGN)
+func _on_growth_opened():
+	show_screen(Screen.GROWTH)
 
-func _on_destiny_design_closed():
+func _on_growth_closed():
+	if game_manager.current_game_phase == GameManager.GamePhase.TOWN:
+		show_screen(Screen.NONE)
+	else:
+		show_screen(Screen.BATTLE_HUD)
+
+func _on_character_info_closed():
 	if game_manager.current_game_phase == GameManager.GamePhase.TOWN:
 		show_screen(Screen.NONE)
 	else:
 		show_screen(Screen.BATTLE_HUD)
 
 func _on_loot_offer_closed():
+	var loot_manager = get_node_or_null("/root/LootManager")
+	var is_boss_loot = false
+	if loot_manager:
+		is_boss_loot = loot_manager.get_loot_data().get("is_boss", false)
+	
 	if game_manager.current_game_phase == GameManager.GamePhase.BATTLE_END:
-		if game_manager.current_battle_node_type == "boss":
+		if is_boss_loot:
 			show_screen(Screen.END_OF_DUNGEON_OPTIONS)
 		else:
 			show_screen(Screen.BATTLE_HUD)
